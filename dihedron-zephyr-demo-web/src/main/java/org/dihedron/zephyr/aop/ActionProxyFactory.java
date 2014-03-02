@@ -753,15 +753,7 @@ public class ActionProxyFactory {
         logger.trace("{}-th parameter is annotated with @In('{}')", i, in.value());
         preCode.append("\tvalue = org.dihedron.strutlets.ActionContext.findValueInScopes(\"").append(parameter).append("\", new org.dihedron.strutlets.annotations.Scope[] {");
         boolean first = true;
-        Scope[] scopes = null;
-        if (in.scopes() != null && in.scopes().length > 0) {
-            // TODO: remove when releasing version 1.0.0
-            logger.warn("@In is using deprecated annotation attribute 'scopes', please replace it with 'from'");
-            scopes = in.scopes();
-        } else {
-            scopes = in.from();
-        }
-        for (Scope scope : scopes) {
+        for (Scope scope : in.from()) {
             preCode.append(first ? "" : ", ").append("org.dihedron.strutlets.annotations.Scope.").append(scope.name());
             first = false;
         }
@@ -835,14 +827,7 @@ public class ActionProxyFactory {
         //
         // code executed AFTER the action has returned, to store values into scopes
         //
-        Scope scope = null;
-        if (out.scope() != Scope.NONE) {
-            // TODO: remove when releasing version 1.0.0
-            logger.warn("@Out is using deprecated annotation attribute 'scope', please replace it with 'to'");
-            scope = out.scope();
-        } else {
-            scope = out.to();
-        }
+        Scope scope = out.to();
         postCode.append("\t//\n\t// storing input/output argument '").append(parameter).append("' (no. ").append(i).append(", ").append(Types.getAsString(wrapped)).append(") into scope ").append(scope.name()).append("\n\t//\n");
         postCode.append("\tvalue = ").append(variable).append(".get();\n");
         postCode.append("\tif(value != null) {\n");
@@ -892,15 +877,7 @@ public class ActionProxyFactory {
         logger.trace("{}-th parameter is annotated with @In('{}') and @Out('{}')", i, in.value(), out.value());
         preCode.append("\tvalue = org.dihedron.strutlets.ActionContext.findValueInScopes(\"").append(parameter).append("\", new org.dihedron.strutlets.annotations.Scope[] {");
         boolean first = true;
-        Scope[] scopes = null;
-        if (in.scopes() != null && in.scopes().length > 0) {
-            // TODO: remove when releasing version 1.0.0
-            logger.warn("@In is using deprecated annotation attribute 'scopes', please replace it with 'from'");
-            scopes = in.scopes();
-        } else {
-            scopes = in.from();
-        }
-        for (Scope scope : scopes) {
+        for (Scope scope : in.from()) {
             preCode.append(first ? "" : ", ").append("org.dihedron.strutlets.annotations.Scope.").append(scope.name());
             first = false;
         }
@@ -932,14 +909,7 @@ public class ActionProxyFactory {
         // code executed AFTER the action has returned, to store values into scopes
         //
         parameter = out.value();
-        Scope scope = null;
-        if (out.scope() != Scope.NONE) {
-            // TODO: remove when releasing version 1.0.0
-            logger.warn("@Out is using deprecated annotation attribute 'scope', please replace it with 'to'");
-            scope = out.scope();
-        } else {
-            scope = out.to();
-        }
+        Scope scope = out.to();
         postCode.append("\t//\n\t// storing input/output argument '").append(parameter).append("' (no. ").append(i).append(", ").append(Types.getAsString(wrapped)).append(") into scope ").append(scope.name()).append("\n\t//\n");
         postCode.append("\tvalue = ").append(variable).append(".get();\n");
         postCode.append("\tif(value != null) {\n");
@@ -1230,15 +1200,8 @@ public class ActionProxyFactory {
         //
         // code executed AFTER the action has returned, to store values into scopes
         //
-        Scope scope = null;
+        Scope scope = out.to();
         String parameter = out.value();
-        if (out.scope() != Scope.NONE) {
-            // TODO: remove when releasing version 1.0.0
-            logger.warn("@Out is using deprecated annotation attribute 'scope', please replace it with 'to'");
-            scope = out.scope();
-        } else {
-            scope = out.to();
-        }
         postCode.append("\t//\n\t// storing input/output model argument '").append(parameter).append("' (no. ").append(i).append(", ").append(Types.getAsString(wrapped)).append(") into scope ").append(scope.name()).append("\n\t//\n");
         postCode.append("\tvalue = ").append(variable).append(".get();\n");
         postCode.append("\tif(value != null) {\n");

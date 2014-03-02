@@ -290,7 +290,7 @@ public class ActionController implements Filter {
 		// reliable
 		// way seems to be by stripping the context path from the complete
 		// request URI
-		String pathInfo = request.getRequestURI().substring(contextPath.length() + 1); // srtip the leading '/'
+		String pathInfo = request.getRequestURI().substring(contextPath.length() + 1); // strip the leading '/'
 		String queryString = request.getQueryString();
 
 		String uri = request.getRequestURI();

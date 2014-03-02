@@ -1,20 +1,20 @@
 /**
- * Copyright (c) 2012, 2013, Andrea Funto'. All rights reserved.
+ * Copyright (c) 2014, Andrea Funto'. All rights reserved.
  *
- * This file is part of the Strutlets framework ("Strutlets").
+ * This file is part of the Zephyr framework ("Zephyr").
  *
- * Strutlets is free software: you can redistribute it and/or modify it under 
+ * Zephyr is free software: you can redistribute it and/or modify it under 
  * the terms of the GNU Lesser General Public License as published by the Free 
  * Software Foundation, either version 3 of the License, or (at your option) 
  * any later version.
  *
- * Strutlets is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * Zephyr is distributed in the hope that it will be useful, but WITHOUT ANY 
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR 
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more 
  * details.
  *
  * You should have received a copy of the GNU Lesser General Public License 
- * along with Strutlets. If not, see <http://www.gnu.org/licenses/>.
+ * along with Zephyr. If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -50,13 +50,4 @@ public @interface Out {
      * @return the scope into which to set the parameter.
      */
     Scope to() default Scope.REQUEST;
-
-    /**
-     * The scope into which the parameter should be stored; by default, it is
-     * stored among the render parameters.
-     *
-     * @return the scope into which to set the parameter.
-     * @deprecated as of release 0.60.0, replaced by {@link #to()}
-     */
-    @Deprecated Scope scope() default Scope.NONE;
 }
