@@ -250,7 +250,7 @@ public class ActionController implements Filter {
 
 		// set the root directory for HTML files and JSPs, for auto-configured
 		// annotated actions
-		registry.setHtmlPathInfo(Parameter.JSP_ROOT_PATH.getValueFor(filter), Parameter.JSP_PATH_PATTERN.getValueFor(filter));
+		registry.setJspPathInfo(Parameter.JSP_ROOT_PATH.getValueFor(filter), Parameter.JSP_PATH_PATTERN.getValueFor(filter));
 
 		// pre-scan existing classes and methods in the default actions package
 		TargetFactory loader = new TargetFactory();
@@ -274,8 +274,7 @@ public class ActionController implements Filter {
 			}
 		} else {
 			logger.error("no Java packages specified for actions: check parameter '{}'", Parameter.ACTIONS_JAVA_PACKAGES.getName());
-			throw new DeploymentException("No Java package specified for actions: check parameter '" + Parameter.ACTIONS_JAVA_PACKAGES.getName()
-					+ "'");
+			throw new DeploymentException("No Java package specified for actions: check parameter '" + Parameter.ACTIONS_JAVA_PACKAGES.getName() + "'");
 		}
 		logger.trace("actions configuration:\n{}", registry.toString());
 	}
@@ -298,7 +297,7 @@ public class ActionController implements Filter {
 
 		logger.trace("servicing request for '{}' (query string: '{}', context path: '{}', request URI: '{}')...", pathInfo, queryString, contextPath, uri);
 
-		if (TargetId.isValidTarget(pathInfo)) {
+		if (TargetId.isValidTargetId(pathInfo)) {
 			PrintWriter writer = new PrintWriter(response.getWriter());
 			writer.println("<html><head><title>Zephyr</title></head>");
 			writer.println("<body>");

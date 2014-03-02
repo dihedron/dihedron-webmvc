@@ -43,14 +43,14 @@ public class TargetId {
 	/**
 	 * Checks whether the given string represents a valid target specification.
 	 * 
-	 * @param string
-	 *   a string to be checked for compliance with target specifications; valid 
-	 *   targets specifications are in the form "MyAction!myMethod".
+	 * @param targetId
+	 *   a string to be checked for compliance with target id specifications; 
+	 *   valid target identifiers are in the form "MyAction!myMethod".
 	 * @return 
-	 *   whether the given string complies with a target specification.
+	 *   whether the given string is a viable representation of a target id.
 	 */
-	public static boolean isValidTarget(String string) {
-		return Strings.isValid(string) && REGEX.matches(string);
+	public static boolean isValidTargetId(String targetId) {
+		return Strings.isValid(targetId) && REGEX.matches(targetId);
 	}
 
 	/**
@@ -67,16 +67,16 @@ public class TargetId {
 	/**
 	 * Constructor.
 	 * 
-	 * @param target
+	 * @param targetId
 	 *   a string representing the target identifier, with or without the method 
 	 *   name; if no method is specified, the default method ("execute") is 
 	 *   automatically selected. This parameter must not be null or blank.
 	 * @throws ZephyrException
 	 *   if the target id is blank or null.
 	 */
-	public TargetId(String target) throws ZephyrException {
-		this.actionName = getActionName(target);
-		this.methodName = getMethodName(target);
+	public TargetId(String targetId) throws ZephyrException {
+		this.actionName = getActionName(targetId);
+		this.methodName = getMethodName(targetId);
 	}
 
 	/**
@@ -109,17 +109,19 @@ public class TargetId {
 	 * </ol>.
 	 * 
 	 * @param action
-	 *   the action class.
+	 *   the action class; if its {@code &at;Action} annotation contains an alias,
+	 *   that one is used as the action component of the target identifier,
+	 *   otherwise the simple name of the class will be assumed.  
 	 * @param method
-	 *   the action method.
+	 *   the business method.
 	 */
 	public TargetId(Class<?> action, Method method) {
 		Action annotation = action.getAnnotation(Action.class);
 		if (Strings.isValid(annotation.alias())) {
-			logger.trace("getting target 'class' component for '{}' from alias in annotation: '{}'", action.getSimpleName(), annotation.alias());
+			logger.trace("getting target 'action' component for '{}' from alias in annotation: '{}'", action.getSimpleName(), annotation.alias());
 			this.actionName = annotation.alias();
 		} else {
-			logger.trace("getting target 'class' component from class name: '{}'", action.getSimpleName());
+			logger.trace("getting target 'action' component from class name: '{}'", action.getSimpleName());
 			this.actionName = action.getSimpleName();
 		}
 		this.methodName = method.getName();
@@ -204,24 +206,24 @@ public class TargetId {
 	private static final Regex REGEX = new Regex("^\\s*([A-Z]{1,}[a-zA-Z0-9]*)(?:\\s*!\\s*([a-z]{1,}[a-zA-Z0-9]{1,})){0,1}\\s*$");
 
 	/**
-	 * Given the target specification in the &lt;action&gt;!&lt;methodName&gt;
+	 * Given the target id specification in the &lt;action&gt;!&lt;methodName&gt;
 	 * form (e.g. "MyAction!myMethod", where the methodName part is optional),
 	 * returns the name of the action ("MyAction" in the above example).
 	 * 
-	 * @param target
-	 *   the target specification, including the method name or not.
+	 * @param targetId
+	 *   the target id specification, including the method name or not.
 	 * @return 
-	 *   the action name.
+	 *   the part of the name representing the action name.
 	 * @throws ZephyrException
 	 *   if the target is a null or blank string.
 	 */
-	private static String getActionName(String target) throws ZephyrException {
+	private static String getActionName(String targetId) throws ZephyrException {
 		String actionName = null;
-		if (Strings.isValid(target)) {
-			if (target.contains(METHOD_SEPARATOR)) {
-				actionName = target.substring(0, target.indexOf(METHOD_SEPARATOR)).trim();
+		if (Strings.isValid(targetId)) {
+			if (targetId.contains(METHOD_SEPARATOR)) {
+				actionName = targetId.substring(0, targetId.indexOf(METHOD_SEPARATOR)).trim();
 			} else {
-				actionName = target.trim();
+				actionName = targetId.trim();
 			}
 			logger.trace("action name: '{}'", actionName);
 			return actionName;
@@ -236,15 +238,18 @@ public class TargetId {
 	 * ("myMethod" in the above example); if the name of the methodName is
 	 * empty, it returns the default methodName ("execute").
 	 * 
-	 * @param target
-	 *   the action target specification, including the methodName.
+	 * @param targetId
+	 *   the action target id specification; this may or may not include the
+	 *   method name, and in the latter case the default method name ("execute")
+	 *   is returned.
 	 * @return 
-	 *   the methodName name, or null if the target is incomplete.
+	 *   the method name, or the default method name ("execute") if the target 
+	 *   id does not contain an explicit indication of the method name.
 	 */
-	private static String getMethodName(String target) {
+	private static String getMethodName(String targetId) {
 		String methodName = null;
-		if (Strings.isValid(target) && target.contains(METHOD_SEPARATOR)) {
-			methodName = target.substring(target.indexOf(METHOD_SEPARATOR) + 1).trim();
+		if (Strings.isValid(targetId) && targetId.contains(METHOD_SEPARATOR)) {
+			methodName = targetId.substring(targetId.indexOf(METHOD_SEPARATOR) + 1).trim();
 		}
 		if (!Strings.isValid(methodName)) {
 			methodName = DEFAULT_METHOD_NAME;

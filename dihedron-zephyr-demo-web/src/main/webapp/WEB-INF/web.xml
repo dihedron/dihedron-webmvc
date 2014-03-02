@@ -9,7 +9,7 @@
         <filter-class>org.dihedron.zephyr.ActionController</filter-class>
         <init-param>
             <param-name>zephyr:actions-packages</param-name>
-            <param-value>org.example.demo.part1.actions,org.example.demo.part2.actions</param-value>
+            <param-value>org.example.demo.part1.actions,org.example.demo.part2.actions,org.example.demo.part1.actions</param-value>
         </init-param>
 
         <init-param>

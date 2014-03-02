@@ -28,12 +28,12 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Andrea Funto'
  */
-@Action
-public class MyFirstAction {
+@Action(alias="MyPublicAction")
+public class MyPrivateActionImpl {
 	/**
 	 * The logger.
 	 */
-	private static final Logger logger = LoggerFactory.getLogger(MyFirstAction.class);
+	private static final Logger logger = LoggerFactory.getLogger(MyPrivateActionImpl.class);
 
 	@Invocable(
 		results =  {

@@ -56,14 +56,18 @@ public class Target {
     private Class<?> action;
 
     /**
-     * The method that implements the target's business logic.
-     */
-    private Method factory;
-
-    /**
-     * The method that implements the target's business logic.
+     * The method that implements the target's business logic; this method is not 
+     * directly invoked, it will be invoked by the proxy method instead, through
+     * generated code.
      */
     private Method method;
+    
+    /**
+     * The method that creates an instance of the proxy class capable of invoking 
+     * the business method after having performed all the necessary parameters
+     * unmarshalling and injection. 
+     */
+    private Method stubFactory;
 
     /**
      * The static proxy method that collects parameters from the various scopes
@@ -71,12 +75,12 @@ public class Target {
      * implementation is provided as a stub by the framework, by inspecting the
      * action at bootstrap time and generating bytecode dynamically.
      */
-    private Method proxy;
+    private Method stubMethod;
 
     /**
      * The pattern used to create JSP URLs.
      */
-    private String jspUrlPattern = TargetRegistry.DEFAULT_HTML_PATH_PATTERN;
+    private String jspUrlPattern = TargetRegistry.DEFAULT_JSP_PATH_PATTERN;
 
     /**
      * The name of the interceptor stack to be used with this action.
@@ -91,8 +95,9 @@ public class Target {
     /**
      * Constructor.
      *
-     * @param id a reference to the unique identifier of the target whose data are held
-     *           by this instance.
+     * @param id 
+     *   a reference to the unique identifier of the target whose data are held
+     *   by this instance.
      */
     public Target(TargetId id) {
         this.id = id;
@@ -101,7 +106,8 @@ public class Target {
     /**
      * Returns the id of the target.
      *
-     * @return the id of the target.
+     * @return 
+     *   the id of the target.
      */
     public TargetId getId() {
         return id;
@@ -111,8 +117,9 @@ public class Target {
      * Returns the class object containing the executable code of this target's
      * business logic.
      *
-     * @return the class object containing the executable code of this target's
-     * business logic.
+     * @return 
+     *   the class object containing the executable code of this target's
+     *   business logic.
      */
     public Class<?> getActionClass() {
         return this.action;
@@ -122,65 +129,84 @@ public class Target {
      * Sets the class object containing the executable code of this target's
      * business logic.
      *
-     * @param action the class object containing the executable code of this target's
-     *               business logic.
-     * @return the object itself, for method chaining.
+     * @param action 
+     *   the class object containing the executable code of this target's
+     *   business logic.
+     * @return 
+     *   the object itself, for method chaining.
      */
     public Target setActionClass(Class<?> action) {
         this.action = action;
         return this;
     }
-
+    
     /**
-     * Returns the reference to the factory method capable of allocating and
-     * instance of the AbstractAction class implementing this target.
+     * Returns the reference to method implementing this target's business logic;
+     * this method will never be invoked directly, the framework will always go
+     * through the stub that provides parameters marshalling/unmarshalling, 
+     * validation in a non-reflective fashion. 
      *
-     * @return the reference to the containing action's factory method.
-     */
-    public Method getFactoryMethod() {
-        return this.factory;
-    }
-
-    /**
-     * Sets the reference to the factory method capable of allocating and
-     * instance of the AbstractAction class implementing this target.
-     *
-     * @param method the reference to the containing action's factory method.
-     * @return the object itself, for method chaining.
-     */
-    public Target setFactoryMethod(Method method) {
-        this.factory = method;
-        return this;
-    }
-
-    /**
-     * Returns the reference to method implementing this target's business logic.
-     *
-     * @return the reference to the method implementing this target's business logic.
+     * @return 
+     *   the reference to the user-provided method implementing this target's 
+     *   business logic.
      */
     public Method getActionMethod() {
         return this.method;
     }
 
     /**
-     * Sets the reference to the method implementing this target's business logic.
+     * Sets the reference to the user-provided method implementing this target's 
+     * business logic.
      *
-     * @param method the reference to the method implementing this target's business logic.
-     * @return the object itself, for method chaining.
+     * @param method 
+     *   the reference to the method implementing this target's business logic.
+     * @return 
+     *   the object itself, for method chaining.
      */
     public Target setActionMethod(Method method) {
         this.method = method;
         return this;
+    }    
+
+    /**
+     * Returns the reference to the factory method capable of allocating an
+     * instance of the concrete user-provided class implementing the actual 
+     * business logic.
+     *
+     * @return 
+     *   the reference to the factory method that's used to instantiate the
+     *   stub class.
+     */
+    public Method getStubFactoryMethod() {
+        return this.stubFactory;
     }
 
     /**
-     * Returns the static, framework-generated proxy method for the action's
+     * Sets the reference to the factory method capable of allocating an
+     * instance of the stub class that is able to invoke the actual business
+     * logic method after having perrfomed its unmarshalling and validation, and 
+     * to perform final validation and marshalling once the business method is 
+     * done.
+     *
+     * @param method 
+     *   the reference to the stub factory method.
+     * @return 
+     *   the object itself, for method chaining.
+     */
+    public Target setStubFactoryMethod(Method method) {
+        this.stubFactory = method;
+        return this;
+    }
+
+    /**
+     * Returns the static, framework-generated stub method for the action's
      * business logic method.
      *
-     * @return the static proxy method.
+     * @return 
+     *   the static stub method.
      */
     public Method getProxyMethod() {
-        return this.proxy;
+        return this.stubMethod;
     }
 
     /**
@@ -191,7 +217,7 @@ public class Target {
      * @return the object itself, for metod chaining.
      */
     public Target setProxyMethod(Method proxy) {
-        this.proxy = proxy;
+        this.stubMethod = proxy;
         return this;
     }
 
@@ -311,7 +337,7 @@ public class Target {
         buffer.append("target('").append(id.toString()).append("') {\n");
         buffer.append("  action      ('").append(id.getActionName()).append("')\n");
         buffer.append("  method      ('").append(id.getMethodName()).append("')\n");
-        buffer.append("  proxy       ('").append(proxy.getName()).append("')\n");
+        buffer.append("  proxy       ('").append(stubMethod.getName()).append("')\n");
         buffer.append("  url pattern ('").append(this.getJspUrlPattern()).append("')\n");
         buffer.append("  stack       ('").append(interceptors).append("')\n");
         buffer.append("  javaclass   ('").append(action.getCanonicalName()).append("')\n");
