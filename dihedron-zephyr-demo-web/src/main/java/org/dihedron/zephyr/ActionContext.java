@@ -19,6 +19,17 @@
 
 package org.dihedron.zephyr;
 
+import java.security.Principal;
+import java.util.Enumeration;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.servlet.FilterConfig;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.dihedron.commons.properties.Properties;
+import org.dihedron.zephyr.webserver.WebServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,581 +122,231 @@ public class ActionContext {
 //	
 //	protected static final String INTERCEPTOR_DATA_KEY = "org.dihedron.strutlets.interceptor_data"; 
 //	
-//	/**
-//	 * The per-thread instance.
-//	 */
-//	private static ThreadLocal<ActionContext> context = new ThreadLocal<ActionContext>() {
-//		@Override protected ActionContext initialValue() {
-//			logger.debug("creating action context instance for thread {}", Thread.currentThread().getId());
-//			return new ActionContext();
-//		}		
-//	};
-//	
-//	/**
-//	 * The action controller portlet.
-//	 */
-//	private GenericPortlet portlet;
-//
-//	/**
-//	 * The portlet request (it might be an <code>ActionRequest</code>, a 
-//	 * <code>RenderRequest</code> or an <code>EventRequest</code>, depending on
-//	 * the lifecycle and the phase).
-//	 */
-//	private PortletRequest request;
-//	
-//	/**
-//	 * The portlet response (it might be an <code>ActionResponse</code>, a 
-//	 * <code>RenderResponse</code> or an <code>EventResponse</code>, depending on
-//	 * the lifecycle and the phase).
-//	 */
-//	private PortletResponse response;
-//	
-//	/**
-//	 * The actions' configuration; this map is read only and it's loaded at startup 
-//	 * if the URL of a properties file is provided in the portlet.xml.
-//	 */
-//	private Properties configuration;
-//	
-//	/**
-//	 * A reference to the <code>ApplicationServer</code> plug-in; this is useful if
-//	 * the portlets need to exploitm application.server specific APIs.
-//	 */
-//	private ApplicationServer server = null;
-//	
-//	/**
-//	 * A reference to the <code> PortalServer</code> plug-in, if available; 
-//	 * this is useful if the portlets want to use portal-server-specific APIs.
-//	 */
-//	private PortalServer portal = null;
-//	
-//	/**
-//	 * This boolean value is used to keep track of changes to the render parameters,
-//	 * since a redirect can only be issued in action phase if no render parameters
-//	 * were changed. This flag is updated if and only if the render parameters are
-//	 * set through the <code>ActionContext</code>. 
-//	 */
-//	private boolean renderParametersChanged = false;
-//		
-//	/**
-//	 * Retrieves the per-thread instance.
-//	 * 
-//	 * @return
-//	 *   the per-thread instance.
-//	 */
-//	private static ActionContext getContext() {
-//		return context.get();
-//	} 
-//				
-//	/**
-//	 * Initialise the attributes map used to emulate the per-request attributes;
-//	 * this map will simulate action-scoped request parameters, and will be populated 
-//	 * with attributes that must be visible to all the render, serve resource and 
-//	 * event handling requests coming after an action processing request. These 
-//	 * parameters will be reset by the <code>ActionController</code>as soon as a 
-//	 * new action processing request comes. 
-//	 * 
-//	 * @param response
-//	 *   the portlet response.
-//	 * @param invocation
-//	 *   the optional <code>ActionInvocation</code> object, only available in the
-//	 *   context of an action or event processing, not in the render phase.
-//	 */
-//	static void bindContext(GenericPortlet portlet, PortletRequest request, PortletResponse response, Properties configuration, ApplicationServer server, PortalServer portal) {
-//		
-//		logger.debug("initialising the action context for thread {}", Thread.currentThread().getId());
-//		
-//		getContext().portlet = portlet;
-//		getContext().request = request;
-//		getContext().response = response;
-//		getContext().configuration = configuration;
-//		getContext().server = server;
-//		getContext().portal = portal;
-//		getContext().renderParametersChanged = false;
-//
-//		// check if a map for REQUEST-scoped attributes is already available in
-//		// the PORTLET, if not instantiate it and load it into PORTLET scope
-//		PortletSession session = request.getPortletSession();
-//		@SuppressWarnings("unchecked")
-//		Map<String, Object> map = (Map<String, Object>)session.getAttribute(getRequestScopedAttributesKey(), PortletSession.PORTLET_SCOPE);
-//		if(map == null) {
-//			logger.trace("installing REQUEST scoped attributes map into PORTLET scope");
-//			session.setAttribute(getRequestScopedAttributesKey(), new HashMap<String, Object>(), PortletSession.PORTLET_SCOPE);			
-//		}
-//	}
-//	
-//	/**
-//	 * Cleans up the internal status of the <code>ActionContextImpl</code> in order to
-//	 * avoid memory leaks due to persisting portal objects stored in the per-thread
-//	 * local storage; afterwards it removes the thread local entry altogether, so
-//	 * the application server does not complain about left-over data in TLS when
-//	 * re-deploying the portlet.
-//	 */	
-//	static void unbindContext() {
-//		logger.debug("removing action context for thread {}", Thread.currentThread().getId());
-//		getContext().request = null;
-//		getContext().response = null;
-//		getContext().portlet = null;
-//		getContext().configuration = null;
-//		getContext().server = null;
-//		getContext().portal = null;
-//		context.remove();
-//	}
-//	
-//	/**
-//	 * Returns a reference to the current portal-server-specific plug-in, if 
-//	 * available. If no plug-in was loaded, returns null.
-//	 * 
-//	 * @return
-//	 *   a reference to the current portal-server-specific plug-in.
-//	 */
-//	public static PortalServer getPortalServer() {
-//		return getContext().portal;
-//	}
-//	
-//	/**
-//	 * Returns a reference to the current application-server-specific plug-in, if 
-//	 * available. If no plug-in was loaded, returns null.
-//	 * 
-//	 * @return
-//	 *   a reference to the current application-server-specific plug-in.
-//	 */
-//	public static ApplicationServer getApplicationServer() {
-//		return getContext().server;
-//	}	
-//	
-//	/**
-//	 * Returns the current phase of the action request lifecycle.
-//	 * 
-//	 * @return
-//	 *   the current phase of the action request lifecycle.
-//	 */
-//	public static Phase getCurrentPhase() {
-//		String currentPhase = (String)getContext().request.getAttribute(PortletRequest.LIFECYCLE_PHASE);
-//		return Phase.fromString(currentPhase);
-//	}
-//	
-//	/**
-//	 * Returns whether the portlet is currently in the action phase.
-//	 * 
-//	 * @return
-//	 *   whether the portlet is currently in the action phase.
-//	 */
-//	public static boolean isActionPhase() {
-//		return getContext().request.getAttribute(PortletRequest.LIFECYCLE_PHASE).equals(PortletRequest.ACTION_PHASE);
-//	}
-//
-//	/**
-//	 * Returns whether the portlet is currently in the event phase.
-//	 * 
-//	 * @return
-//	 *   whether the portlet is currently in the event phase.
-//	 */
-//	public static boolean isEventPhase() {
-//		return getContext().request.getAttribute(PortletRequest.LIFECYCLE_PHASE).equals(PortletRequest.EVENT_PHASE);
-//	}
-//	
-//	/**
-//	 * Returns whether the portlet is currently in the resource phase.
-//	 * 
-//	 * @return
-//	 *   whether the portlet is currently in the resource phase.
-//	 */
-//	public static boolean isResourcePhase() {
-//		return getContext().request.getAttribute(PortletRequest.LIFECYCLE_PHASE).equals(PortletRequest.RESOURCE_PHASE);
-//	}
-//
-//	/**
-//	 * Returns whether the portlet is currently in the render phase.
-//	 * 
-//	 * @return
-//	 *   whether the portlet is currently in the render phase.
-//	 */
-//	public static boolean isRenderPhase() {
-//		return getContext().request.getAttribute(PortletRequest.LIFECYCLE_PHASE).equals(PortletRequest.RENDER_PHASE);
-//	}
-//	
-//	/**
-//	 * Returns the current portlet's name.
-//	 * 
-//	 * @return
-//	 *   the current portlet's name.
-//	 */
-//	public static String getPortletName() {
-//		return getContext().portlet.getPortletName();
-//	}
-//	
-//	/**
-//	 * Returns the portlet namespace; this value can be prefixed to DOM elements 
-//	 * and Javascript functions.
-//	 * 
-//	 * @return
-//	 *   the portlet namespace.
-//	 */
-//	public static String getPortletNamespace() {
-//		return getContext().response.getNamespace();
-//	}
-//	
-//	/**
-//	 * Returns the value of the given portlet's initialisation parameter.
-//	 * 
-//	 * @param name
-//	 *  the name of the parameter.
-//	 * @return
-//	 *   the value of the given portlet's initialisation parameter.
-//	 */
-//	public static String getPortletInitialisationParameter(String name) {
-//		return getContext().portlet.getInitParameter(name);
-//	}
-//	
-//	/**
-//	 * Factory method: creates a new Action URL. NOTE: this method returns a 
-//	 * valid result only when called in the render phase, otherwise it returns 
-//	 * null.
-//	 *  
-//	 * @return
-//	 *   returns a new Action URL if invoked in the render phase, returns null 
-//	 *   otherwise.
-//	 */
-//	public static PortletURL createActionURL() {
-//		if(getContext().response instanceof RenderResponse) {
-//			return ((RenderResponse)getContext().response).createActionURL();
-//		}
-//		return null;
-//	}
-//	
-//	/**
-//	 * Factory method: creates a new Render URL. NOTE: this method returns a 
-//	 * valid result only when called in the render phase, otherwise it returns 
-//	 * null.
-//	 *  
-//	 * @return
-//	 *   returns a new Render URL if invoked in the render phase, returns null 
-//	 *   otherwise.
-//	 */
-//	public static PortletURL createRenderURL() {
-//		if(getContext().response instanceof RenderResponse) {
-//			return ((RenderResponse)getContext().response).createRenderURL();
-//		}
-//		return null;
-//	}
-//	
-//	/**
-//	 * Factory method: creates a new Resource URL. NOTE: this method returns a 
-//	 * valid result only when called in the render phase, otherwise it returns 
-//	 * null.
-//	 *  
-//	 * @return
-//	 *   returns a new Resource URL if invoked in the render phase, returns null 
-//	 *   otherwise.
-//	 */
-//	public static ResourceURL createResourceURL() {
-//		if(getContext().response instanceof RenderResponse) {
-//			return ((RenderResponse)getContext().response).createResourceURL();
-//		}
-//		return null;
-//	}
-//	
-//	
-//	// TODO: get other stuff from portlet.xml and web.xml
-//	// PortletContext and PorteltConfig (see Ashish Sarin pages 119-120)
-//	
-//	/**
-//	 * In case of an <code>EventRequest</code>, returns the name of the event.
-//	 * 
-//	 * @return
-//	 *   the name of the event.
-//	 * @throws InvalidPhaseException
-//	 *   if invoked out of the "event" phase. 
-//	 */
-//	public static String getEventName() throws InvalidPhaseException {
-//		Event event = getEvent();
-//		if(event != null) {
-//			return event.getName();
-//		}
-//		return null;
-//	}
-//
-//	/**
-//	 * In case of an <code>EventRequest</code>, returns the <code>QName</code>
-//	 * of the event.
-//	 * 
-//	 * @return
-//	 *   the <code>QName</code> of the event.
-//	 * @throws InvalidPhaseException
-//	 *   if invoked out of the "event" phase. 
-//	 */
-//	public static QName getEventQName() throws InvalidPhaseException {
-//		Event event = getEvent();
-//		if(event != null) {
-//			return event.getQName();
-//		}
-//		return null;
-//	}
-//	
-//	/**
-//	 * In case of an <code>EventRequest</code>, returns the serializable payload
-//	 * of the event.
-//	 * 
-//	 * @return
-//	 *   the serializable payload of the event.
-//	 * @throws InvalidPhaseException
-//	 *   if invoked out of the "event" phase. 
-//	 */
-//	public static Serializable getEventPayload() throws InvalidPhaseException {
-//		Event event = getEvent();
-//		if(event != null) {
-//			return event.getValue();
-//		}
-//		return null;		
-//	}
-//	
-//	/**
-//	 * Fires an event, for inter-portlet communication.
-//	 * 
-//	 * @param name
-//	 *   the fully-qualified name of the event.
-//	 * @param payload
-//	 *   the event payload, as a serialisable object.
-//	 * @throws InvalidPhaseException
-//	 *   if the operation is attempted while in the render phase. 
-//	 */
-//	public static void fireEvent(String name, Serializable payload) throws InvalidPhaseException {
-//		if(isActionPhase() || isEventPhase()) {
-//			((StateAwareResponse)getContext().response).setEvent(name, payload);
-//		} else {
-//			logger.error("trying to fire an event in the render phase");
-//			throw new InvalidPhaseException("Events cannot be fired in the render phase.");
-//		}
-//	}
-//	
-//	/**
-//	 * Fires an event, for inter-portlet communication.
-//	 * 
-//	 * @param name
-//	 *   the name of the event.
-//	 * @param namespace
-//	 *   the event namespace.
-//	 * @param payload
-//	 *   the event payload, as a serialisable object.
-//	 * @throws InvalidPhaseException
-//	 *   if the operation is attempted while in the render phase. 
-//	 */
-//	public static void fireEvent(String name, String namespace, Serializable payload) throws InvalidPhaseException {
-//		QName qname = new QName(namespace, name);
-//		fireEvent(qname,  payload);
-//	}
-//	
-//	/**
-//	 * Fires an event, for inter-portlet communication.
-//	 * 
-//	 * @param qname 
-//	 *   an object representing the fully-qualified name of the event.
-//	 * @param payload
-//	 *   the event payload, as a serialisable object.
-//	 * @throws InvalidPhaseException
-//	 *   if the operation is attempted while in the render phase. 
-//	 */
-//	public static void fireEvent(QName qname, Serializable payload) throws InvalidPhaseException {
-//		if(isActionPhase() || isEventPhase()) {
-//			((StateAwareResponse)getContext().response).setEvent(qname, payload);
-//		} else {
-//			logger.error("trying to fire an event in the render phase");
-//			throw new InvalidPhaseException("Events cannot be fired in the render phase.");
-//		}
-//	}
-//	
-//	/**
-//	 * Returns a string representing the authentication type.
-//	 * 
-//	 * @return
-//	 *   a string representing the authentication type.
-//	 */
-//	public static String getAuthType() {
-//		return getContext().request.getAuthType();
-//	}
-//	
-//	/**
-//	 * Checks whether the client request came through a secured connection.
-//	 * 
-//	 * @return
-//	 *   whether the client request came through a secured connection.
-//	 */
-//	public static boolean isSecure() {
-//		return getContext().request.isSecure();
-//	}
-//	
-//	/**
-//	 * Returns the name of the remote authenticated user.
-//	 * 
-//	 * @return
-//	 *   the name of the remote authenticated user.
-//	 */
-//	public static String getRemoteUser() {
-//		return getContext().request.getRemoteUser();
-//	}
-//
-//	/**
-//	 * Returns the user principal associated with the request.
-//	 * 
-//	 * @return
-//	 *   the user principal.
-//	 */
-//	public static Principal getUserPrincipal() {
-//		return getContext().request.getUserPrincipal();
-//	}
-//
-//	/**
-//	 * Checks whether the user has the given role. 
-//	 * 
-//	 * @param role
-//	 *   the name of the role
-//	 * @return
-//	 *   whether the user has the given role.
-//	 */
-//	public static boolean isUserInRole(String role) {
-//		return getContext().request.isUserInRole(role);
-//	}
-//	
-//	/**
-//	 * Returns the locale associated with the user's request.
-//	 * 
-//	 * @return
-//	 *   the request locale.
-//	 */
-//	public static Locale getLocale() {
-//		return getContext().request.getLocale();
-//	}
-//	
-//	/**
-//	 * Returns an Enumeration of Locale objects indicating, in decreasing order 
-//	 * starting with the preferred locale in which the portal will accept content 
-//	 * for this request. The Locales may be based on the Accept-Language header of the client.
-//	 *
-//	 * @return
-//	 *   an Enumeration of Locales, in decreasing order, in which the portal will 
-//	 *   accept content for this request
-//	 */	
-//	public static Enumeration<Locale> getLocales(){
-//		return getContext().request.getLocales();
-//	}
-//	
-//	/**
-//	 * Returns the set of available information for the current user as per the
-//	 * portlet's configuration in portlet.xml.
-//	 * 
-//	 * In order to have user information available in the portlet, the portlet.xml
-//	 * must include the following lines after all the portlets have been defined:
-//	 * <pre>
-//	 *   &lt;portlet-app ...&gt;
-//	 *     &lt;portlet&gt;
-//	 *     &lt;portlet-name&gt;MyPortlet&lt;/portlet-name&gt;
-//	 *       ...
-//	 *     &lt;/portlet&gt;
-//	 *     ...
-//	 *     &lt;user-attribute&gt;
-//	 *       &lt;description&gt;User First Name&lt;/description&gt;
-//	 *       &lt;name&gt;user.name.given&lt;/name&gt;
-//	 *     &lt;/user-attribute&gt;
-//	 *     &lt;user-attribute&gt;
-//	 *       &lt;description&gt;User Last Name&lt;/description&gt;
-//	 *       &lt;name&gt;user.name.family&lt;/name&gt;
-//	 *     &lt;/user-attribute&gt;
-//	 *   &lt;/portlet-app&gt;
-//	 * </pre>
-//	 * where {@code user.name.given} and {@code user.name.family} are two of the
-//	 * possible values; the following is a pretty complete list of acceptable 
-//	 * values:<ul>
-//	 *   <li>user.bdate</li>
-//	 *   <li>user.gender</li>
-//	 *   <li>user.employer</li>
-//	 *   <li>user.department</li>
-//	 *   <li>user.jobtitle</li>
-//	 *   <li>user.name.prefix</li>
-//	 *   <li>user.name.given</li>
-//	 *   <li>user.name.family</li>
-//	 *   <li>user.name.middle</li>
-//	 *   <li>user.name.suffix</li>
-//	 *   <li>user.name.nickName</li>
-//	 *   <li>user.home-info.postal.name</li>
-//	 *   <li>user.home-info.postal.street</li>
-//	 *   <li>user.home-info.postal.city</li>
-//	 *   <li>user.home-info.postal.stateprov</li>
-//	 *   <li>user.home-info.postal.postalcode</li>
-//	 *   <li>user.home-info.postal.country</li>
-//	 *   <li>user.home-info.postal.organization</li>
-//	 *   <li>user.home-info.telecom.telephone.intcode</li>
-//	 *   <li>user.home-info.telecom.telephone.loccode</li>
-//	 *   <li>user.home-info.telecom.telephone.number</li>
-//	 *   <li>user.home-info.telecom.telephone.ext</li>
-//	 *   <li>user.home-info.telecom.telephone.comment</li>
-//	 *   <li>user.home-info.telecom.fax.intcode</li>
-//	 *   <li>user.home-info.telecom.fax.loccode</li>
-//	 *   <li>user.home-info.telecom.fax.number</li>
-//	 *   <li>user.home-info.telecom.fax.ext</li>
-//	 *   <li>user.home-info.telecom.fax.comment</li>
-//	 *   <li>user.home-info.telecom.mobile.intcode</li>
-//	 *   <li>user.home-info.telecom.mobile.loccode</li>
-//	 *   <li>user.home-info.telecom.mobile.number</li>
-//	 *   <li>user.home-info.telecom.mobile.ext</li>
-//	 *   <li>user.home-info.telecom.mobile.comment</li>
-//	 *   <li>user.home-info.telecom.pager.intcode</li>
-//	 *   <li>user.home-info.telecom.pager.loccode</li>
-//	 *   <li>user.home-info.telecom.pager.number</li>
-//	 *   <li>user.home-info.telecom.pager.ext</li>
-//	 *   <li>user.home-info.telecom.pager.comment</li>
-//	 *   <li>user.home-info.online.email</li>
-//	 *   <li>user.home-info.online.uri</li>
-//	 *   <li>user.business-info.postal.name</li>
-//	 *   <li>user.business-info.postal.street</li>
-//	 *   <li>user.business-info.postal.city</li>
-//	 *   <li>user.business-info.postal.stateprov</li>
-//	 *   <li>user.business-info.postal.postalcode</li>
-//	 *   <li>user.business-info.postal.country</li>
-//	 *   <li>user.business-info.postal.organization</li>
-//	 *   <li>user.business-info.telecom.telephone.intcode</li>
-//	 *   <li>user.business-info.telecom.telephone.loccode</li>
-//	 *   <li>user.business-info.telecom.telephone.number</li>
-//	 *   <li>user.business-info.telecom.telephone.ext</li>
-//	 *   <li>user.business-info.telecom.telephone.comment</li>
-//	 *   <li>user.business-info.telecom.fax.intcode</li>
-//	 *   <li>user.business-info.telecom.fax.loccode</li>
-//	 *   <li>user.business-info.telecom.fax.number</li>
-//	 *   <li>user.business-info.telecom.fax.ext</li>
-//	 *   <li>user.business-info.telecom.fax.comment</li>
-//	 *   <li>user.business-info.telecom.mobile.intcode</li>
-//	 *   <li>user.business-info.telecom.mobile.loccode</li>
-//	 *   <li>user.business-info.telecom.mobile.number</li>
-//	 *   <li>user.business-info.telecom.mobile.ext</li>
-//	 *   <li>user.business-info.telecom.mobile.comment</li>
-//	 *   <li>user.business-info.telecom.pager.intcode</li>
-//	 *   <li>user.business-info.telecom.pager.loccode</li>
-//	 *   <li>user.business-info.telecom.pager.number</li>
-//	 *   <li>user.business-info.telecom.pager.ext</li>
-//	 *   <li>user.business-info.telecom.pager.comment</li>
-//	 *   <li>user.business-info.online.email</li>
-//	 *   <li>user.business-info.online.uri</li>
-//	 * </ul>
-//	 *     
-//	 * @return
-//	 *   a map representing the user information available to the portlets in 
-//	 *   the current application. 
-//	 */
-//	@SuppressWarnings("unchecked")
-//	public static Map<String, Object> getUserInformation() {
-//		return (Map<String, Object>)getContext().request.getAttribute(PortletRequest.USER_INFO);		
-//	}
-//	
-//	/**
-//	 * Returns the current portal context, containing information about the 
-//	 * current portal server.
-//	 * 
-//	 * @return
-//	 *   the portal context.
-//	 */
-//	public static PortalContext getPortalContext() {
-//		return getContext().request.getPortalContext();
-//	}
-//	
+	/**
+	 * The per-thread instance.
+	 */
+	private static ThreadLocal<ActionContext> context = new ThreadLocal<ActionContext>() {
+		@Override protected ActionContext initialValue() {
+			logger.debug("creating action context instance for thread {}", Thread.currentThread().getId());
+			return new ActionContext();
+		}		
+	};
+
+	/**
+	 * A reference to the filter configuration, for access to filter-specific
+	 * information.
+	 */
+	private FilterConfig filter;
+	
+	/**
+	 * The servlet request object.
+	 */
+	private HttpServletRequest request;
+	
+	/**
+	 * The servlet response object.
+	 */
+	private HttpServletResponse response;
+	
+	/**
+	 * The actions' configuration; this map is read only and it's loaded at startup 
+	 * if the URL of a properties file is provided in the web.xml, among the Zephyr
+	 * controller's initialisation parameters.
+	 */
+	private Properties configuration;
+	
+	/**
+	 * A reference to the {@code WebServer} plug-in; this is useful if the
+	 * actions need need to exploit web server specific APIs.
+	 */
+	private WebServer server = null;
+		
+	/**
+	 * Retrieves the per-thread instance.
+	 * 
+	 * @return
+	 *   the per-thread instance.
+	 */
+	private static ActionContext getContext() {
+		return context.get();
+	} 
+				
+	/**
+	 * Binds the thread-local object to the current invocation, by setting 
+	 * references to the various objects (web server plugin, request and response
+	 * objects etc.) that will be made available to the business method through 
+	 * this context. 
+	 * 
+	 * @param request
+	 *   the servlet request object.
+	 * @param response
+	 *   the servlet response object.
+	 * @param configuration
+	 *   the configuration object, holding properties that may have been loaded 
+	 *   at startup if the proper initialisation parameter is specified in the
+	 *   web.xml.
+	 * @param server
+	 *   a reference to the web server specific plugin.
+	 */
+	static void bindContext(FilterConfig filter, HttpServletRequest request, HttpServletResponse response, Properties configuration, WebServer server) {		
+		logger.debug("initialising the action context for thread {}", Thread.currentThread().getId());
+		getContext().filter = filter;
+		getContext().request = request;
+		getContext().response = response;
+		getContext().configuration = configuration;
+		getContext().server = server;
+	}
+	
+	/**
+	 * Cleans up the internal status of the {@code ActionContext} in order to
+	 * avoid memory leaks due to persisting objects stored in the per-thread
+	 * local storage; afterwards it removes the thread local entry altogether, so
+	 * the application server does not complain about left-over data in TLS when
+	 * re-deploying the application (see Tomcat memory leak detection feature).
+	 */	
+	static void unbindContext() {
+		logger.debug("removing action context for thread {}", Thread.currentThread().getId());
+		getContext().filter = null;
+		getContext().request = null;
+		getContext().response = null;
+		getContext().configuration = null;
+		getContext().server = null;
+		context.remove();
+	}
+	
+	/**
+	 * Returns a reference to the current application-server-specific plug-in, if 
+	 * available. If no plug-in was loaded, returns null.
+	 * 
+	 * @return
+	 *   a reference to the current application-server-specific plug-in.
+	 */
+	public static WebServer getApplicationServer() {
+		return getContext().server;
+	}
+	
+	/**
+	 * Returns the name of the current Zephyr controller instance.
+	 * 
+	 * @return
+	 *   the current portlet's name.
+	 */
+	public static String getFilterName() {
+		return getContext().filter.getFilterName();
+	}	
+	
+	/**
+	 * Returns the value of the current Zephyr controller filter's initialisation 
+	 * parameter.
+	 * 
+	 * @param name
+	 *  the name of the parameter.
+	 * @return
+	 *   the value of the initialisation parameter for the current Zephyr 
+	 *   controller instance.
+	 */
+	public static String getFilterInitialisationParameter(String name) {
+		return getContext().filter.getInitParameter(name);
+	}
+	
+	/**
+	 * Returns a string representing the authentication type.
+	 * 
+	 * @return
+	 *   a string representing the authentication type.
+	 */
+	public static String getAuthType() {
+		return getContext().request.getAuthType();
+	}
+	
+	/**
+	 * Checks whether the client request came through a secured connection.
+	 * 
+	 * @return
+	 *   whether the client request came through a secured connection.
+	 */
+	public static boolean isSecure() {
+		return getContext().request.isSecure();
+	}
+	
+	/**
+	 * Returns the name of the remote authenticated user.
+	 * 
+	 * @return
+	 *   the name of the remote authenticated user.
+	 */
+	public static String getRemoteUser() {
+		return getContext().request.getRemoteUser();
+	}
+
+	/**
+	 * Returns the user principal associated with the request.
+	 * 
+	 * @return
+	 *   the user principal.
+	 */
+	public static Principal getUserPrincipal() {
+		return getContext().request.getUserPrincipal();
+	}
+
+	/**
+	 * Checks whether the user has the given role. 
+	 * 
+	 * @param role
+	 *   the name of the role
+	 * @return
+	 *   whether the user has the given role.
+	 */
+	public static boolean isUserInRole(String role) {
+		return getContext().request.isUserInRole(role);
+	}
+	
+	/**
+	 * Returns the locale associated with the user's request.
+	 * 
+	 * @return
+	 *   the request locale.
+	 */
+	public static Locale getLocale() {
+		return getContext().request.getLocale();
+	}
+	
+	/**
+	 * Returns an Enumeration of Locale objects indicating, in decreasing order 
+	 * starting with the preferred locale in which the portal will accept content 
+	 * for this request. The Locales may be based on the Accept-Language header of the client.
+	 *
+	 * @return
+	 *   an Enumeration of Locales, in decreasing order, in which the portal will 
+	 *   accept content for this request
+	 */	
+	@SuppressWarnings("unchecked")
+	public static Enumeration<Locale> getLocales(){
+		return (Enumeration<Locale>)getContext().request.getLocales();
+	}
+		
+	/**
+	 * Returns the name of the current web server.
+	 * 
+	 * @return
+	 *   the name of the current web server.
+	 */
+	public static String getServerName() {
+		return getContext().request.getServerName();
+	}
+	
+	/**
+	 * Returns the port of the current web server.
+	 * 
+	 * @return
+	 *   the port of the current web server.
+	 */
+	public static int getServerPort() {
+		return getContext().request.getServerPort();
+	}
+	
+	
+	
 //	/**
 //	 * Returns the current portlet mode.
 //	 * 

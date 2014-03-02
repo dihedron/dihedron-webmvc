@@ -148,9 +148,9 @@ public class TargetRegistry {
         // instantiate the information object
         Target data = new Target(id);
         data.setActionClass(targetClass);
-        data.setStubFactoryMethod(stubFactoryMethod);
+        data.setActionFactory(stubFactoryMethod);
         data.setActionMethod(targetMethod);
-        data.setProxyMethod(stubMethod);
+        data.setStubMethod(stubMethod);
 //        data.setIdempotent(invocable.idempotent());
         data.setInterceptorsStackId(interceptors);
         data.setJspUrlPattern(jspPathPattern);

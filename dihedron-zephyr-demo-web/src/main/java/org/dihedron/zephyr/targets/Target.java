@@ -67,7 +67,7 @@ public class Target {
      * the business method after having performed all the necessary parameters
      * unmarshalling and injection. 
      */
-    private Method stubFactory;
+    private Method actionFactory;
 
     /**
      * The static proxy method that collects parameters from the various scopes
@@ -177,24 +177,24 @@ public class Target {
      *   the reference to the factory method that's used to instantiate the
      *   stub class.
      */
-    public Method getStubFactoryMethod() {
-        return this.stubFactory;
+    public Method getActionFactory() {
+        return this.actionFactory;
     }
 
     /**
      * Sets the reference to the factory method capable of allocating an
-     * instance of the stub class that is able to invoke the actual business
-     * logic method after having perrfomed its unmarshalling and validation, and 
+     * instance of the stub class that will in turn invoke the actual business
+     * logic method after having performed its unmarshalling and validation, and 
      * to perform final validation and marshalling once the business method is 
      * done.
      *
-     * @param method 
+     * @param actionFactory 
      *   the reference to the stub factory method.
      * @return 
      *   the object itself, for method chaining.
      */
-    public Target setStubFactoryMethod(Method method) {
-        this.stubFactory = method;
+    public Target setActionFactory(Method actionFactory) {
+        this.actionFactory = actionFactory;
         return this;
     }
 
@@ -205,7 +205,7 @@ public class Target {
      * @return 
      *   the static stub method.
      */
-    public Method getProxyMethod() {
+    public Method getStubMethod() {
         return this.stubMethod;
     }
 
@@ -213,11 +213,11 @@ public class Target {
      * Sets the reference to the static, framework-generated proxy method for
      * the action's business logic method.
      *
-     * @param proxy the static proxy method.
+     * @param stubMethod the static proxy method.
      * @return the object itself, for metod chaining.
      */
-    public Target setProxyMethod(Method proxy) {
-        this.stubMethod = proxy;
+    public Target setStubMethod(Method stubMethod) {
+        this.stubMethod = stubMethod;
         return this;
     }
 
@@ -337,7 +337,8 @@ public class Target {
         buffer.append("target('").append(id.toString()).append("') {\n");
         buffer.append("  action      ('").append(id.getActionName()).append("')\n");
         buffer.append("  method      ('").append(id.getMethodName()).append("')\n");
-        buffer.append("  proxy       ('").append(stubMethod.getName()).append("')\n");
+        buffer.append("  factory     ('").append(actionFactory.getName()).append("')\n");
+        buffer.append("  stub        ('").append(stubMethod.getName()).append("')\n");
         buffer.append("  url pattern ('").append(this.getJspUrlPattern()).append("')\n");
         buffer.append("  stack       ('").append(interceptors).append("')\n");
         buffer.append("  javaclass   ('").append(action.getCanonicalName()).append("')\n");

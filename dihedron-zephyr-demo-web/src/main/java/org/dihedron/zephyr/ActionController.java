@@ -18,6 +18,24 @@
  */
 package org.dihedron.zephyr;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.dihedron.commons.properties.Properties;
 import org.dihedron.commons.properties.PropertiesException;
 import org.dihedron.commons.strings.Strings;
@@ -27,8 +45,13 @@ import org.dihedron.commons.variables.SystemPropertyValueProvider;
 import org.dihedron.commons.variables.Variables;
 import org.dihedron.zephyr.exceptions.DeploymentException;
 import org.dihedron.zephyr.exceptions.ZephyrException;
+import org.dihedron.zephyr.interceptors.registry.InterceptorsRegistry;
 import org.dihedron.zephyr.plugins.Plugin;
 import org.dihedron.zephyr.plugins.PluginManager;
+import org.dihedron.zephyr.renderers.impl.CachingRendererRegistry;
+import org.dihedron.zephyr.renderers.registry.RendererRegistry;
+import org.dihedron.zephyr.renderers.registry.RendererRegistryLoader;
+import org.dihedron.zephyr.targets.Target;
 import org.dihedron.zephyr.targets.TargetId;
 import org.dihedron.zephyr.targets.registry.TargetFactory;
 import org.dihedron.zephyr.targets.registry.TargetRegistry;
@@ -36,19 +59,6 @@ import org.dihedron.zephyr.webserver.WebServer;
 import org.dihedron.zephyr.webserver.WebServerPluginFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
 
 /**
  * This class implements the servlet filter interface and provides all the
@@ -98,6 +108,16 @@ public class ActionController implements Filter {
 	private TargetRegistry registry = null;
 
 	/**
+	 * The registry of interceptors' stacks.
+	 */
+	private InterceptorsRegistry interceptors;
+	
+	/**
+	 * The registry of supported renderers.
+	 */
+	private RendererRegistry renderers;
+
+	/**
 	 * The default package for stock portal- and application-server plugins.
 	 */
 	public static final String DEFAULT_CONTAINERS_CLASSPATH = "org.dihedron.zephyr.webserver";
@@ -134,6 +154,10 @@ public class ActionController implements Filter {
 
 			initialiseTargetsRegistry();
 
+			// initialiseInterceptorsSRegistry();
+
+			initialiseRenderersRegistry();
+
 		} finally {
 
 		}
@@ -144,11 +168,55 @@ public class ActionController implements Filter {
 		logger.info("zephyr filter for {} is down", filter.getFilterName());
 	}
 
+	@Override
+	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
+		HttpServletRequest request = (HttpServletRequest) req;
+		HttpServletResponse response = (HttpServletResponse) res;
+
+		String contextPath = request.getContextPath();
+		// NOTE: getPathInfo() does not work in filters, where the exact servlet
+		// that will end up handling the rquest is not determined; the only
+		// reliable
+		// way seems to be by stripping the context path from the complete
+		// request URI
+		String pathInfo = request.getRequestURI().substring(contextPath.length() + 1); // strip
+																						// the
+																						// leading
+																						// '/'
+		String queryString = request.getQueryString();
+
+		String uri = request.getRequestURI();
+
+		logger.trace("servicing request for '{}' (query string: '{}', context path: '{}', request URI: '{}')...", pathInfo, queryString, contextPath,
+				uri);
+
+		if (TargetId.isValidTargetId(pathInfo)) {
+
+			PrintWriter writer = new PrintWriter(response.getWriter());
+			writer.println("<html><head><title>Zephyr</title></head>");
+			writer.println("<body>");
+			writer.println("<h1>would be invoking " + pathInfo + "...</h1>");
+			writer.println("<br>");
+
+			writer.println("<h1>list of configuration properties:</h1><br><ul>");
+			for (Parameter parameter : Parameter.values()) {
+				writer.println("<li><b>" + parameter.getName() + "</b>:" + parameter.getValueFor(filter) + "</li>");
+			}
+			writer.println("</ol>");
+			writer.println("</body>");
+			writer.println("</html>");
+		} else {
+			logger.trace("letting the application handle the request: this is no action");
+			chain.doFilter(req, res);
+		}
+	}
+
 	private void initialiseConfiguration() {
 		String value = Parameter.ACTIONS_CONFIGURATION.getValueFor(filter);
 		if (Strings.isValid(value)) {
 
-			// bind system properties or environment variables (if any) to actual values
+			// bind system properties or environment variables (if any) to
+			// actual values
 			logger.trace("binding variables in actions' configuration property: '{}'", value);
 			value = Variables.replaceVariables(value, new SystemPropertyValueProvider(), new EnvironmentValueProvider());
 
@@ -165,7 +233,8 @@ public class ActionController implements Filter {
 					logger.trace("configuration read");
 				}
 			} catch (MalformedURLException e) {
-				logger.error("invalid URL '{}' for actions configuration: check parameter '{}' in your web.xml", value,	Parameter.ACTIONS_CONFIGURATION.getName());
+				logger.error("invalid URL '{}' for actions configuration: check parameter '{}' in your web.xml", value,
+						Parameter.ACTIONS_CONFIGURATION.getName());
 			} catch (IOException e) {
 				logger.error("error reading from URL '{}', actions configuration will be unavailable", value);
 			} catch (PropertiesException e) {
@@ -274,46 +343,107 @@ public class ActionController implements Filter {
 			}
 		} else {
 			logger.error("no Java packages specified for actions: check parameter '{}'", Parameter.ACTIONS_JAVA_PACKAGES.getName());
-			throw new DeploymentException("No Java package specified for actions: check parameter '" + Parameter.ACTIONS_JAVA_PACKAGES.getName() + "'");
+			throw new DeploymentException("No Java package specified for actions: check parameter '" + Parameter.ACTIONS_JAVA_PACKAGES.getName()
+					+ "'");
 		}
 		logger.trace("actions configuration:\n{}", registry.toString());
 	}
+	
+    /**
+     * Initialises the interceptors stack registry (factory) by loading the default 
+     * stacks first and then any custom stacks provided in the initialisation 
+     * parameters.
+     * 
+     * @throws StrutletsException
+     */
+    private void initialiseInterceptorsRegistry() throws ZephyrException {
 
-	@Override
-	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
-		HttpServletRequest request = (HttpServletRequest) req;
-		HttpServletResponse response = (HttpServletResponse) res;
+		interceptors = new InterceptorsRegistry();
+		
+		// load the default interceptors stacks ("default" and others)
+		logger.info("loading default interceptors stacks: '{}'", InterceptorsRegistry.DEFAULT_INTERCEPTORS_CONFIG_XML);
+		interceptors.loadFromClassPath(InterceptorsRegistry.DEFAULT_INTERCEPTORS_CONFIG_XML);
+		logger.trace("pre-configured interceptors stacks:\n{}", interceptors.toString());
+		
+		// load the custom interceptors configuration
+		String value = Parameter.INTERCEPTORS_DECLARATION.getValueFor(filter);
+		if(Strings.isValid(value)) {			
+    		logger.debug("loading interceptors' configuration from '{}'", value);
+    		InputStream stream = null;
+    		try {
+	    		URL url = URLFactory.makeURL(value);
+	    		if(url != null) {
+	    			stream = url.openConnection().getInputStream();	    			
+	    			interceptors.loadFromStream(stream);
+	    			logger.trace("interceptors stacks:\n{}", interceptors.toString());
+	    		}
+    		} catch(MalformedURLException e) {
+    			logger.error("invalid URL '{}' for interceptors stacks: check parameter '{}' in your web.xml", value, Parameter.INTERCEPTORS_DECLARATION.getName());
+    		} catch (IOException e) {
+    			logger.error("error reading from URL '{}', interceptors stacks will be unavailable", value);
+			} finally  {
+				if(stream != null) {
+					try {
+						stream.close();
+					} catch (IOException e) {
+						logger.error("error closing input stream", e);
+					}
+				}
+			}			
+		}    	
+    }	
 
-		String contextPath = request.getContextPath();
-		// NOTE: getPathInfo() does not work in filters, where the exact servlet
-		// that will end up handling the rquest is not determined; the only
-		// reliable
-		// way seems to be by stripping the context path from the complete
-		// request URI
-		String pathInfo = request.getRequestURI().substring(contextPath.length() + 1); // strip the leading '/'
-		String queryString = request.getQueryString();
+	/**
+	 * Initialises the registry of view renderers.
+	 * 
+	 * @throws StrutletsException
+	 */
+	private void initialiseRenderersRegistry() throws ZephyrException {
+		RendererRegistryLoader loader = new RendererRegistryLoader();
+		renderers = new CachingRendererRegistry();
+		// renderers = new RenewingRendererRegistry();
+		loader.loadFromJavaPackage(renderers, RendererRegistry.DEFAULT_RENDERER_PACKAGE);
 
-		String uri = request.getRequestURI();
-
-		logger.trace("servicing request for '{}' (query string: '{}', context path: '{}', request URI: '{}')...", pathInfo, queryString, contextPath, uri);
-
-		if (TargetId.isValidTargetId(pathInfo)) {
-			PrintWriter writer = new PrintWriter(response.getWriter());
-			writer.println("<html><head><title>Zephyr</title></head>");
-			writer.println("<body>");
-			writer.println("<h1>would be invoking " + pathInfo + "...</h1>");
-			writer.println("<br>");
-			
-			writer.println("<h1>list of configuration properties:</h1><br><ul>");
-			for (Parameter parameter : Parameter.values()) {
-				writer.println("<li><b>" + parameter.getName() + "</b>:" + parameter.getValueFor(filter) + "</li>");
+		String parameter = Parameter.RENDERERS_JAVA_PACKAGES.getValueFor(filter);
+		if (Strings.isValid(parameter)) {
+			logger.trace("scanning for renderers in packages: '{}'", parameter);
+			String[] packages = Strings.split(parameter, ",", true);
+			for (String pkg : packages) {
+				loader.loadFromJavaPackage(renderers, pkg);
 			}
-			writer.println("</ol>");
-			writer.println("</body>");
-			writer.println("</html>");
-		} else {
-			logger.trace("letting the application handle the request: this is no action");
-			chain.doFilter(req, res);
 		}
+		logger.trace("renderers configuration:\n{}", renderers.toString());
 	}
+
+//	protected String invokeTarget(TargetId targetId, HttpServletRequest request, HttpServletRequest response) throws ZephyrException {
+//
+//		logger.info("invoking target '{}'", targetId);
+//
+//		// check if there's configuration available for the given action
+//		Target target = registry.getTarget(targetId);
+//
+//		logger.trace("target configuration:\n{}", target.toString());
+//
+////		// instantiate the action
+////		Object action = ActionFactory.makeAction(target);
+////		if (action != null) {
+////			logger.info("action instance '{}' ready", target.getActionClass().getSimpleName());
+////		} else {
+////			logger.error("could not create an action instance for target '{}'", targetId);
+////			throw new StrutletsException("No action could be found for target '" + targetId + "'");
+////		}
+//
+////		// get the stack for the given action
+////		InterceptorStack stack = interceptors.getStackOrDefault(target.getInterceptorStackId());
+////
+////		// create and fire the action stack invocation
+////		ActionInvocation invocation = null;
+////		try {
+////			invocation = new ActionInvocation(action, target, stack, request, response);
+////			return invocation.invoke();
+////		} finally {
+////			invocation.cleanup();
+////		}
+//	}
+
 }

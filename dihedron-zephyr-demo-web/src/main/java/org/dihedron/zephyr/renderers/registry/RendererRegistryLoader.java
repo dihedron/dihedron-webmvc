@@ -1,20 +1,20 @@
 /**
- * Copyright (c) 2012, 2013, Andrea Funto'. All rights reserved.
+ * Copyright (c) 2014, Andrea Funto'. All rights reserved.
  *
- * This file is part of the Strutlets framework ("Strutlets").
+ * This file is part of the Zephyr framework ("Zephyr").
  *
- * Strutlets is free software: you can redistribute it and/or modify it under 
+ * Zephyr is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free 
  * Software Foundation, either version 3 of the License, or (at your option) 
  * any later version.
  *
- * Strutlets is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * Zephyr is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR 
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more 
  * details.
  *
  * You should have received a copy of the GNU Lesser General Public License 
- * along with Strutlets. If not, see <http://www.gnu.org/licenses/>.
+ * along with Zephyr. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.dihedron.zephyr.renderers.registry;
@@ -32,6 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
+
+import javassist.Modifier;
 
 /**
  * @author Andrea Funto'
@@ -61,7 +63,7 @@ public class RendererRegistryLoader {
             Set<Class<? extends Renderer>> renderers = reflections.getSubTypesOf(Renderer.class);
             for (Class<? extends Renderer> clazz : renderers) {
                 logger.trace("analysing renderer class: '{}'...", clazz.getName());
-                if (clazz.isAnnotationPresent(Alias.class)) {
+                if (!Modifier.isAbstract(clazz.getModifiers()) && clazz.isAnnotationPresent(Alias.class)) {
                     Alias alias = clazz.getAnnotation(Alias.class);
                     logger.trace("... registering '{}' renderer: '{}'", alias.value(), clazz.getCanonicalName());
                     registry.addRenderer(alias.value(), clazz);
