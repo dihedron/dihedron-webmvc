@@ -41,6 +41,19 @@ public interface Renderer {
      * @return the id of the renderer.
      */
     String getId();
+    
+    /**
+     * Returns whether the selection of this renderer can only represent the 
+     * final step in an invocation: renderers belong to two classes: those 
+     * that can be chained (such as the "chain" renderer) and those that can
+     * only provide output to the user and thus represent the final step in the
+     * processing of a request. 
+     * 
+     * @return
+     *   whether the renderer can only render output or it can be chained, e.g.
+     *   to forward contro to another target before performing the fihal rendering.
+     */
+    boolean isTerminal();
 
     /**
      * Renders the output to the client.

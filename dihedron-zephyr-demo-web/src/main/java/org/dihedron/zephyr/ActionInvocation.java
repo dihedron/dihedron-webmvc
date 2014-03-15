@@ -50,6 +50,11 @@ public class ActionInvocation {
 	private Target target;
 	
 	/**
+	 * The actual action instance on which the business method is being invoked.
+	 */
+	private Object action;
+	
+	/**
 	 * The <code>ActionRequest</code>, <code>EventRequest</code> or
 	 * <code>RenderRequest</code> object.
 	 */
@@ -80,6 +85,9 @@ public class ActionInvocation {
 	 * 
 	 * @param target
 	 *   the metadata (information) about the method being invoked.
+	 * @param action
+	 *   the instance of action object on which the business method exists; this 
+	 *   can be manipulated and used, e.g. to inject resources in a DI interceptor.
 	 * @param interceptors
 	 *   the {@code InterceptorStack} representing the set of interceptors 
 	 * @param request
@@ -87,8 +95,9 @@ public class ActionInvocation {
 	 * @param response
 	 *   the {@code HttpServletResponse} object.
 	 */
-	public ActionInvocation(Target target, InterceptorStack interceptors, HttpServletRequest request, HttpServletResponse response) {
+	public ActionInvocation(Target target, Object action, InterceptorStack interceptors, HttpServletRequest request, HttpServletResponse response) {
 		this.target = target;
+		this.action = action;
 		this.request = request;
 		this.response = response;
 		this.interceptors = interceptors;
@@ -103,6 +112,20 @@ public class ActionInvocation {
 	 */
 	public Target getTarget() {
 		return target;
+	}
+	
+	/**
+	 * Returns the instance of action object (as returned by the target's
+	 * factory method) on which the businedss method being invoked resides.
+	 * This object could be a brand-new instance at each invocation or the
+	 * same object instance userd over and over again if the object is 
+	 * stateless (that is, it has no per-instance field).
+	 * 
+	 * @return
+	 *   the action object.
+	 */
+	public Object getAction() {
+		return action;
 	}
 	
 	/**

@@ -43,8 +43,10 @@ import org.dihedron.commons.url.URLFactory;
 import org.dihedron.commons.variables.EnvironmentValueProvider;
 import org.dihedron.commons.variables.SystemPropertyValueProvider;
 import org.dihedron.commons.variables.Variables;
+import org.dihedron.zephyr.actions.ActionFactory;
 import org.dihedron.zephyr.exceptions.DeploymentException;
 import org.dihedron.zephyr.exceptions.ZephyrException;
+import org.dihedron.zephyr.interceptors.InterceptorStack;
 import org.dihedron.zephyr.interceptors.registry.InterceptorsRegistry;
 import org.dihedron.zephyr.plugins.Plugin;
 import org.dihedron.zephyr.plugins.PluginManager;
@@ -174,37 +176,60 @@ public class ActionController implements Filter {
 		HttpServletResponse response = (HttpServletResponse) res;
 
 		String contextPath = request.getContextPath();
-		// NOTE: getPathInfo() does not work in filters, where the exact servlet
-		// that will end up handling the rquest is not determined; the only
-		// reliable
-		// way seems to be by stripping the context path from the complete
-		// request URI
-		String pathInfo = request.getRequestURI().substring(contextPath.length() + 1); // strip
-																						// the
-																						// leading
-																						// '/'
+		// NOTE: getPathInfo() does not work in filters, where the exact servlet that will 
+		// end up handling the rquest is not determined; the only reliable way seems to be 
+		// by stripping the context path from the complete request URI
+		String pathInfo = request.getRequestURI().substring(contextPath.length() + 1); // strip the leading '/'
 		String queryString = request.getQueryString();
 
 		String uri = request.getRequestURI();
 
-		logger.trace("servicing request for '{}' (query string: '{}', context path: '{}', request URI: '{}')...", pathInfo, queryString, contextPath,
-				uri);
+		logger.trace("servicing request for '{}' (query string: '{}', context path: '{}', request URI: '{}')...", pathInfo, queryString, contextPath, uri);
 
 		if (TargetId.isValidTargetId(pathInfo)) {
-
-			PrintWriter writer = new PrintWriter(response.getWriter());
-			writer.println("<html><head><title>Zephyr</title></head>");
-			writer.println("<body>");
-			writer.println("<h1>would be invoking " + pathInfo + "...</h1>");
-			writer.println("<br>");
-
-			writer.println("<h1>list of configuration properties:</h1><br><ul>");
-			for (Parameter parameter : Parameter.values()) {
-				writer.println("<li><b>" + parameter.getName() + "</b>:" + parameter.getValueFor(filter) + "</li>");
+			
+			logger.info("invoking target '{}'", pathInfo);
+			
+			// check if there's configuration available for the given action
+			Target target = registry.getTarget(pathInfo);
+			
+			logger.trace("target configuration:\n{}", target.toString());
+			
+			// instantiate the action
+			Object action = ActionFactory.makeAction(target);
+			if(action != null) {
+				logger.info("action instance '{}' ready", target.getActionClass().getSimpleName());
+			} else {    			 	
+				logger.error("could not create an action instance for target '{}'", target.getId().toString());
+				throw new ZephyrException("No action could be found for target '" + target.getId().toString() + "'");
 			}
-			writer.println("</ol>");
-			writer.println("</body>");
-			writer.println("</html>");
+			
+			// get the stack for the given action
+			InterceptorStack stack = interceptors.getStackOrDefault(target.getInterceptorStackId());
+	    	    	
+	    	// create and fire the action stack invocation
+			ActionInvocation invocation = null;
+			try {
+				invocation = new ActionInvocation(target, action, stack, request, response);
+				String result = invocation.invoke();
+			} finally {
+				invocation.cleanup();
+			}
+			
+
+//			PrintWriter writer = new PrintWriter(response.getWriter());
+//			writer.println("<html><head><title>Zephyr</title></head>");
+//			writer.println("<body>");
+//			writer.println("<h1>would be invoking " + pathInfo + "...</h1>");
+//			writer.println("<br>");
+//
+//			writer.println("<h1>list of configuration properties:</h1><br><ul>");
+//			for (Parameter parameter : Parameter.values()) {
+//				writer.println("<li><b>" + parameter.getName() + "</b>:" + parameter.getValueFor(filter) + "</li>");
+//			}
+//			writer.println("</ol>");
+//			writer.println("</body>");
+//			writer.println("</html>");
 		} else {
 			logger.trace("letting the application handle the request: this is no action");
 			chain.doFilter(req, res);

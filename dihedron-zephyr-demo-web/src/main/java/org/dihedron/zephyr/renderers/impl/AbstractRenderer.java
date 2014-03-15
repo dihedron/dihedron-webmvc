@@ -58,6 +58,16 @@ public abstract class AbstractRenderer implements Renderer {
 //    protected Filter getFilter() {
 //        return filter;
 //    }
+	
+	/**
+	 * By default renderers are temrinal.
+	 * 
+	 * @see Renderer#isTerminal()
+	 */
+	@Override
+	public boolean isTerminal() {
+		return true;
+	}
 
     /**
      * Returns the {@code PrintWriter} associated with the response object.
