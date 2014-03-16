@@ -64,12 +64,12 @@ public class RendererRegistryLoader {
             for (Class<? extends Renderer> clazz : renderers) {
                 logger.trace("analysing renderer class: '{}'...", clazz.getName());
                 if (!Modifier.isAbstract(clazz.getModifiers())/* && clazz.isAnnotationPresent(Alias.class)*/) {
-					try {						
-						String id = (String)clazz.getMethod("getId").invoke(null);						
+					try {			
+						String id = (String)clazz.getField("ID").get(null);						
 	                    logger.trace("... registering '{}' renderer: '{}'", id, clazz.getCanonicalName());
 	                    registry.addRenderer(id, clazz);
-					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-						logger.error("error retrieving id for renderers of class '" + clazz.getName() + "': does it extend AbstractRenderer or provide a static getId() method?", e);
+					} catch (IllegalAccessException | IllegalArgumentException | SecurityException | NoSuchFieldException e) {
+						logger.error("error retrieving id for renderers of class '" + clazz.getName() + "': does it provide a static field 'ID' of type String?", e);
 					}
                 } else {
                     logger.trace("... skipping renderer '{}'", clazz.getCanonicalName());

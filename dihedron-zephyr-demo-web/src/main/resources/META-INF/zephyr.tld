@@ -5,22 +5,19 @@
         version="2.1">
     <jsp-version>2.1</jsp-version>
     <tlib-version>1.0</tlib-version>
-    <short-name>strutlets</short-name>
-    <display-name>Strutlets Tag Library</display-name>
+    <short-name>zephyr</short-name>
+    <display-name>Zephyr Tag Library</display-name>
     <description>
-        The Strutlets framework tag library.
+        The Zephyr framework tag library.
     </description>
-    <uri>http://www.dihedron.org/strutlets</uri>
+    <uri>http://www.dihedron.org/zephyr</uri>
 
     <tag>
         <name>defineObjects</name>
         <description>
-            Makes all strutlets-related objects available to the page context and to the EL.
+            Makes all zephyr-related objects available to the page context and to the EL.
         </description>
         <tag-class>org.dihedron.zephyr.taglib.DefineObjectsTag</tag-class>
-        <!--
-        <tei-class>org.dihedron.strutlets.taglib.DefineObjectsTei</tei-class>
-        -->
         <body-content>empty</body-content>
     </tag>
 
@@ -64,7 +61,7 @@
     <tag>
         <name>version</name>
         <description>
-            Prints out the current Strutlets library version.
+            Prints out the current Zephyr library version.
         </description>
         <tag-class>org.dihedron.zephyr.taglib.VersionTag</tag-class>
         <body-content>empty</body-content>

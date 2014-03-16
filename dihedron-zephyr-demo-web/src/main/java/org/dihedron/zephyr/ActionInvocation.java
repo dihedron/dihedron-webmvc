@@ -157,7 +157,7 @@ public class ActionInvocation {
 	 *   control flow, it should pass through whatever results from the nested 
 	 *   interceptor call; changing this result with a different value results 
 	 *   in a deviation of the workflow.  
-	 * @throws StrutletsException
+	 * @throws ZephyrException
 	 */
 	public String invoke() throws ZephyrException {
 		
@@ -172,7 +172,7 @@ public class ActionInvocation {
 		try {
 			Method proxy = target.getStubMethod();
 			logger.trace("invoking actual method on action instance through proxy '{}'", proxy.getName());
-			return (String)proxy.invoke(null, /*action*/null);
+			return (String)proxy.invoke(null, action);
 		} catch (IllegalArgumentException e) {
 			logger.error("illegal argument to proxy method invocation", e);
 			throw new ZephyrException("illegal argument to proxy method invocation", e);

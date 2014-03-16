@@ -156,7 +156,7 @@ public class ActionController implements Filter {
 
 			initialiseTargetsRegistry();
 
-			// initialiseInterceptorsSRegistry();
+			initialiseInterceptorsRegistry();
 
 			initialiseRenderersRegistry();
 
@@ -187,80 +187,86 @@ public class ActionController implements Filter {
 		logger.trace("servicing request for '{}' (query string: '{}', context path: '{}', request URI: '{}')...", pathInfo, queryString, contextPath, uri);
 
 		if (TargetId.isValidTargetId(pathInfo)) {
-			
-			String result = null;
-			logger.info("invoking target '{}'", pathInfo);
-			
-			// check if there's configuration available for the given action
-			Target target = registry.getTarget(pathInfo);
-			
-			logger.trace("target configuration:\n{}", target.toString());
-			
-			// instantiate the action
-			Object action = ActionFactory.makeAction(target);
-			if(action != null) {
-				logger.info("action instance '{}' ready", target.getActionClass().getSimpleName());
-			} else {    			 	
-				logger.error("could not create an action instance for target '{}'", target.getId().toString());
-				throw new ZephyrException("No action could be found for target '" + target.getId().toString() + "'");
-			}
-			
-			// get the stack for the given action
-			InterceptorStack stack = interceptors.getStackOrDefault(target.getInterceptorStackId());
-	    	    	
-	    	// create and fire the action stack invocation
-			ActionInvocation invocation = null;
 			try {
-				invocation = new ActionInvocation(target, action, stack, request, response);
-				result = invocation.invoke();
-			} finally {
-				invocation.cleanup();
-			}
-			
-
-			PrintWriter writer = new PrintWriter(response.getWriter());
-			
-			writer.println("<h1>invocation:</h1><br>");
-			writer.println("<html><head><title>Zephyr</title></head>");
-			writer.println("<body>");
-			writer.println("<table>");
-			writer.println("<thead>");
-			writer.println("<tr>");
-			writer.println("<td>Target</td>");
-			writer.println("<td>Result</td>");
-			writer.println("</tr>");
-			writer.println("</thead>");
-			writer.println("<tbody>");
-			writer.println("<tr>");
-			writer.println("<td>" + pathInfo + "</td>");
-			writer.println("<td>" + result + "</td>");
-			writer.println("</tr>");
-			writer.println("</tbody>");
-			writer.println("</table>");
-			writer.println("<br>");
-
-			writer.println("<h1>configuratio parameters:</h1><br>");
-			writer.println("<table>");
-			writer.println("<thead>");
-			writer.println("<tr>");
-			writer.println("<td>Name</td>");
-			writer.println("<td>Value</td>");
-			writer.println("</tr>");
-			writer.println("</thead>");
-			writer.println("<tbody>");
-			for (Parameter parameter : Parameter.values()) {
+				
+				ActionContext.bindContext(filter, request, response, configuration, server);
+				
+				String result = null;
+				logger.info("invoking target '{}'", pathInfo);
+				
+				// check if there's configuration available for the given action
+				Target target = registry.getTarget(pathInfo);
+				
+				logger.trace("target configuration:\n{}", target.toString());
+				
+				// instantiate the action
+				Object action = ActionFactory.makeAction(target);
+				if(action != null) {
+					logger.info("action instance '{}' ready", target.getActionClass().getSimpleName());
+				} else {    			 	
+					logger.error("could not create an action instance for target '{}'", target.getId().toString());
+					throw new ZephyrException("No action could be found for target '" + target.getId().toString() + "'");
+				}
+				
+				// get the stack for the given action
+				InterceptorStack stack = interceptors.getStackOrDefault(target.getInterceptorStackId());
+		    	    	
+		    	// create and fire the action stack invocation
+				ActionInvocation invocation = null;
+				try {
+					invocation = new ActionInvocation(target, action, stack, request, response);
+					result = invocation.invoke();
+				} finally {
+					invocation.cleanup();
+				}
+				
+	
+				PrintWriter writer = new PrintWriter(response.getWriter());
+				
+				writer.println("<h1>invocation:</h1><br>");
+				writer.println("<html><head><title>Zephyr</title></head>");
+				writer.println("<body>");
+				writer.println("<table>");
+				writer.println("<thead>");
 				writer.println("<tr>");
-				writer.println("<td>" + parameter.getName() + "</td>");
-				writer.println("<td>" + parameter.getValueFor(filter) + "</td>");
-				writer.println("</tr>");				
-			}			
-			writer.println("</tbody>");
-			writer.println("</table>");
-
-			writer.println("<h1>list of configuration properties:</h1><br><ul>");
-			writer.println("</ol>");
-			writer.println("</body>");
-			writer.println("</html>");
+				writer.println("<td>Target</td>");
+				writer.println("<td>Result</td>");
+				writer.println("</tr>");
+				writer.println("</thead>");
+				writer.println("<tbody>");
+				writer.println("<tr>");
+				writer.println("<td>" + pathInfo + "</td>");
+				writer.println("<td>" + result + "</td>");
+				writer.println("</tr>");
+				writer.println("</tbody>");
+				writer.println("</table>");
+				writer.println("<br>");
+	
+				writer.println("<h1>configuratio parameters:</h1><br>");
+				writer.println("<table>");
+				writer.println("<thead>");
+				writer.println("<tr>");
+				writer.println("<td>Name</td>");
+				writer.println("<td>Value</td>");
+				writer.println("</tr>");
+				writer.println("</thead>");
+				writer.println("<tbody>");
+				for (Parameter parameter : Parameter.values()) {
+					writer.println("<tr>");
+					writer.println("<td>" + parameter.getName() + "</td>");
+					writer.println("<td>" + parameter.getValueFor(filter) + "</td>");
+					writer.println("</tr>");				
+				}			
+				writer.println("</tbody>");
+				writer.println("</table>");
+	
+				writer.println("<h1>list of configuration properties:</h1><br><ul>");
+				writer.println("</ol>");
+				writer.println("</body>");
+				writer.println("</html>");
+			} finally {
+				ActionContext.unbindContext();
+			}
 		} else {
 			logger.trace("letting the application handle the request: this is no action");
 			chain.doFilter(req, res);
@@ -410,7 +416,7 @@ public class ActionController implements Filter {
      * stacks first and then any custom stacks provided in the initialisation 
      * parameters.
      * 
-     * @throws StrutletsException
+     * @throws ZephyrException
      */
     private void initialiseInterceptorsRegistry() throws ZephyrException {
 
@@ -452,7 +458,7 @@ public class ActionController implements Filter {
 	/**
 	 * Initialises the registry of view renderers.
 	 * 
-	 * @throws StrutletsException
+	 * @throws ZephyrException
 	 */
 	private void initialiseRenderersRegistry() throws ZephyrException {
 		RendererRegistryLoader loader = new RendererRegistryLoader();

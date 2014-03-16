@@ -506,7 +506,7 @@ public class ActionProxyFactory {
             if (doValidation) {
                 code.append("\tjava.lang.reflect.Method methodToValidate = null;\n");
                 code.append("\tjava.util.List validationValues = null;\n");
-                code.append("\torg.dihedron.strutlets.validation.ValidationHandler handler = null;\n");
+                code.append("\torg.dihedron.zephyr.validation.ValidationHandler handler = null;\n");
             }
             code.append("\n");
 
@@ -746,15 +746,15 @@ public class ActionProxyFactory {
         }
 
         String parameter = in.value();
-        String variable = parameter + "_" + i;
+        String variable = "in_" + i;
 
         preCode.append("\t//\n\t// preparing input argument '").append(parameter).append("' (no. ").append(i).append(", ").append(Types.getAsString(type)).append(")\n\t//\n");
 
         logger.trace("{}-th parameter is annotated with @In('{}')", i, in.value());
-        preCode.append("\tvalue = org.dihedron.strutlets.ActionContext.findValueInScopes(\"").append(parameter).append("\", new org.dihedron.strutlets.annotations.Scope[] {");
+        preCode.append("\tvalue = org.dihedron.zephyr.ActionContext.findValue(\"").append(parameter).append("\", new org.dihedron.zephyr.annotations.Scope[] {");
         boolean first = true;
         for (Scope scope : in.from()) {
-            preCode.append(first ? "" : ", ").append("org.dihedron.strutlets.annotations.Scope.").append(scope.name());
+            preCode.append(first ? "" : ", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name());
             first = false;
         }
         preCode.append(" });\n");
@@ -798,7 +798,7 @@ public class ActionProxyFactory {
         }
 
         String parameter = out.value();
-        String variable = parameter + "_" + i;
+        String variable = "out_" + i;
 
         Type wrapped = Types.getParameterTypes(type)[0];
         logger.trace("output parameter '{}' (no. {}) is of type $<{}>", parameter, i, Types.getAsString(wrapped));
@@ -810,8 +810,8 @@ public class ActionProxyFactory {
 
         logger.trace("{}-th parameter is annotated with @Out('{}')", i, out.value());
         // NOTE: no support for generics in Javassist: drop types (which would be dropped by type erasure anyway...)
-        // code.append("\torg.dihedron.strutlets.aop.$<").append(gt.getCanonicalName()).append("> out").append(i).append(" = new org.dihedron.strutlets.aop.$<").append(gt.getCanonicalName()).append(">();\n");
-        preCode.append("\torg.dihedron.strutlets.aop.$ ").append(variable).append(" = new org.dihedron.strutlets.aop.$();\n");
+        // code.append("\torg.dihedron.zephyr.aop.$<").append(gt.getCanonicalName()).append("> out").append(i).append(" = new org.dihedron.zephyr.aop.$<").append(gt.getCanonicalName()).append(">();\n");
+        preCode.append("\torg.dihedron.zephyr.aop.$ ").append(variable).append(" = new org.dihedron.zephyr.aop.$();\n");
 
         //
         // the value used for JSR-349 parameters validation
@@ -828,12 +828,14 @@ public class ActionProxyFactory {
         // code executed AFTER the action has returned, to store values into scopes
         //
         Scope scope = out.to();
-        postCode.append("\t//\n\t// storing input/output argument '").append(parameter).append("' (no. ").append(i).append(", ").append(Types.getAsString(wrapped)).append(") into scope ").append(scope.name()).append("\n\t//\n");
+        postCode.append("\t//\n\t// storing output argument '").append(parameter).append("' (no. ").append(i).append(", ").append(Types.getAsString(wrapped)).append(") into scope ").append(scope.name()).append("\n\t//\n");
         postCode.append("\tvalue = ").append(variable).append(".get();\n");
         postCode.append("\tif(value != null) {\n");
-        postCode.append("\t\torg.dihedron.strutlets.ActionContext.storeValueIntoScope( \"").append(parameter).append("\", ").append("org.dihedron.strutlets.annotations.Scope.").append(scope.name()).append(", value );\n");
+        //postCode.append("\t\torg.dihedron.zephyr.ActionContext.storeValueIntoScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(", value );\n");
+        postCode.append("\t\torg.dihedron.zephyr.ActionContext.setValue(\"").append(out.value()).append("\", value, org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(");\n");
         postCode.append("\t} else if(").append(variable).append(".isReset()) {\n");
-        postCode.append("\t\torg.dihedron.strutlets.ActionContext.removeValueFromScope( \"").append(parameter).append("\", ").append("org.dihedron.strutlets.annotations.Scope.").append(scope.name()).append(" );\n");
+//      postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValueFromScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(" );\n");
+        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValue(\"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(");\n");
         postCode.append("\t}\n");
         postCode.append("\n");
 
@@ -863,7 +865,7 @@ public class ActionProxyFactory {
         }
 
         String parameter = in.value();
-        String variable = parameter + "_" + i;
+        String variable = "inout_" + i;
 
         Type wrapped = Types.getParameterTypes(type)[0];
         logger.trace("input/output parameter no. {} is of type $<{}>", i, Types.getAsString(wrapped));
@@ -875,10 +877,10 @@ public class ActionProxyFactory {
 
 
         logger.trace("{}-th parameter is annotated with @In('{}') and @Out('{}')", i, in.value(), out.value());
-        preCode.append("\tvalue = org.dihedron.strutlets.ActionContext.findValueInScopes(\"").append(parameter).append("\", new org.dihedron.strutlets.annotations.Scope[] {");
+        preCode.append("\tvalue = org.dihedron.zephyr.ActionContext.findValue(\"").append(parameter).append("\", new org.dihedron.zephyr.annotations.Scope[] {");
         boolean first = true;
         for (Scope scope : in.from()) {
-            preCode.append(first ? "" : ", ").append("org.dihedron.strutlets.annotations.Scope.").append(scope.name());
+            preCode.append(first ? "" : ", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name());
             first = false;
         }
         preCode.append(" });\n");
@@ -889,8 +891,8 @@ public class ActionProxyFactory {
         }
 
         // NOTE: no support for generics in Javassist: drop types (which would be dropped by type erasure anyway...)
-        // code.append("\torg.dihedron.strutlets.aop.$<").append(gt.getCanonicalName()).append("> inout").append(i).append(" = new org.dihedron.strutlets.aop.$<").append(gt.getCanonicalName()).append(">();\n");
-        preCode.append("\torg.dihedron.strutlets.aop.$ ").append(variable).append(" = new org.dihedron.strutlets.aop.$();\n");
+        // code.append("\torg.dihedron.zephyr.aop.$<").append(gt.getCanonicalName()).append("> inout").append(i).append(" = new org.dihedron.zephyr.aop.$<").append(gt.getCanonicalName()).append(">();\n");
+        preCode.append("\torg.dihedron.zephyr.aop.$ ").append(variable).append(" = new org.dihedron.zephyr.aop.$();\n");
         preCode.append("\t").append(variable).append(".set(value);\n");
         preCode.append("\ttrace.append(\"").append(variable).append("\").append(\" => '\").append(").append(variable).append(".get()).append(\"', \");\n");
 
@@ -913,9 +915,11 @@ public class ActionProxyFactory {
         postCode.append("\t//\n\t// storing input/output argument '").append(parameter).append("' (no. ").append(i).append(", ").append(Types.getAsString(wrapped)).append(") into scope ").append(scope.name()).append("\n\t//\n");
         postCode.append("\tvalue = ").append(variable).append(".get();\n");
         postCode.append("\tif(value != null) {\n");
-        postCode.append("\t\torg.dihedron.strutlets.ActionContext.storeValueIntoScope( \"").append(out.value()).append("\", ").append("org.dihedron.strutlets.annotations.Scope.").append(scope.name()).append(", value );\n");
+//        postCode.append("\t\torg.dihedron.zephyr.ActionContext.storeValueIntoScope( \"").append(out.value()).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(", value );\n");
+        postCode.append("\t\torg.dihedron.zephyr.ActionContext.setValue(\"").append(out.value()).append("\", value, org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(");\n");
         postCode.append("\t} else if(").append(variable).append(".isReset()) {\n");
-        postCode.append("\t\torg.dihedron.strutlets.ActionContext.removeValueFromScope( \"").append(parameter).append("\", ").append("org.dihedron.strutlets.annotations.Scope.").append(scope.name()).append(" );\n");
+        //postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValueFromScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(" );\n");
+        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValue(\"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(");\n");
         postCode.append("\t}\n");
         postCode.append("\n");
         return variable;
@@ -939,7 +943,7 @@ public class ActionProxyFactory {
         }
 
         String parameter = inout.value();
-        String variable = parameter + "_" + i;
+        String variable = "inout_" + i;
 
         Type wrapped = Types.getParameterTypes(type)[0];
         logger.trace("input/output parameter no. {} is of type $<{}>", i, Types.getAsString(wrapped));
@@ -950,10 +954,10 @@ public class ActionProxyFactory {
         preCode.append("\t//\n\t// preparing input/output argument '").append(parameter).append("' (no. ").append(i).append(", ").append(Types.getAsString(wrapped)).append(")\n\t//\n");
 
         logger.trace("{}-th parameter is annotated with @InOut('{}') and @Out('{}')", i, inout.value());
-        preCode.append("\tvalue = org.dihedron.strutlets.ActionContext.findValueInScopes(\"").append(parameter).append("\", new org.dihedron.strutlets.annotations.Scope[] {");
+        preCode.append("\tvalue = org.dihedron.zephyr.ActionContext.findValue(\"").append(parameter).append("\", new org.dihedron.zephyr.annotations.Scope[] {");
         boolean first = true;
         for (Scope scope : inout.from()) {
-            preCode.append(first ? "" : ", ").append("org.dihedron.strutlets.annotations.Scope.").append(scope);
+            preCode.append(first ? "" : ", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope);
             first = false;
         }
         preCode.append(" });\n");
@@ -964,8 +968,8 @@ public class ActionProxyFactory {
         }
 
         // NOTE: no support for generics in Javassist: drop types (which would be dropped by type erasure anyway...)
-        // code.append("\torg.dihedron.strutlets.aop.$<").append(gt.getCanonicalName()).append("> inout").append(i).append(" = new org.dihedron.strutlets.aop.$<").append(gt.getCanonicalName()).append(">();\n");
-        preCode.append("\torg.dihedron.strutlets.aop.$ ").append(variable).append(" = new org.dihedron.strutlets.aop.$();\n");
+        // code.append("\torg.dihedron.zephyr.aop.$<").append(gt.getCanonicalName()).append("> inout").append(i).append(" = new org.dihedron.zephyr.aop.$<").append(gt.getCanonicalName()).append(">();\n");
+        preCode.append("\torg.dihedron.zephyr.aop.$ ").append(variable).append(" = new org.dihedron.zephyr.aop.$();\n");
         preCode.append("\t").append(variable).append(".set(value);\n");
         preCode.append("\ttrace.append(\"").append(variable).append("\").append(\" => '\").append(").append(variable).append(".get()).append(\"', \");\n");
 
@@ -986,9 +990,11 @@ public class ActionProxyFactory {
         postCode.append("\t//\n\t// storing input/output argument ").append(parameter).append(" (no. ").append(i).append(", ").append(Types.getAsString(wrapped)).append(") into scope ").append(inout.to().name()).append("\n\t//\n");
         postCode.append("\tvalue = ").append(variable).append(".get();\n");
         postCode.append("\tif(value != null) {\n");
-        postCode.append("\t\torg.dihedron.strutlets.ActionContext.storeValueIntoScope( \"").append(parameter).append("\", ").append("org.dihedron.strutlets.annotations.Scope.").append(inout.to().name()).append(", value );\n");
+//        postCode.append("\t\torg.dihedron.zephyr.ActionContext.storeValueIntoScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(inout.to().name()).append(", value );\n");
+        postCode.append("\t\torg.dihedron.zephyr.ActionContext.setValue(\"").append(inout.value()).append("\", value, org.dihedron.zephyr.annotations.Scope.").append(inout.to().name()).append(");\n");
         postCode.append("\t} else if(").append(variable).append(".isReset()) {\n");
-        postCode.append("\t\torg.dihedron.strutlets.ActionContext.removeValueFromScope( \"").append(parameter).append("\", ").append("org.dihedron.strutlets.annotations.Scope.").append(inout.to().name()).append(" );\n");
+//        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValueFromScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(inout.to().name()).append(" );\n");
+        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValue(\"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(inout.to().name()).append(");\n");
         postCode.append("\t}\n");
         postCode.append("\n");
 
@@ -1021,10 +1027,10 @@ public class ActionProxyFactory {
 
         // retrieve the applicable parameters from the specified scopes
         logger.trace("{}-th parameter is annotated with @Model('{}')", i, pattern);
-        preCode.append("\tjava.util.Map map = org.dihedron.strutlets.ActionContext.matchValuesInScopes(\"").append(pattern).append("\", new org.dihedron.strutlets.annotations.Scope[] {");
+        preCode.append("\tjava.util.Map map = org.dihedron.zephyr.ActionContext.matchValuesInScopes(\"").append(pattern).append("\", new org.dihedron.zephyr.annotations.Scope[] {");
         boolean first = true;
         for (Scope scope : model.from()) {
-            preCode.append(first ? "" : ", ").append("org.dihedron.strutlets.annotations.Scope.").append(scope.name());
+            preCode.append(first ? "" : ", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name());
             first = false;
         }
         preCode.append(" });\n\n");
@@ -1055,7 +1061,7 @@ public class ActionProxyFactory {
 
         // create an OGNL interpreter and launch it against the model object
         preCode.append("\t\t// create the OGNL expression\n");
-        preCode.append("\t\torg.dihedron.strutlets.ognl.OgnlExpression ognl = new org.dihedron.strutlets.ognl.OgnlExpression(key);\n");
+        preCode.append("\t\torg.dihedron.zephyr.ognl.OgnlExpression ognl = new org.dihedron.zephyr.ognl.OgnlExpression(key);\n");
         preCode.append("\t\tognl.setValue(context, ").append(variable).append(", entry.getValue());\n");
 
         // end of loop on values
@@ -1124,10 +1130,10 @@ public class ActionProxyFactory {
 
         // retrieve the applicable parameters from the specified scopes
         logger.trace("{}-th parameter is annotated with @Model('{}')", i, pattern);
-        preCode.append("\tjava.util.Map map = org.dihedron.strutlets.ActionContext.matchValuesInScopes(\"").append(pattern).append("\", new org.dihedron.strutlets.annotations.Scope[] {");
+        preCode.append("\tjava.util.Map map = org.dihedron.zephyr.ActionContext.matchValuesInScopes(\"").append(pattern).append("\", new org.dihedron.zephyr.annotations.Scope[] {");
         boolean first = true;
         for (Scope scope : model.from()) {
-            preCode.append(first ? "" : ", ").append("org.dihedron.strutlets.annotations.Scope.").append(scope.name());
+            preCode.append(first ? "" : ", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name());
             first = false;
         }
         preCode.append(" });\n\n");
@@ -1138,7 +1144,7 @@ public class ActionProxyFactory {
 
         // instantiate a new instance of the model object and store it in a $<?> reference
         preCode.append("\t//\n\t// creating new model object instance (which will be stored in a $<?> reference)\n\t//\n");
-        preCode.append("\torg.dihedron.strutlets.aop.$ ").append(variable).append(" = new org.dihedron.strutlets.aop.$(new ").append(Types.getAsString(wrapped)).append("());\n");
+        preCode.append("\torg.dihedron.zephyr.aop.$ ").append(variable).append(" = new org.dihedron.zephyr.aop.$(new ").append(Types.getAsString(wrapped)).append("());\n");
         preCode.append("\tognl.OgnlContext context = new ognl.OgnlContext();\n");
 
         preCode.append("\tjava.util.Iterator entries = map.entrySet().iterator();\n");
@@ -1165,7 +1171,7 @@ public class ActionProxyFactory {
 
         // create an OGNL interpreter and launch it against the model object
         preCode.append("\t\t// create the OGNL expression\n");
-        preCode.append("\t\torg.dihedron.strutlets.ognl.OgnlExpression ognl = new org.dihedron.strutlets.ognl.OgnlExpression(key);\n");
+        preCode.append("\t\torg.dihedron.zephyr.ognl.OgnlExpression ognl = new org.dihedron.zephyr.ognl.OgnlExpression(key);\n");
         preCode.append("\t\tognl.setValue(context, ").append(variable).append(".get(), entry.getValue());\n");
 
         // end of loop on values
@@ -1205,9 +1211,10 @@ public class ActionProxyFactory {
         postCode.append("\t//\n\t// storing input/output model argument '").append(parameter).append("' (no. ").append(i).append(", ").append(Types.getAsString(wrapped)).append(") into scope ").append(scope.name()).append("\n\t//\n");
         postCode.append("\tvalue = ").append(variable).append(".get();\n");
         postCode.append("\tif(value != null) {\n");
-        postCode.append("\t\torg.dihedron.strutlets.ActionContext.storeValueIntoScope( \"").append(out.value()).append("\", ").append("org.dihedron.strutlets.annotations.Scope.").append(scope.name()).append(", value );\n");
+        postCode.append("\t\torg.dihedron.zephyr.ActionContext.setValue( \"").append(out.value()).append("\", value, org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(" );\n");
         postCode.append("\t} else if(").append(variable).append(".isReset()) {\n");
-        postCode.append("\t\torg.dihedron.strutlets.ActionContext.removeValueFromScope( \"").append(parameter).append("\", ").append("org.dihedron.strutlets.annotations.Scope.").append(scope.name()).append(" );\n");
+//        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValueFromScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(" );\n");
+        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValue( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(" );\n");
         postCode.append("\t}\n");
         postCode.append("\n");
 

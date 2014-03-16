@@ -704,7 +704,7 @@ public class ActionContext {
 			}
 			break;
 		}
-		logger.debug("value '{}' in scope '{}' has value '{}' (class {})", key, scope.name(), value, value != null ? value.getClass().getSimpleName() : "n.a.");
+		logger.trace("value '{}' in scope '{}' has value '{}' (class {})", key, scope.name(), value, value != null ? value.getClass().getSimpleName() : "n.a.");
 		return value;
 	}
 	
@@ -919,18 +919,6 @@ public class ActionContext {
 		Set<String> names = getValueNames(scope, pattern);
 		removeValues(names, scope);
 	}
-
-	/**
-	 * Retrieves the names of attributes and parameters in the given scope.
-	 * 
-	 * @param scope
-	 *   the scope whose value (attribute/parameter) names should be retrieved.
-	 * @return
-	 *   the names of the attributes/parameters in the given scope.
-	 */
-	public static Set<String> getValueNames(Scope scope) {
-		return getValueNames(scope);		
-	}
 	
 	/**
 	 * Removes all values from the given scope.
@@ -942,6 +930,18 @@ public class ActionContext {
 	public static void clearValues(Scope scope) throws ZephyrException {
 		removeValues(new Regex(".*"), scope);
 	}
+	
+	/**
+	 * Retrieves the names of attributes and parameters in the given scope.
+	 * 
+	 * @param scope
+	 *   the scope whose value (attribute/parameter) names should be retrieved.
+	 * @return
+	 *   the names of the attributes/parameters in the given scope.
+	 */
+	public static Set<String> getValueNames(Scope scope) {
+		return getValueNames(scope, new Regex(".*"));		
+	}	
 		
 	/**
 	 * Retrieves the names of attributes and parameters in the given scope, possibly

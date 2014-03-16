@@ -19,8 +19,12 @@
 package org.example.demo.part1.actions;
 
 import org.dihedron.zephyr.annotations.Action;
+import org.dihedron.zephyr.annotations.In;
 import org.dihedron.zephyr.annotations.Invocable;
+import org.dihedron.zephyr.annotations.Out;
 import org.dihedron.zephyr.annotations.Result;
+import org.dihedron.zephyr.annotations.Scope;
+import org.dihedron.zephyr.aop.$;
 import org.dihedron.zephyr.renderers.impl.JspRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,8 +44,12 @@ public class MyPrivateActionImpl {
 			@Result(value = Action.SUCCESS, renderer=JspRenderer.ID, data="pippo.jsp")
 		}
 	)
-	public String myBusinessMethod() {
-		logger.trace("business method invoked!");
+	public String myBusinessMethod(
+			@In(value="user.firstName", from=Scope.FORM) String name,
+			@Out(value="greeting", to=Scope.REQUEST) $<String> greeting
+		) {
+		logger.trace("business method invoked with name '{}'!", name);
+		greeting.set("hallo from " + name);
 		return Action.SUCCESS;
 	}
 }

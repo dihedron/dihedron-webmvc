@@ -78,12 +78,12 @@ public class InterceptorsRegistry {
 	/**
 	 * The name of the interceptors configuration schema file.
 	 */
-	public static final String INTERCEPTORS_CONFIG_XSD = "org/dihedron/strutlets/interceptors/interceptors.xsd";
+	public static final String INTERCEPTORS_CONFIG_XSD = "org/dihedron/zephyr/interceptors/interceptors.xsd";
 	
 	/**
 	 * The name of the file declaring the default interceptor stack.
 	 */
-	public static final String DEFAULT_INTERCEPTORS_CONFIG_XML = "org/dihedron/strutlets/default-interceptors.xml";
+	public static final String DEFAULT_INTERCEPTORS_CONFIG_XML = "org/dihedron/zephyr/default-interceptors.xml";
 
 	/**
 	 * The name of the default interceptor stack ("default").
