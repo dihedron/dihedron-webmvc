@@ -28,19 +28,12 @@ import org.dihedron.zephyr.exceptions.ZephyrException;
 
 
 /**
- * The base interface for all renderers.
+ * The base interface for all renderers; concreete implementing classes MUST 
+ * provide a no-args constructor or they will not be registered by the loader.
  *
  * @author Andrea Funto'
  */
 public interface Renderer {
-
-    /**
-     * Returns the identifier of the renderer, e.g. "jsp" for the JSP include
-     * renderer.
-     *
-     * @return the id of the renderer.
-     */
-    String getId();
     
     /**
      * Returns whether the selection of this renderer can only represent the 

@@ -19,9 +19,9 @@
 
 package org.dihedron.zephyr.interceptors.impl;
 
-import org.dihedron.strutlets.ActionInvocation;
-import org.dihedron.strutlets.exceptions.StrutletsException;
-import org.dihedron.strutlets.interceptors.Interceptor;
+import org.dihedron.zephyr.ActionInvocation;
+import org.dihedron.zephyr.exceptions.ZephyrException;
+import org.dihedron.zephyr.interceptors.Interceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,7 @@ public class Profiler extends Interceptor {
 	 *   org.dihedron.strutlets.interceptors.Interceptor#intercept(org.dihedron.strutlets.ActionInvocation)
 	 */
 	@Override
-	public String intercept(ActionInvocation invocation) throws StrutletsException {
+	public String intercept(ActionInvocation invocation) throws ZephyrException {
 		long start = System.currentTimeMillis();
 		String result = invocation.invoke();
 		logger.debug("action execution took {} ms", System.currentTimeMillis() - start);

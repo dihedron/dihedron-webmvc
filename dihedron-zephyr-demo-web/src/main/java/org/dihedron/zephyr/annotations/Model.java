@@ -47,8 +47,9 @@ public @interface Model {
      * this will result in <code>&lt;model-object&gt;.getAddress().setStreet()</code>
      * and <code>&lt;model-object&gt;.setName()</code> being called.
      *
-     * @return the pattern of the regular expression used to select the parameters
-     * whose values will be stored inside the field.
+     * @return 
+     *   the pattern of the regular expression used to select the parameters
+     *   whose values will be stored inside the field.
      */
     String value() default "^(?:[^\\:\\[\\]]+)\\:(.+)$";
 
@@ -56,7 +57,8 @@ public @interface Model {
      * The scope in which the parameters should be looked up; by default, they
      * are looked up in all available scopes.
      *
-     * @return the scope of the parameter.
+     * @return 
+     *   the scope of the parameters.
      */
-    Scope[] from() default {Scope.FORM, Scope.REQUEST, Scope.PORTLET, Scope.APPLICATION, /*Scope.HTTP,*/Scope.CONFIGURATION};
+    Scope[] from() default { Scope.FORM, Scope.REQUEST, Scope.SESSION, Scope.STICKY, Scope.APPLICATION, Scope.CONFIGURATION };
 }

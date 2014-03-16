@@ -188,6 +188,7 @@ public class ActionController implements Filter {
 
 		if (TargetId.isValidTargetId(pathInfo)) {
 			
+			String result = null;
 			logger.info("invoking target '{}'", pathInfo);
 			
 			// check if there's configuration available for the given action
@@ -211,25 +212,55 @@ public class ActionController implements Filter {
 			ActionInvocation invocation = null;
 			try {
 				invocation = new ActionInvocation(target, action, stack, request, response);
-				String result = invocation.invoke();
+				result = invocation.invoke();
 			} finally {
 				invocation.cleanup();
 			}
 			
 
-//			PrintWriter writer = new PrintWriter(response.getWriter());
-//			writer.println("<html><head><title>Zephyr</title></head>");
-//			writer.println("<body>");
-//			writer.println("<h1>would be invoking " + pathInfo + "...</h1>");
-//			writer.println("<br>");
-//
-//			writer.println("<h1>list of configuration properties:</h1><br><ul>");
-//			for (Parameter parameter : Parameter.values()) {
-//				writer.println("<li><b>" + parameter.getName() + "</b>:" + parameter.getValueFor(filter) + "</li>");
-//			}
-//			writer.println("</ol>");
-//			writer.println("</body>");
-//			writer.println("</html>");
+			PrintWriter writer = new PrintWriter(response.getWriter());
+			
+			writer.println("<h1>invocation:</h1><br>");
+			writer.println("<html><head><title>Zephyr</title></head>");
+			writer.println("<body>");
+			writer.println("<table>");
+			writer.println("<thead>");
+			writer.println("<tr>");
+			writer.println("<td>Target</td>");
+			writer.println("<td>Result</td>");
+			writer.println("</tr>");
+			writer.println("</thead>");
+			writer.println("<tbody>");
+			writer.println("<tr>");
+			writer.println("<td>" + pathInfo + "</td>");
+			writer.println("<td>" + result + "</td>");
+			writer.println("</tr>");
+			writer.println("</tbody>");
+			writer.println("</table>");
+			writer.println("<br>");
+
+			writer.println("<h1>configuratio parameters:</h1><br>");
+			writer.println("<table>");
+			writer.println("<thead>");
+			writer.println("<tr>");
+			writer.println("<td>Name</td>");
+			writer.println("<td>Value</td>");
+			writer.println("</tr>");
+			writer.println("</thead>");
+			writer.println("<tbody>");
+			for (Parameter parameter : Parameter.values()) {
+				writer.println("<tr>");
+				writer.println("<td>" + parameter.getName() + "</td>");
+				writer.println("<td>" + parameter.getValueFor(filter) + "</td>");
+				writer.println("</tr>");				
+			}			
+			writer.println("</tbody>");
+			writer.println("</table>");
+
+			writer.println("<h1>list of configuration properties:</h1><br><ul>");
+			writer.println("</ol>");
+			writer.println("</body>");
+			writer.println("</html>");
 		} else {
 			logger.trace("letting the application handle the request: this is no action");
 			chain.doFilter(req, res);

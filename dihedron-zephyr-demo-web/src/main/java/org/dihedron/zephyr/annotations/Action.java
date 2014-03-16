@@ -25,10 +25,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation used to annotate <code>AbstractAction</code> classes in order to specify
- * the id of the interceptor's stack to be used with it; by default, the framework
- * assumes that unless specified all actions go throught the "default" interceptor
- * stack, which is also the default of the annotation value.
+ * Annotation used to annotate business-logic classes in order to specify how it
+ * should be trated with respect to the interceptor's stack to be used with it,
+ * and (optionally) how it should be addressed by remote clients; by default, 
+ * the framework assumes that unless specified all actions go through the 
+ * "default" interceptor stack, which is also the default of the annotation value,
+ * and that they retain their class' "simple name", but you can use this annotation
+ * to hide away internal names and provide a public alias.
  *
  * @author Andrea Funto'
  */
@@ -57,19 +60,21 @@ public @interface Action {
     public static final String ERROR = "error";
 
     /**
-     * An alternativa name for the action, so that the user need not know the
+     * An alternative name for the action, so that the user need not know the
      * name of the concrete class implementing the business logic.
      *
-     * @return the alias under which the developer wants the <code>Action</code> to be
-     * exposed to users; if left to the default, the <code>Action</code>'s name
-     * will be the name of the class.
+     * @return 
+     *   the alias under which the developer wants the <code>Action</code> to be
+     *   exposed to users; if left to the default, the <code>Action</code>'s name
+     *   will be the name of the class.
      */
     String alias() default "";
 
     /**
      * The id of the interceptors' stack to be used with this action.
      *
-     * @return the id if the interceptors' stack.
+     * @return 
+     *   the id if the interceptors' stack.
      */
     String interceptors() default DEFAULT_INTERCEPTORS_STACK;
 }

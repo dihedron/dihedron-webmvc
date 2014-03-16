@@ -32,7 +32,21 @@ import org.dihedron.zephyr.renderers.Renderer;
  * @author Andrea Funto'
  */
 public abstract class AbstractRenderer implements Renderer {
-
+	
+	protected static String ID = null;
+	
+    /**
+     * Returns the identifier of the renderer, e.g. "jsp" for the JSP include
+     * renderer. This id is the same that should be used in the result annotations
+     * to specify the kind of renderer.
+     *
+     * @return 
+     *   the id of the renderer.
+     */
+    public static String getId() {
+    	return ID;
+    }
+    
 //    /**
 //     * A reference to the servlet filter that is going to be using this renderer.
 //     */
@@ -60,9 +74,9 @@ public abstract class AbstractRenderer implements Renderer {
 //    }
 	
 	/**
-	 * By default renderers are temrinal.
+	 * By default renderers are terminal.
 	 * 
-	 * @see Renderer#isTerminal()
+	 * @see org.dihedron.zephyr.renderers.Renderer#isTerminal()
 	 */
 	@Override
 	public boolean isTerminal() {

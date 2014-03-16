@@ -77,71 +77,21 @@ public class Dumper extends Interceptor {
 	@Override
 	public String intercept(ActionInvocation invocation) throws ZephyrException {
 		StringBuilder builder = new StringBuilder();
-		dumpFormParameters(builder);
-		dumpAttributes(Scope.REQUEST, builder);
-		dumpAttributes(Scope.PORTLET, builder);
-		dumpAttributes(Scope.APPLICATION, builder);
-		dumpHttpParameters(builder);
-		dumpHttpAttributes(builder);
+		for(Scope scope : Scope.ALL) {
+			dumpValues(scope, builder);
+		}
 		builder.append(SECTION_FOOTER).append("\n");
 		logger.debug("action context BEFORE execution:\n{}", builder);
 		builder.setLength(0);
 		String result = invocation.invoke();
-		dumpRenderParameters(builder);
-		dumpAttributes(Scope.REQUEST, builder);
-		dumpAttributes(Scope.PORTLET, builder);
-		dumpAttributes(Scope.APPLICATION, builder);
-		dumpHttpParameters(builder);
-		dumpHttpAttributes(builder);
+		for(Scope scope : Scope.ALL) {
+			dumpValues(scope, builder);
+		}
 		builder.append(SECTION_FOOTER).append("\n");
 		logger.debug("action context AFTER execution:\n{}", builder);
 		return result;		
 	}
-	
-	/**
-	 * Dumps any user-submitted web form parameters to the provided buffer.
-	 * 
-	 * @param builder
-	 *   the buffer used for output accumulation.
-	 */
-	private void dumpFormParameters(StringBuilder builder) {
-		Map<String, String[]> parameters = ActionContext.getParameters();	
-		if(parameters != null) {
-			builder.append(Strings.centre(" WEB FORM ", SECTION_HEADER_LENGTH, SECTION_HEADER_PADDING)).append("\n");
-			for(Entry<String, String[]> entry : parameters.entrySet()) {
-				if(regex == null || !regex.matches(entry.getKey())) {
-					builder.append("'").append(entry.getKey()).append("' = [ ");
-					for(String value : entry.getValue()) {
-						builder.append("'").append(value).append("', ");
-					}
-					builder.append("]\n");
-				}
-			}
-		}
-	}
-	
-	/**
-	 * Dumps any user-submitted web form parameters to the provided buffer.
-	 * 
-	 * @param builder
-	 *   the buffer used for output accumulation.
-	 */
-	private void dumpRenderParameters(StringBuilder builder) {
-		Map<String, String[]> parameters = ActionContext.getRenderParameterMap();		
-		builder.append(Strings.centre(" RENDER PARAMETERS ", SECTION_HEADER_LENGTH, SECTION_HEADER_PADDING)).append("\n");
-		if(parameters != null) {
-			for(Entry<String, String[]> entry : parameters.entrySet()) {
-				if(regex == null || !regex.matches(entry.getKey())) {
-					builder.append("'").append(entry.getKey()).append("' = [ ");
-					for(String value : entry.getValue()) {
-						builder.append("'").append(value).append("', ");
-					}
-					builder.append("]\n");
-				}
-			}
-		}
-	}	
-	
+		
 	/**
 	 * Dumps any value available in the given scope to the provided buffer.
 	 * 
@@ -150,47 +100,16 @@ public class Dumper extends Interceptor {
 	 * @param builder
 	 *   the buffer used for output accumulation.
 	 */
-	private void dumpAttributes(Scope scope, StringBuilder builder) {
-		Map<String, Object> attributes = ActionContext.getAttributes(scope);
+	private void dumpValues(Scope scope, StringBuilder builder) throws ZephyrException {
+		Map<String, Object> values = ActionContext.getValues(scope);
 		builder.append(Strings.centre(" " + scope.name() + " SCOPE ", SECTION_HEADER_LENGTH, SECTION_HEADER_PADDING)).append("\n");
-		if(attributes != null) {			
-			for(Entry<String, Object> entry : attributes.entrySet()) {
+		if(values != null) {			
+			for(Entry<String, Object> entry : values.entrySet()) {
 				if(regex == null || !regex.matches(entry.getKey())) {
 					String value = entry.getValue() != null ? entry.getValue().toString() : null; 
 					builder.append("'").append(entry.getKey()).append("' = '").append(value).append("'\n");
 				}
 			}
 		}
-	}
-	
-	private void dumpHttpParameters(StringBuilder builder) {
-		Map<String, String[]> parameters = ActionContext.getHttpParametersMap();		
-		builder.append(Strings.centre(" HTTP PARAMETERS ", SECTION_HEADER_LENGTH, SECTION_HEADER_PADDING)).append("\n");
-		if(parameters != null) {
-			for(Entry<String, String[]> entry : parameters.entrySet()) {
-				if(regex == null || !regex.matches(entry.getKey())) {
-					builder.append("'").append(entry.getKey()).append("' = [ ");
-					for(String value : entry.getValue()) {
-						builder.append("'").append(value).append("', ");
-					}
-					builder.append("]\n");
-				}
-			}
-		}		
-	}
-	
-	private void dumpHttpAttributes(StringBuilder builder) {
-		Map<String, Object> attributes = ActionContext.getHttpAttributesMap();
-		builder.append(Strings.centre(" HTTP ATTRIBUTES ", SECTION_HEADER_LENGTH, SECTION_HEADER_PADDING)).append("\n");
-		if(attributes != null) {			
-			for(Entry<String, Object> entry : attributes.entrySet()) {
-				if(regex == null || !regex.matches(entry.getKey())) {				
-					String value = entry.getValue() != null ? entry.getValue().toString() : null; 
-					builder.append("'").append(entry.getKey()).append("' = '").append(value).append("'\n");
-				}
-			}
-		}
-		
-	}
-	
+	}	
 }

@@ -19,8 +19,12 @@
 
 package org.dihedron.zephyr.renderers.registry;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.Set;
+
+import javassist.Modifier;
+
 import org.dihedron.commons.strings.Strings;
-import org.dihedron.zephyr.annotations.Alias;
 import org.dihedron.zephyr.exceptions.ZephyrException;
 import org.dihedron.zephyr.renderers.Renderer;
 import org.reflections.Reflections;
@@ -30,10 +34,6 @@ import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Set;
-
-import javassist.Modifier;
 
 /**
  * @author Andrea Funto'
@@ -63,10 +63,14 @@ public class RendererRegistryLoader {
             Set<Class<? extends Renderer>> renderers = reflections.getSubTypesOf(Renderer.class);
             for (Class<? extends Renderer> clazz : renderers) {
                 logger.trace("analysing renderer class: '{}'...", clazz.getName());
-                if (!Modifier.isAbstract(clazz.getModifiers()) && clazz.isAnnotationPresent(Alias.class)) {
-                    Alias alias = clazz.getAnnotation(Alias.class);
-                    logger.trace("... registering '{}' renderer: '{}'", alias.value(), clazz.getCanonicalName());
-                    registry.addRenderer(alias.value(), clazz);
+                if (!Modifier.isAbstract(clazz.getModifiers())/* && clazz.isAnnotationPresent(Alias.class)*/) {
+					try {						
+						String id = (String)clazz.getMethod("getId").invoke(null);						
+	                    logger.trace("... registering '{}' renderer: '{}'", id, clazz.getCanonicalName());
+	                    registry.addRenderer(id, clazz);
+					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+						logger.error("error retrieving id for renderers of class '" + clazz.getName() + "': does it extend AbstractRenderer or provide a static getId() method?", e);
+					}
                 } else {
                     logger.trace("... skipping renderer '{}'", clazz.getCanonicalName());
                 }

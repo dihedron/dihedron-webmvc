@@ -36,52 +36,19 @@ import java.lang.annotation.*;
 @Documented
 public @interface Invocable {
 
-//    /**
-//     * Indicates the behaviour of the annotated method with respect to the
-//     * system's internal state. Idempotent methods are supposed not to change the
-//     * state in any way or to be able to handle multiple invocations with the
-//     * same parameters in a row, the way it happens when a target is used in render
-//     * URL: the portlet container may invoke the same method, with the same URL
-//     * parameters multiple times depending on its need to refresh the page
-//     * contents; non-idempotent targets are not fit to be used in render URLs,
-//     * but they have access to additional portal functionalities such as the
-//     * ability to set render parameters, to change the portlet state and mode,
-//     * and the capability to fire events.
-//     * No enforcement is made about the compliance of the method's behaviour
-//     * with what's declared in the annotation; failure to be able to handle
-//     * multiple requests returning consistent results and leaving the system in
-//     * a consistent state may lead to unexpected behaviour and a bad user
-//     * experience.
-//     * Indicating a non-idempotent target in a render URL request will result
-//     * is an exception being thrown; the association of this check and the default
-//     * for this attribute being {@code false} is supposed to help the developer
-//     * spot bugs in her code.
-//     *
-//     * @return whether the method may be invoked multiple times in a row and still
-//     * yield consistent results and leave the system in a consistent state.
-//     */
-//    boolean idempotent() default false;
-
-//    /**
-//     * The array of portlet events that the annotated action method is declared
-//     * to support.
-//     *
-//     * @return the array of supported events.
-//     */
-//    Event[] events() default {};
-
     /**
      * The array of expected results; each of them will map to the appropriate
      * renderer, and will be parameterised according to what is specified in the
      * <code>@Result</code> annotation.
      *
-     * @return the array of expected results.
+     * @return 
+     *   the array of expected results.
      */
     Result[] results() default {};
 
     /**
      * The optional implementation of the validator interface that will provide
-     * the callbacks to handle JSR349 constraint violations errors on properly
+     * the callbacks to handle JSR-349 constraint violations errors on properly
      * annotated input parameters or on the method itself; if left to the default
      * dummy class, validation errors will simply cause a warning message to be
      * printed. For the exact contract between validator and validation handler,

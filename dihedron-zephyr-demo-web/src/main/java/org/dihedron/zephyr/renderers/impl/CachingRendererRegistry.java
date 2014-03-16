@@ -85,7 +85,7 @@ public class CachingRendererRegistry implements RendererRegistry {
         StringBuilder buffer = new StringBuilder();
         buffer.append("renderers: [\n");
         for (Entry<String, Renderer> entry : renderers.entrySet()) {
-            buffer.append("  { name: '").append(entry.getValue().getId()).append("', class: '").append(entry.getValue().getClass().getCanonicalName()).append("' },\n");
+            buffer.append("  { name: '").append(entry.getKey()).append("', class: '").append(entry.getValue().getClass().getCanonicalName()).append("' },\n");
         }
         buffer.append("]\n");
         return buffer.toString();

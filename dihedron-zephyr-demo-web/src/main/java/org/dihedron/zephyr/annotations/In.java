@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation indicating that the field will contain data coming from the given
- * parameter name.
+ * parameter name in the given scope(s).
  *
  * @author Andrea Funto'
  */
@@ -37,17 +37,19 @@ public @interface In {
     /**
      * The name of the input parameter; it must be specified.
      *
-     * @return the name of the parameter; this must not be a null or blank string since
-     * there's no way to acquire a sensible default from the information available
-     * at runtime (e.g. there's no name of the field available through reflection).
+     * @return 
+     *   the name of the parameter; this must not be a null or blank string since
+     *   there's no way to acquire a sensible default from the information available
+     *   at runtime (e.g. there's no name of the field available through reflection).
      */
     String value();
 
     /**
-     * The scope in which the parameter should be looked up; by default, it is
+     * The scopes in which the parameter should be looked up; by default, it is
      * looked up in all available scopes.
      *
-     * @return the scope of the parameter.
+     * @return 
+     *   the set of scope to scan for the annotated parameter.
      */
-    Scope[] from() default {Scope.FORM, Scope.REQUEST, Scope.PORTLET, Scope.APPLICATION, /*Scope.HTTP,*/Scope.CONFIGURATION};
+    Scope[] from() default { Scope.FORM, Scope.REQUEST, Scope.SESSION, Scope.STICKY, Scope.APPLICATION, Scope.CONFIGURATION };
 }

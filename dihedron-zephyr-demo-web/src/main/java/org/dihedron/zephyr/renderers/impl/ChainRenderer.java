@@ -26,7 +26,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.dihedron.zephyr.annotations.Alias;
 import org.dihedron.zephyr.exceptions.ZephyrException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +38,6 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Andrea Funto'
  */
-@Alias(ChainRenderer.ID)
 public class ChainRenderer extends AbstractRenderer {
 
 	public static final String ID = "chain";
@@ -48,14 +46,6 @@ public class ChainRenderer extends AbstractRenderer {
 	 * The logger.
 	 */
 	private static final Logger logger = LoggerFactory.getLogger(ChainRenderer.class);
-
-	/**
-	 * @see org.dihedron.zephyr.renderers.Renderer#getId()
-	 */
-	@Override
-	public String getId() {
-		return ID;
-	}
 	
 	/**
 	 * The chain renderer is non-terminal: by specifying it we are asking the framework
