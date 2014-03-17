@@ -19,8 +19,7 @@
 
 package org.dihedron.zephyr.interceptors.impl;
 
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
 
 import org.dihedron.commons.regex.Regex;
 import org.dihedron.commons.strings.Strings;
@@ -59,6 +58,7 @@ public class Dumper extends Interceptor {
 	@Override
 	public void initialise() {
 		String exclude = getParameter("exclude");
+		logger.trace("excluding properties matching /{}/", regex);
 		if(Strings.isValid(exclude)) {
 			regex = new Regex(exclude);
 		}
@@ -101,13 +101,12 @@ public class Dumper extends Interceptor {
 	 *   the buffer used for output accumulation.
 	 */
 	private void dumpValues(Scope scope, StringBuilder builder) throws ZephyrException {
-		Map<String, Object> values = ActionContext.getValues(scope);
-		builder.append(Strings.centre(" " + scope.name() + " SCOPE ", SECTION_HEADER_LENGTH, SECTION_HEADER_PADDING)).append("\n");
-		if(values != null) {			
-			for(Entry<String, Object> entry : values.entrySet()) {
-				if(regex == null || !regex.matches(entry.getKey())) {
-					String value = entry.getValue() != null ? entry.getValue().toString() : null; 
-					builder.append("'").append(entry.getKey()).append("' = '").append(value).append("'\n");
+		Set<String> names = ActionContext.getValueNames(scope);
+		builder.append(Strings.centre(" " + scope.name() + " SCOPE ", SECTION_HEADER_LENGTH, SECTION_HEADER_PADDING)).append("\n");		
+		if(names != null) {
+			for(String name : names) {
+				if(regex == null || !regex.matches(name)) { 
+					builder.append("'").append(name).append("' = '").append(ActionContext.getValue(name, scope)).append("'\n");
 				}
 			}
 		}

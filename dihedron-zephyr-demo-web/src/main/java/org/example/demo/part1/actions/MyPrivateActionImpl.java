@@ -41,7 +41,7 @@ public class MyPrivateActionImpl {
 
 	@Invocable(
 		results =  {
-			@Result(value = Action.SUCCESS, renderer=JspRenderer.ID, data="pippo.jsp")
+			@Result(value=Action.SUCCESS, renderer=JspRenderer.ID, data="pippo.jsp")
 		}
 	)
 	public String myBusinessMethod(
