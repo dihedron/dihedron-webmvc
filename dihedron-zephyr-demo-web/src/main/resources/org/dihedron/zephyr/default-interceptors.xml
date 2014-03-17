@@ -10,6 +10,10 @@
 				<value>^[A-Z_]*$|^org\.apache.*|^javax\.servlet.*|^org\.dihedron\.zephyr.*|^j_.*</value>
 				-->
 			</parameter>
+			<parameter>
+				<key>scopes</key>
+				<value>form,request,session,sticky,application</value>
+			</parameter>
 		</interceptor>
 		<!-- 
 		<interceptor id="double-submit" class="org.dihedron.strutlets.interceptors.impl.Resubmit">

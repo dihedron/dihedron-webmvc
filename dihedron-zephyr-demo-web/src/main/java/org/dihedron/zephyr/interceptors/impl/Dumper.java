@@ -19,9 +19,13 @@
 
 package org.dihedron.zephyr.interceptors.impl;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import org.dihedron.commons.regex.Regex;
+import org.dihedron.commons.strings.StringTokeniser;
 import org.dihedron.commons.strings.Strings;
 import org.dihedron.zephyr.ActionContext;
 import org.dihedron.zephyr.ActionInvocation;
@@ -43,6 +47,11 @@ public class Dumper extends Interceptor {
 	public static final String EXCLUDE_PARAMETER = "exclude";
 	
 	/**
+	 * The name of the parameter containing the list of scopes to be dumped.
+	 */
+	public static final String SCOPES_PARAMETER = "scopes";
+	
+	/**
 	 * The logger.
 	 */
 	private static final Logger logger = LoggerFactory.getLogger(Dumper.class);
@@ -55,12 +64,28 @@ public class Dumper extends Interceptor {
 
 	private Regex regex = null;
 	
+	private List<Scope> scopes = new ArrayList<>();
+	
 	@Override
 	public void initialise() {
-		String exclude = getParameter("exclude");
+		String exclude = getParameter(EXCLUDE_PARAMETER);
 		logger.trace("excluding properties matching /{}/", regex);
 		if(Strings.isValid(exclude)) {
 			regex = new Regex(exclude);
+		}
+		
+		
+		String description = getParameter("scopes");
+		if(description != null) {
+			String [] tokens = new StringTokeniser(",").setTrimSpaces(true).setSkimEmpty(true).tokenise(description);
+			for(String token : tokens) {
+				Scope scope = Scope.fromString(token);
+				if(scope != null) {
+					scopes.add(scope);
+				}
+			}
+		} else {			
+			scopes.addAll(Arrays.asList(Scope.ALL));
 		}
 	}
 	
@@ -77,14 +102,14 @@ public class Dumper extends Interceptor {
 	@Override
 	public String intercept(ActionInvocation invocation) throws ZephyrException {
 		StringBuilder builder = new StringBuilder();
-		for(Scope scope : Scope.ALL) {
+		for(Scope scope : scopes) {
 			dumpValues(scope, builder);
 		}
 		builder.append(SECTION_FOOTER).append("\n");
 		logger.debug("action context BEFORE execution:\n{}", builder);
 		builder.setLength(0);
 		String result = invocation.invoke();
-		for(Scope scope : Scope.ALL) {
+		for(Scope scope : scopes) {
 			dumpValues(scope, builder);
 		}
 		builder.append(SECTION_FOOTER).append("\n");

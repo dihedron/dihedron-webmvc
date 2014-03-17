@@ -112,6 +112,24 @@ public enum Scope {
 	};
 	
 	/**
+	 * Returns the scope corresponding to the given description, in a case
+	 * insenitive fashion.
+	 * 
+	 * @param description
+	 *   the description of the scope.
+	 * @return
+	 *   a {@code Scope} object, or null if none corresponding to the given string.
+	 */
+	public static Scope fromString(String description) {
+		for(Scope scope : Scope.values()) {
+			if(scope.name().equalsIgnoreCase(description)) {
+				return scope;
+			}
+		}
+		return null;
+	}
+	
+	/**
 	 * Returns whether the scope is read-only and it cannot be used to store
 	 * values, only to read them. This applies only to the FORM scope, which 
 	 * does not allow setting any value.
