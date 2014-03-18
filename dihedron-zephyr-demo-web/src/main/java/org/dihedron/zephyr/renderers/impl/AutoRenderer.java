@@ -31,21 +31,32 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The renderer that takes care of routing a request to the appropriate JSP page
- * for rendering; the Zephyr controller being a servlet filter, this simply
- * means changing the original request so that is is assigned to the proper JSP
- * before letting the filter chain proceed.
+ * A dummy renderer whose task is simply that of marking that the kind of renderer
+ * sould be auto-detected.
  * 
  * @author Andrea Funto'
  */
-public class JspRenderer extends AbstractRenderer {
+public class AutoRenderer extends AbstractRenderer {
 
-	public static final String ID = "jsp";
+	public static final String ID = "auto";
 
 	/**
 	 * The logger.
 	 */
-	private static final Logger logger = LoggerFactory.getLogger(JspRenderer.class);
+	private static final Logger logger = LoggerFactory.getLogger(AutoRenderer.class);
+	
+	/**
+	 * The chain renderer is non-terminal: by specifying it we are asking the framework
+	 * to forward control to yet another target before the actually rendering can occur.
+	 * 
+	 * @return
+	 *   {@code true}, to indicate that this is not a process sink, and further processing
+	 *   is neededbefore the actal rendering can take plavce
+	 */
+	@Override
+	public boolean isTerminal() {
+		return false;
+	}
 
 	/**
 	 * @see org.dihedron.zephyr.renderers.Renderer#render(javax.servlet.http.HttpServletRequest,

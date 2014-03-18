@@ -20,7 +20,6 @@ package org.dihedron.zephyr;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Enumeration;
@@ -44,12 +43,14 @@ import org.dihedron.commons.variables.EnvironmentValueProvider;
 import org.dihedron.commons.variables.SystemPropertyValueProvider;
 import org.dihedron.commons.variables.Variables;
 import org.dihedron.zephyr.actions.ActionFactory;
+import org.dihedron.zephyr.actions.Result;
 import org.dihedron.zephyr.exceptions.DeploymentException;
 import org.dihedron.zephyr.exceptions.ZephyrException;
 import org.dihedron.zephyr.interceptors.InterceptorStack;
 import org.dihedron.zephyr.interceptors.registry.InterceptorsRegistry;
 import org.dihedron.zephyr.plugins.Plugin;
 import org.dihedron.zephyr.plugins.PluginManager;
+import org.dihedron.zephyr.renderers.Renderer;
 import org.dihedron.zephyr.renderers.impl.CachingRendererRegistry;
 import org.dihedron.zephyr.renderers.registry.RendererRegistry;
 import org.dihedron.zephyr.renderers.registry.RendererRegistryLoader;
@@ -179,23 +180,23 @@ public class ActionController implements Filter {
 		// NOTE: getPathInfo() does not work in filters, where the exact servlet that will 
 		// end up handling the rquest is not determined; the only reliable way seems to be 
 		// by stripping the context path from the complete request URI
-		String pathInfo = request.getRequestURI().substring(contextPath.length() + 1); // strip the leading '/'
+		String targetId = request.getRequestURI().substring(contextPath.length() + 1); // strip the leading '/'
 		String queryString = request.getQueryString();
 
 		String uri = request.getRequestURI();
 
-		logger.trace("servicing request for '{}' (query string: '{}', context path: '{}', request URI: '{}')...", pathInfo, queryString, contextPath, uri);
 
-		if (TargetId.isValidTargetId(pathInfo)) {
-			try {
+		logger.trace("servicing request for '{}' (query string: '{}', context path: '{}', request URI: '{}')...", targetId, queryString, contextPath, uri);
+
+		try {
+			ActionContext.bindContext(filter, request, response, configuration, server);
+			Result result = null;
+			while(TargetId.isValidTargetId(targetId) && (result == null || result.getRendererId().equals("auto") || result.getRendererId().equals("chain"))) {
 				
-				ActionContext.bindContext(filter, request, response, configuration, server);
-				
-				String result = null;
-				logger.info("invoking target '{}'", pathInfo);
+				logger.info("invoking target '{}'...", targetId);
 				
 				// check if there's configuration available for the given action
-				Target target = registry.getTarget(pathInfo);
+				Target target = registry.getTarget(targetId);
 				
 				logger.trace("target configuration:\n{}", target.toString());
 				
@@ -204,8 +205,8 @@ public class ActionController implements Filter {
 				if(action != null) {
 					logger.info("action instance '{}' ready", target.getActionClass().getSimpleName());
 				} else {    			 	
-					logger.error("could not create an action instance for target '{}'", target.getId().toString());
-					throw new ZephyrException("No action could be found for target '" + target.getId().toString() + "'");
+					logger.error("could not create an action instance for target '{}'", target.getId());
+					throw new ZephyrException("No action could be found for target '" + target.getId() + "'");
 				}
 				
 				// get the stack for the given action
@@ -214,62 +215,81 @@ public class ActionController implements Filter {
 		    	// create and fire the action stack invocation
 				ActionInvocation invocation = null;
 				try {
+					logger.info("invoking interceptors' stack...");
 					invocation = new ActionInvocation(target, action, stack, request, response);
-					result = invocation.invoke();
+					result = target.getResult(invocation.invoke());
+					logger.info("... invocation done!");
 				} finally {
 					invocation.cleanup();
 				}
 				
-	
-				PrintWriter writer = new PrintWriter(response.getWriter());
-				
-				writer.println("<h1>invocation:</h1><br>");
-				writer.println("<html><head><title>Zephyr</title></head>");
-				writer.println("<body>");
-				writer.println("<table>");
-				writer.println("<thead>");
-				writer.println("<tr>");
-				writer.println("<td>Target</td>");
-				writer.println("<td>Result</td>");
-				writer.println("</tr>");
-				writer.println("</thead>");
-				writer.println("<tbody>");
-				writer.println("<tr>");
-				writer.println("<td>" + pathInfo + "</td>");
-				writer.println("<td>" + result + "</td>");
-				writer.println("</tr>");
-				writer.println("</tbody>");
-				writer.println("</table>");
-				writer.println("<br>");
-	
-				writer.println("<h1>configuratio parameters:</h1><br>");
-				writer.println("<table>");
-				writer.println("<thead>");
-				writer.println("<tr>");
-				writer.println("<td>Name</td>");
-				writer.println("<td>Value</td>");
-				writer.println("</tr>");
-				writer.println("</thead>");
-				writer.println("<tbody>");
-				for (Parameter parameter : Parameter.values()) {
-					writer.println("<tr>");
-					writer.println("<td>" + parameter.getName() + "</td>");
-					writer.println("<td>" + parameter.getValueFor(filter) + "</td>");
-					writer.println("</tr>");				
-				}			
-				writer.println("</tbody>");
-				writer.println("</table>");
-	
-				writer.println("<h1>list of configuration properties:</h1><br><ul>");
-				writer.println("</ol>");
-				writer.println("</body>");
-				writer.println("</html>");
-			} finally {
-				ActionContext.unbindContext();
+				if(result == null) {
+					logger.error("misconfiguration in registry: target '{}' and result '{}' have no valid processing information", target.getId(), result);
+					throw new ZephyrException("No valid information found in registry for target '" + target.getId() + "', result '" + result + "', please check your actions");
+				}
+//				String subtarget = result.getData();
+//				if(TargetId.isValidTargetId(subtarget)) {
+//					logger.debug("target '{}' on result '{}' wants its output rendered by target '{}', forwarding...", target, result, subtarget);
+//					continue;
+//    			} else {
+//    				logger.trace("moving over to rendering '{}'...", subtarget);
+//    				break;
+//    			}
+//	
+//				PrintWriter writer = new PrintWriter(response.getWriter());
+//				
+//				writer.println("<h1>invocation:</h1><br>");
+//				writer.println("<html><head><title>Zephyr</title></head>");
+//				writer.println("<body>");
+//				writer.println("<table>");
+//				writer.println("<thead>");
+//				writer.println("<tr>");
+//				writer.println("<td>Target</td>");
+//				writer.println("<td>Result</td>");
+//				writer.println("</tr>");
+//				writer.println("</thead>");
+//				writer.println("<tbody>");
+//				writer.println("<tr>");
+//				writer.println("<td>" + targetId + "</td>");
+//				writer.println("<td>" + result + "</td>");
+//				writer.println("</tr>");
+//				writer.println("</tbody>");
+//				writer.println("</table>");
+//				writer.println("<br>");
+//	
+//				writer.println("<h1>configuratio parameters:</h1><br>");
+//				writer.println("<table>");
+//				writer.println("<thead>");
+//				writer.println("<tr>");
+//				writer.println("<td>Name</td>");
+//				writer.println("<td>Value</td>");
+//				writer.println("</tr>");
+//				writer.println("</thead>");
+//				writer.println("<tbody>");
+//				for (Parameter parameter : Parameter.values()) {
+//					writer.println("<tr>");
+//					writer.println("<td>" + parameter.getName() + "</td>");
+//					writer.println("<td>" + parameter.getValueFor(filter) + "</td>");
+//					writer.println("</tr>");				
+//				}			
+//				writer.println("</tbody>");
+//				writer.println("</table>");
+//	
+//				writer.println("<h1>list of configuration properties:</h1><br><ul>");
+//				writer.println("</ol>");
+//				writer.println("</body>");
+//				writer.println("</html>");
+			} 
+			
+			if(result == null) {
+				logger.trace("letting the application handle the request: this is no action");
+				chain.doFilter(req, res);				
+			} else {
+				Renderer renderer = renderers.getRenderer(result.getRendererId());
+				renderer.render(request, response, result.getData());
 			}
-		} else {
-			logger.trace("letting the application handle the request: this is no action");
-			chain.doFilter(req, res);
+		} finally {
+			ActionContext.unbindContext();
 		}
 	}
 

@@ -1,20 +1,20 @@
 /**
- * Copyright (c) 2012, 2013, Andrea Funto'. All rights reserved.
+ * Copyright (c) 2014, Andrea Funto'. All rights reserved.
  *
- * This file is part of the Strutlets framework ("Strutlets").
+ * This file is part of the Zephyr framework ("Zephyr").
  *
- * Strutlets is free software: you can redistribute it and/or modify it under 
+ * Zephyr is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free 
  * Software Foundation, either version 3 of the License, or (at your option) 
  * any later version.
  *
- * Strutlets is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * Zephyr is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR 
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more 
  * details.
  *
  * You should have received a copy of the GNU Lesser General Public License 
- * along with Strutlets. If not, see <http://www.gnu.org/licenses/>.
+ * along with Zephyr. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.dihedron.zephyr.targets;
@@ -312,21 +312,24 @@ public class Target {
     /**
      * Returns the <code>Result</code> object corresponding to the given
      * result string, or null if none found. If the target belongs to an auto-
-     * configured action and no result could be found, the methodName attempts to
-     * reconstruct the information and returns it, after having added it to the
-     * set of valid results.
+     * configured action and no result could be found, the methodName attempts 
+     * to reconstruct the information and returns it, after having added it to
+     * the set of valid results.
      *
-     * @param rid a result string (e.g. "success", "error").
-     * @return the <code>Result</code> object corresponding to the given result string.
+     * @param resultId 
+     *   a result string (e.g. "success", "error").
+     * @return 
+     *   the <code>Result</code> object corresponding to the given result string.
      */
-    public Result getResult(String rid) {
-        assert (Strings.isValid(rid));
-        Result result = results.get(rid);
+    public Result getResult(String resultId) {
+        assert (Strings.isValid(resultId));
+        logger.trace("retrieving result for id '{}'", resultId);
+        Result result = results.get(resultId);
         if (result == null) {
-            logger.trace("result '{}' is not present yet, auto-configuring...", rid);
-            addUndeclaredResult(rid);
+            logger.trace("result '{}' is not present yet, auto-configuring...", resultId);
+            addUndeclaredResult(resultId);
         }
-        return results.get(rid);
+        return results.get(resultId);
     }
 
     /**
@@ -346,7 +349,7 @@ public class Target {
             buffer.append("  results {\n");
             for (Entry<String, Result> result : results.entrySet()) {
                 buffer.append("    result  ('").append(result.getKey()).append("') { \n");
-                buffer.append("      renderer ('").append(result.getValue().getRenderer()).append("')\n");
+                buffer.append("      renderer ('").append(result.getValue().getRendererId()).append("')\n");
                 buffer.append("      data     ('").append(result.getValue().getData()).append("')\n");
                 buffer.append("    }\n");
             }
