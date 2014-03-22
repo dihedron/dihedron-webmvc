@@ -51,5 +51,8 @@ public @interface In {
      * @return 
      *   the set of scope to scan for the annotated parameter.
      */
-    Scope[] from() default Scope.ALL;
+    Scope[] from() default {
+		Scope.FORM, Scope.REQUEST, Scope.SESSION, Scope.STICKY, Scope.APPLICATION, 
+		Scope.CONFIGURATION, Scope.SYSTEM, Scope.ENVIRONMENT
+	};
 }

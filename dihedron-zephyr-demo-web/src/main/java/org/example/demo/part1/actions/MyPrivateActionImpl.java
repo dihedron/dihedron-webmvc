@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Andrea Funto'
  */
-@Action(alias="MyPublicAction")
+@Action(alias="TestAction")
 public class MyPrivateActionImpl {
 	/**
 	 * The logger.
@@ -44,12 +44,12 @@ public class MyPrivateActionImpl {
 			@Result(value=Action.SUCCESS, renderer=JspRenderer.ID, data="index.jsp")
 		}
 	)
-	public String myBusinessMethod(
-			@In(value="user.firstName", from=Scope.FORM) String name,
-			@Out(value="greeting", to=Scope.REQUEST) $<String> greeting
+	public String onSimpleFormSubmission(
+			@In(value="message", from=Scope.FORM) String message,
+			@Out(value="echo", to=Scope.REQUEST) $<String> echo
 		) {
-		logger.trace("business method invoked with name '{}'!", name);
-		greeting.set("hallo from " + name);
+		logger.trace("business method invoked with inbound message: '{}'", message);
+		echo.set("ECHO: you sent '" + message + "'");
 		return Action.SUCCESS;
 	}
 }

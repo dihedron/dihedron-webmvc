@@ -1,11 +1,12 @@
 <?xml version="1.0"?>
-<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
-        "http://java.sun.com/dtd/web-app_2_3.dtd">
-<web-app>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+      version="3.0">
 
     <filter>
+    	<display-name>Zephyr Framework Controller</display-name>
         <filter-name>Zephyr Controller</filter-name>
-        <display-name>Zephyr Framework Controller</display-name>
         <filter-class>org.dihedron.zephyr.ActionController</filter-class>
         <init-param>
             <param-name>zephyr:actions-packages</param-name>
@@ -24,3 +25,4 @@
     </filter-mapping>
 
 </web-app>
+

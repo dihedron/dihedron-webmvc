@@ -47,6 +47,7 @@
 
 	<modules>
 		<module>./dihedron-zephyr-demo-web</module>
+		<module>./dihedron-zephyr</module>
 	</modules>
 
 	<build>
