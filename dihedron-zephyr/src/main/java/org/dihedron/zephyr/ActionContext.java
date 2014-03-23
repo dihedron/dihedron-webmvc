@@ -39,9 +39,10 @@ import javax.servlet.http.HttpSession;
 import org.dihedron.commons.properties.Properties;
 import org.dihedron.commons.regex.Regex;
 import org.dihedron.commons.strings.Strings;
-import org.dihedron.zephyr.annotations.Scope;
 import org.dihedron.zephyr.exceptions.ZephyrException;
 import org.dihedron.zephyr.interceptors.Interceptor;
+import org.dihedron.zephyr.protocol.HttpMethod;
+import org.dihedron.zephyr.protocol.Scope;
 import org.dihedron.zephyr.webserver.WebServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -615,6 +616,16 @@ public class ActionContext {
 	// public static ResourceBundle getResouceBundle(Locale locale) {
 	// return getContext().filter.getResourceBundle(locale);
 	// }
+	
+	/**
+	 * Returns an enumeration value representing the current HTTP method.
+	 * 
+	 * @return
+	 *   an enumeration value representing the current HTTP method.
+	 */
+	public static HttpMethod getHttpMethod() {
+		return HttpMethod.fromString(getContext().request.getMethod());
+	}
 
 	/**
 	 * Checks if the give scope contains a non-null value under the given name.

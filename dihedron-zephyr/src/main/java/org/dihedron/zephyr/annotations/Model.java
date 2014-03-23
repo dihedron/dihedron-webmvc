@@ -24,6 +24,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.dihedron.zephyr.protocol.Scope;
+
 /**
  * Annotation indicating that the field will contain data coming from the given
  * set of parameters, whose name is expressed as regular expression.

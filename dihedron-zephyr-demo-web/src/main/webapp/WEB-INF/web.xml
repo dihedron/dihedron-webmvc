@@ -12,6 +12,11 @@
             <param-name>zephyr:actions-packages</param-name>
             <param-value>org.example.demo.part1.actions,org.example.demo.part2.actions,org.example.demo.part1.actions</param-value>
         </init-param>
+        
+        <init-param>
+        	<param-name>zephyr:enable-validation</param-name>
+        	<param-value>true</param-value>
+        </init-param>
 
         <init-param>
             <param-name>zephyr:interceptors-packages</param-name>

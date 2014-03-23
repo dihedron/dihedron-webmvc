@@ -45,8 +45,8 @@ import org.dihedron.zephyr.annotations.InOut;
 import org.dihedron.zephyr.annotations.Invocable;
 import org.dihedron.zephyr.annotations.Model;
 import org.dihedron.zephyr.annotations.Out;
-import org.dihedron.zephyr.annotations.Scope;
 import org.dihedron.zephyr.exceptions.DeploymentException;
+import org.dihedron.zephyr.protocol.Scope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -751,10 +751,10 @@ public class ActionProxyFactory {
         preCode.append("\t//\n\t// preparing input argument '").append(parameter).append("' (no. ").append(i).append(", ").append(Types.getAsString(type)).append(")\n\t//\n");
 
         logger.trace("{}-th parameter is annotated with @In('{}')", i, in.value());
-        preCode.append("\tvalue = org.dihedron.zephyr.ActionContext.findValue(\"").append(parameter).append("\", new org.dihedron.zephyr.annotations.Scope[] {");
+        preCode.append("\tvalue = org.dihedron.zephyr.ActionContext.findValue(\"").append(parameter).append("\", new org.dihedron.zephyr.protocol.Scope[] {");
         boolean first = true;
         for (Scope scope : in.from()) {
-            preCode.append(first ? "" : ", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name());
+            preCode.append(first ? "" : ", ").append("org.dihedron.zephyr.protocol.Scope.").append(scope.name());
             first = false;
         }
         preCode.append(" });\n");
@@ -831,11 +831,11 @@ public class ActionProxyFactory {
         postCode.append("\t//\n\t// storing output argument '").append(parameter).append("' (no. ").append(i).append(", ").append(Types.getAsString(wrapped)).append(") into scope ").append(scope.name()).append("\n\t//\n");
         postCode.append("\tvalue = ").append(variable).append(".get();\n");
         postCode.append("\tif(value != null) {\n");
-        //postCode.append("\t\torg.dihedron.zephyr.ActionContext.storeValueIntoScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(", value );\n");
-        postCode.append("\t\torg.dihedron.zephyr.ActionContext.setValue(\"").append(out.value()).append("\", value, org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(");\n");
+        //postCode.append("\t\torg.dihedron.zephyr.ActionContext.storeValueIntoScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.protocol.Scope.").append(scope.name()).append(", value );\n");
+        postCode.append("\t\torg.dihedron.zephyr.ActionContext.setValue(\"").append(out.value()).append("\", value, org.dihedron.zephyr.protocol.Scope.").append(scope.name()).append(");\n");
         postCode.append("\t} else if(").append(variable).append(".isReset()) {\n");
-//      postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValueFromScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(" );\n");
-        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValue(\"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(");\n");
+//      postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValueFromScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.protocol.Scope.").append(scope.name()).append(" );\n");
+        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValue(\"").append(parameter).append("\", ").append("org.dihedron.zephyr.protocol.Scope.").append(scope.name()).append(");\n");
         postCode.append("\t}\n");
         postCode.append("\n");
 
@@ -877,10 +877,10 @@ public class ActionProxyFactory {
 
 
         logger.trace("{}-th parameter is annotated with @In('{}') and @Out('{}')", i, in.value(), out.value());
-        preCode.append("\tvalue = org.dihedron.zephyr.ActionContext.findValue(\"").append(parameter).append("\", new org.dihedron.zephyr.annotations.Scope[] {");
+        preCode.append("\tvalue = org.dihedron.zephyr.ActionContext.findValue(\"").append(parameter).append("\", new org.dihedron.zephyr.protocol.Scope[] {");
         boolean first = true;
         for (Scope scope : in.from()) {
-            preCode.append(first ? "" : ", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name());
+            preCode.append(first ? "" : ", ").append("org.dihedron.zephyr.protocol.Scope.").append(scope.name());
             first = false;
         }
         preCode.append(" });\n");
@@ -915,11 +915,11 @@ public class ActionProxyFactory {
         postCode.append("\t//\n\t// storing input/output argument '").append(parameter).append("' (no. ").append(i).append(", ").append(Types.getAsString(wrapped)).append(") into scope ").append(scope.name()).append("\n\t//\n");
         postCode.append("\tvalue = ").append(variable).append(".get();\n");
         postCode.append("\tif(value != null) {\n");
-//        postCode.append("\t\torg.dihedron.zephyr.ActionContext.storeValueIntoScope( \"").append(out.value()).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(", value );\n");
-        postCode.append("\t\torg.dihedron.zephyr.ActionContext.setValue(\"").append(out.value()).append("\", value, org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(");\n");
+//        postCode.append("\t\torg.dihedron.zephyr.ActionContext.storeValueIntoScope( \"").append(out.value()).append("\", ").append("org.dihedron.zephyr.protocol.Scope.").append(scope.name()).append(", value );\n");
+        postCode.append("\t\torg.dihedron.zephyr.ActionContext.setValue(\"").append(out.value()).append("\", value, org.dihedron.zephyr.protocol.Scope.").append(scope.name()).append(");\n");
         postCode.append("\t} else if(").append(variable).append(".isReset()) {\n");
-        //postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValueFromScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(" );\n");
-        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValue(\"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(");\n");
+        //postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValueFromScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.protocol.Scope.").append(scope.name()).append(" );\n");
+        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValue(\"").append(parameter).append("\", ").append("org.dihedron.zephyr.protocol.Scope.").append(scope.name()).append(");\n");
         postCode.append("\t}\n");
         postCode.append("\n");
         return variable;
@@ -954,10 +954,10 @@ public class ActionProxyFactory {
         preCode.append("\t//\n\t// preparing input/output argument '").append(parameter).append("' (no. ").append(i).append(", ").append(Types.getAsString(wrapped)).append(")\n\t//\n");
 
         logger.trace("{}-th parameter is annotated with @InOut('{}') and @Out('{}')", i, inout.value());
-        preCode.append("\tvalue = org.dihedron.zephyr.ActionContext.findValue(\"").append(parameter).append("\", new org.dihedron.zephyr.annotations.Scope[] {");
+        preCode.append("\tvalue = org.dihedron.zephyr.ActionContext.findValue(\"").append(parameter).append("\", new org.dihedron.zephyr.protocol.Scope[] {");
         boolean first = true;
         for (Scope scope : inout.from()) {
-            preCode.append(first ? "" : ", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope);
+            preCode.append(first ? "" : ", ").append("org.dihedron.zephyr.protocol.Scope.").append(scope);
             first = false;
         }
         preCode.append(" });\n");
@@ -990,11 +990,11 @@ public class ActionProxyFactory {
         postCode.append("\t//\n\t// storing input/output argument ").append(parameter).append(" (no. ").append(i).append(", ").append(Types.getAsString(wrapped)).append(") into scope ").append(inout.to().name()).append("\n\t//\n");
         postCode.append("\tvalue = ").append(variable).append(".get();\n");
         postCode.append("\tif(value != null) {\n");
-//        postCode.append("\t\torg.dihedron.zephyr.ActionContext.storeValueIntoScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(inout.to().name()).append(", value );\n");
-        postCode.append("\t\torg.dihedron.zephyr.ActionContext.setValue(\"").append(inout.value()).append("\", value, org.dihedron.zephyr.annotations.Scope.").append(inout.to().name()).append(");\n");
+//        postCode.append("\t\torg.dihedron.zephyr.ActionContext.storeValueIntoScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.protocol.Scope.").append(inout.to().name()).append(", value );\n");
+        postCode.append("\t\torg.dihedron.zephyr.ActionContext.setValue(\"").append(inout.value()).append("\", value, org.dihedron.zephyr.protocol.Scope.").append(inout.to().name()).append(");\n");
         postCode.append("\t} else if(").append(variable).append(".isReset()) {\n");
-//        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValueFromScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(inout.to().name()).append(" );\n");
-        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValue(\"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(inout.to().name()).append(");\n");
+//        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValueFromScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.protocol.Scope.").append(inout.to().name()).append(" );\n");
+        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValue(\"").append(parameter).append("\", ").append("org.dihedron.zephyr.protocol.Scope.").append(inout.to().name()).append(");\n");
         postCode.append("\t}\n");
         postCode.append("\n");
 
@@ -1027,10 +1027,10 @@ public class ActionProxyFactory {
 
         // retrieve the applicable parameters from the specified scopes
         logger.trace("{}-th parameter is annotated with @Model('{}')", i, pattern);
-        preCode.append("\tjava.util.Map map = org.dihedron.zephyr.ActionContext.matchValuesInScopes(\"").append(pattern).append("\", new org.dihedron.zephyr.annotations.Scope[] {");
+        preCode.append("\tjava.util.Map map = org.dihedron.zephyr.ActionContext.matchValuesInScopes(\"").append(pattern).append("\", new org.dihedron.zephyr.protocol.Scope[] {");
         boolean first = true;
         for (Scope scope : model.from()) {
-            preCode.append(first ? "" : ", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name());
+            preCode.append(first ? "" : ", ").append("org.dihedron.zephyr.protocol.Scope.").append(scope.name());
             first = false;
         }
         preCode.append(" });\n\n");
@@ -1130,10 +1130,10 @@ public class ActionProxyFactory {
 
         // retrieve the applicable parameters from the specified scopes
         logger.trace("{}-th parameter is annotated with @Model('{}')", i, pattern);
-        preCode.append("\tjava.util.Map map = org.dihedron.zephyr.ActionContext.matchValuesInScopes(\"").append(pattern).append("\", new org.dihedron.zephyr.annotations.Scope[] {");
+        preCode.append("\tjava.util.Map map = org.dihedron.zephyr.ActionContext.matchValuesInScopes(\"").append(pattern).append("\", new org.dihedron.zephyr.protocol.Scope[] {");
         boolean first = true;
         for (Scope scope : model.from()) {
-            preCode.append(first ? "" : ", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name());
+            preCode.append(first ? "" : ", ").append("org.dihedron.zephyr.protocol.Scope.").append(scope.name());
             first = false;
         }
         preCode.append(" });\n\n");
@@ -1211,10 +1211,10 @@ public class ActionProxyFactory {
         postCode.append("\t//\n\t// storing input/output model argument '").append(parameter).append("' (no. ").append(i).append(", ").append(Types.getAsString(wrapped)).append(") into scope ").append(scope.name()).append("\n\t//\n");
         postCode.append("\tvalue = ").append(variable).append(".get();\n");
         postCode.append("\tif(value != null) {\n");
-        postCode.append("\t\torg.dihedron.zephyr.ActionContext.setValue( \"").append(out.value()).append("\", value, org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(" );\n");
+        postCode.append("\t\torg.dihedron.zephyr.ActionContext.setValue( \"").append(out.value()).append("\", value, org.dihedron.zephyr.protocol.Scope.").append(scope.name()).append(" );\n");
         postCode.append("\t} else if(").append(variable).append(".isReset()) {\n");
-//        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValueFromScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(" );\n");
-        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValue( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.annotations.Scope.").append(scope.name()).append(" );\n");
+//        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValueFromScope( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.protocol.Scope.").append(scope.name()).append(" );\n");
+        postCode.append("\t\torg.dihedron.zephyr.ActionContext.removeValue( \"").append(parameter).append("\", ").append("org.dihedron.zephyr.protocol.Scope.").append(scope.name()).append(" );\n");
         postCode.append("\t}\n");
         postCode.append("\n");
 

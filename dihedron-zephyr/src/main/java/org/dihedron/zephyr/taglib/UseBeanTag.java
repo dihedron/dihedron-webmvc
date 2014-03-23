@@ -27,8 +27,8 @@ import javax.servlet.jsp.tagext.TagSupport;
 
 import org.dihedron.commons.strings.Strings;
 import org.dihedron.zephyr.ActionContext;
-import org.dihedron.zephyr.annotations.Scope;
 import org.dihedron.zephyr.exceptions.ZephyrException;
+import org.dihedron.zephyr.protocol.Scope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

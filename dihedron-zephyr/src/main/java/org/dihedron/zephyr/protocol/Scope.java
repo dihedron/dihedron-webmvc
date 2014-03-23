@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License 
  * along with Zephyr. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.dihedron.zephyr.annotations;
+package org.dihedron.zephyr.protocol;
 
 /**
  * The possible scopes available for retrieving and storing values. These 
