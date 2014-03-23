@@ -47,9 +47,10 @@
 	<br>
 
 	<fieldset>
-		<legend><b>Complex Form Submission (POST)</b></legend>
+		<legend><b>Complex Form Submission with Validation (POST)</b></legend>
 		<p>By pressing the below button you are submitting a complex form to an action, using an HTTP POST call.</p> 
-		<p>The form contains many parameters of different types; each of them is mapped to the an input (<code>@In</code>) parameter to the server side method.</p> 
+		<p>The form contains many parameters of different types; each of them is mapped to the an input (<code>@In</code>) parameter to the server side method.</p>
+		<p>The method requires validation of some of its inputs, so some warning messages might appear on the log if any of the constraints is not satisfied.</p>  
 		<p>The JSON representation of the form will be returned as an <code>@Out</code> parameter and be made available on the page.</p>
 		<form action="TestAction!onComplexFormSubmission" method="post">
 			<table>
@@ -90,7 +91,7 @@
 						<label for="street">Street: </label>
 					</td>
 					<td>
-						<input name="street" type="text" size="100" value="${street}" placeholder="please enter the street where you live (min 5)..."/>
+						<input name="street" type="text" size="100" value="${street}" placeholder="please enter the street where you live (min 4)..."/>
 					</td>
 				</tr>
 				<tr>
@@ -117,21 +118,33 @@
 						<input name="town" type="text" size="100" value="${town}" placeholder="please enter the town you live in..."/>
 					</td>
 				</tr>
-				
+				<tr>
+					<td>
+						<label for="sex">Sex: </label>
+					</td>					
+					<td>
+						<input type="radio" name="sex" value="male">Male
+						
+						<input type="radio" name="sex" value="female">Female
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="music">Music Interests: </label>
+					</td>
+					<td>
+						<input type="checkbox" name="music" value="Rock">Rock
+						<input type="checkbox" name="music" value="Pop">Pop
+						<input type="checkbox" name="music" value="Jazz">Jazz
+						<input type="checkbox" name="music" value="Blues">Blues
+						<input type="checkbox" name="music" value="Funk">Funk 					
+						<input type="checkbox" name="music" value="Reggae">Reggae
+						<input type="checkbox" name="music" value="Blues">Classical
+						<input type="checkbox" name="music" value="Funk">Ska 					
+						<input type="checkbox" name="music" value="Reggae">New Wave
+					</td>
+				</tr>
 			</table>
-			<%--
-			<fieldset>
-				<legend>Personal Info</legend>
-				<label for="name">Name: </label><input name="name" type="text" value="${name}" placeholder="please enter your name (min 3, max 20)..."/><br>
-				<label for="surname">Surname: </label><input name="surname" type="text" value="${surname}" placeholder="please enter your family name (min 3, max 20)..."/><br>
-				<label for="phone">Phone no.: </label><input name="phone" type="text" value="${phone}" placeholder="please enter your phone number (06-555-12345)..."/><br>
-				<label for="email">Email: </label><input name="email" type="text" value="${email}" placeholder="please enter your email address (a.b@c.com)..."/><br>
-				<label for="street">Street: </label><input name="street" type="text" value="${street}" placeholder="please enter the street where you live (min 5)..."/><br>
-				<label for="number">Number: </label><input name="number" type="text" value="${number}" placeholder="please enter your street number..."/><br>
-				<label for="zip">ZIP code: </label><input name="zip" type="text" value="${zip}" placeholder="please enter your ZIP code..."/><br>
-				<label for="town">Town: </label><input name="town" type="text" value="${town}" placeholder="please enter the town you live in..."/><br>
-			</fieldset>
-			--%>
 			<input type="submit" title="Submit" name="Submit" value="Submit" />	
 			
 			<z:useBean var="user" name="user" type="java.lang.String"></z:useBean>
@@ -143,40 +156,118 @@
 				
 		</form>
 	</fieldset>
-		<%--
-		
-		
-<aui:form method="post" action="${formUrl}">
-	<aui:fieldset label="Personal Info">
-		<aui:input label="Name (min 3, max 20):" name="user:name" type="text" value="${user.name}" placeholder="please enter your name..."/>
-		<aui:input label="Surname:" name="user:surname" type="text" value="${user.surname}" placeholder="please enter your family name..."/>
-		<aui:input label="Phone (06-555-12345):" name="user:phone" type="text" value="${user.phone}" placeholder="please enter your phone number..."/>
-		<aui:input label="Email:" name="user:email" type="text" value="${user.email}" placegolder="please enter your email address..."/>
-		<aui:input label="Street:" name="user:address.street" type="text" value="${user.address.street}" placeholder="please enter the street where you live..."/>
-		<aui:input label="Street no.:" name="user:address.number" type="text" value="${user.address.number}" placeholder="please enter your street number..."/>
-		<aui:input label="ZIP Code:" name="user:address.zip" type="text" value="${user.address.zip}" placeholder="please enter your ZIP code..."/>
-		<aui:input label="Town:" name="user:address.town" type="text" value="${user.address.town}" placeholder="please enter the town you live in..."/>
-	</aui:fieldset>
-	<%--
-	<aui:fieldset label="Loves:">
-		<aui:input label="Animals" name="loves" type="checkbox" value="animals"/>
-		<aui:input label="Flowers" name="loves" type="checkbox" value="flowers"/>
-		<aui:input label="Food" name="loves" type="checkbox" value="food"/>
-		<aui:input label="Music" name="loves" type="checkbox" value="music"/>
-		<aui:input label="Movies" name="loves" type="checkbox" value="movies"/>
-	</aui:fieldset>
-	<aui:fieldset label="Redirect?">
-			<aui:input inlineLabel="right" name="redirect" type="radio" value="notatall" label="No, just go on..." checked="true"/>
-			<aui:input inlineLabel="right" name="redirect" type="radio" value="homepage" label="Go to the homepage"/>
-			<aui:input inlineLabel="right" name="redirect" type="radio" value="absolute" label="Go to www.google.com" />			
-			<aui:input inlineLabel="right" name="redirect" type="radio" value="internal" label="Go to a demo JSP"/>
-	</aui:fieldset>
-	
+
 	<br>
-	<aui:button type="submit" value="Submit!"/> 
-</aui:form> 		
-		
+	
+	<fieldset>
+		<legend><b>Model-based Form Submission with Validation (POST)</b></legend>
+		<p>By pressing the below button you are submitting a complex form to an action, using an HTTP POST call.</p> 
+		<p>The form contains many parameters of different types; each of them is mapped to a Model object (<code>@Model</code> annotation), possibly setting values into nested objects.</p>
+		<p>The method requires validation of some of its inputs, so some warning messages might appear on the log if any of the constraints is not satisfied.</p>  
+		<p>The JSON representation of the form will be returned as an <code>@Out</code> parameter and be made available on the page.</p>
+		<form action="TestAction!onModelFormSubmission" method="post">
+			<table>
+				<tr>
+					<td>
+						<label for="user:name">Name: </label>
+					</td>
+					<td>
+						<input name="user:name" type="text" size="100" value="${name}" placeholder="please enter your name (min 3, max 20)..."/>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="user:surname">Surname: </label>
+					</td>
+					<td>
+						<input name="user:surname" type="text" size="100" value="${surname}" placeholder="please enter your family name (min 3, max 20)..."/>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="user:contacts.phone">Phone no.: </label>
+					</td>
+					<td>
+						<input name="user:contacts.phone" type="text" size="100" value="${phone}" placeholder="please enter your phone number (06-555-12345)..."/>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="user:contacts.email">Email: </label>
+					</td>
+					<td>
+						<input name="user:contacts.email" type="text" size="100" value="${email}" placeholder="please enter your email address (a.b@c.com)..."/>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="user:address.street">Street: </label>
+					</td>
+					<td>
+						<input name="user:address.street" type="text" size="100" value="${street}" placeholder="please enter the street where you live (min 4)..."/>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="user:address.number">Number: </label>
+					</td>
+					<td>
+						<input name="user:address.number" type="text" size="100" value="${number}" placeholder="please enter your street number..."/>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="user:address.zip">ZIP code: </label>
+					</td>
+					<td>
+						<input name="user:address.zip" type="text" size="100" value="${zip}" placeholder="please enter your ZIP code..."/>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="user:address.town">Town: </label>
+					</td>
+					<td>
+						<input name="town" type="text" size="100" value="${town}" placeholder="please enter the town you live in..."/>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="user:sex">Sex: </label>
+					</td>					
+					<td>
+						<input type="radio" name="sex" value="male">Male
+						
+						<input type="radio" name="sex" value="female">Female
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="user:music">Music Interests: </label>
+					</td>
+					<td>
+						<input type="checkbox" name="music" value="Rock">Rock
+						<input type="checkbox" name="music" value="Pop">Pop
+						<input type="checkbox" name="music" value="Jazz">Jazz
+						<input type="checkbox" name="music" value="Blues">Blues
+						<input type="checkbox" name="music" value="Funk">Funk 					
+						<input type="checkbox" name="music" value="Reggae">Reggae
+						<input type="checkbox" name="music" value="Blues">Classical
+						<input type="checkbox" name="music" value="Funk">Ska 					
+						<input type="checkbox" name="music" value="Reggae">New Wave
+					</td>
+				</tr>
+			</table>
+			<input type="submit" title="Submit" name="Submit" value="Submit" />	
+			
+			<z:useBean var="user" name="user" type="java.lang.String"></z:useBean>
+			<c:if test="${user !=null && user.trim().length() > 0}">
+				<br><br>
+				The server answered:
+				<pre><c:out value="${user}"/></pre>
+			</c:if>			
+				
+		</form>
 	</fieldset>
---%>
 </body>
 </html>

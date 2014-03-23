@@ -1027,7 +1027,7 @@ public class ActionProxyFactory {
 
         // retrieve the applicable parameters from the specified scopes
         logger.trace("{}-th parameter is annotated with @Model('{}')", i, pattern);
-        preCode.append("\tjava.util.Map map = org.dihedron.zephyr.ActionContext.matchValuesInScopes(\"").append(pattern).append("\", new org.dihedron.zephyr.protocol.Scope[] {");
+        preCode.append("\tjava.util.Map map = org.dihedron.zephyr.ActionContext.findValues(\"").append(pattern).append("\", new org.dihedron.zephyr.protocol.Scope[] {");
         boolean first = true;
         for (Scope scope : model.from()) {
             preCode.append(first ? "" : ", ").append("org.dihedron.zephyr.protocol.Scope.").append(scope.name());
@@ -1130,7 +1130,7 @@ public class ActionProxyFactory {
 
         // retrieve the applicable parameters from the specified scopes
         logger.trace("{}-th parameter is annotated with @Model('{}')", i, pattern);
-        preCode.append("\tjava.util.Map map = org.dihedron.zephyr.ActionContext.matchValuesInScopes(\"").append(pattern).append("\", new org.dihedron.zephyr.protocol.Scope[] {");
+        preCode.append("\tjava.util.Map map = org.dihedron.zephyr.ActionContext.findValues(\"").append(pattern).append("\", new org.dihedron.zephyr.protocol.Scope[] {");
         boolean first = true;
         for (Scope scope : model.from()) {
             preCode.append(first ? "" : ", ").append("org.dihedron.zephyr.protocol.Scope.").append(scope.name());
