@@ -655,10 +655,13 @@ public class ActionContext {
 			result = getContext().request.getSession().getAttribute(key) != null;
 			break;
 		case STICKY:
-			@SuppressWarnings("unchecked")
-			Map<String, Object> sticky = (Map<String, Object>) getContext().filter.getServletContext().getAttribute(STICKY_SCOPED_ATTRIBUTES_KEY);
-			if (sticky != null) {
-				result = sticky.get(key) != null;
+			String user = getRemoteUser();
+			if(Strings.isValid(user)) {
+				@SuppressWarnings("unchecked")
+				Map<String, Map<String, Object>> sticky = (Map<String, Map<String, Object>>) getContext().filter.getServletContext().getAttribute(STICKY_SCOPED_ATTRIBUTES_KEY);
+				if (sticky != null && sticky.get(user) != null) {
+					result = sticky.get(user).containsKey(key);
+				}
 			}
 			break;
 		case APPLICATION:
@@ -711,10 +714,13 @@ public class ActionContext {
 			value = getContext().request.getSession().getAttribute(key);
 			break;
 		case STICKY:
-			@SuppressWarnings("unchecked")
-			Map<String, Object> sticky = (Map<String, Object>) getContext().filter.getServletContext().getAttribute(STICKY_SCOPED_ATTRIBUTES_KEY);
-			if (sticky != null) {
-				value = sticky.get(key);
+			String user = getRemoteUser();
+			if(Strings.isValid(user)) {
+				@SuppressWarnings("unchecked")
+				Map<String, Map<String, Object>> sticky = (Map<String, Map<String, Object>>) getContext().filter.getServletContext().getAttribute(STICKY_SCOPED_ATTRIBUTES_KEY);
+				if (sticky != null && sticky.get(user) != null) {
+					value = sticky.get(user).get(key);
+				}
 			}
 			break;
 		case APPLICATION:
@@ -804,15 +810,24 @@ public class ActionContext {
 			getContext().request.getSession().setAttribute(key, value);
 			break;
 		case STICKY:
-			Map<String, Object> sticky = null;
-			synchronized (ActionContext.class) {
-				sticky = (Map<String, Object>) getContext().filter.getServletContext().getAttribute(STICKY_SCOPED_ATTRIBUTES_KEY);
-				if (sticky == null) {
-					sticky = Collections.synchronizedMap(new HashMap<String, Object>());
-					getContext().filter.getServletContext().setAttribute(STICKY_SCOPED_ATTRIBUTES_KEY, sticky);
+			Map<String, Object> map = null;
+			String user = getRemoteUser();
+			if(Strings.isValid(user)) {
+				user = user.trim();
+				synchronized(ActionContext.class) {
+					Map<String, Map<String, Object>> sticky = (Map<String, Map<String, Object>>) getContext().filter.getServletContext().getAttribute(STICKY_SCOPED_ATTRIBUTES_KEY);
+					if(sticky == null)  {
+						sticky = Collections.synchronizedMap(new HashMap<String, Map<String, Object>>());
+						getContext().filter.getServletContext().setAttribute(STICKY_SCOPED_ATTRIBUTES_KEY, sticky);
+					}
+					map = sticky.get(user); 
+					if(map == null) {
+						map = new HashMap<>();
+						sticky.put(user, map);
+					}
+					map.put(key, value);
 				}
 			}
-			sticky.put(key, value);
 			break;
 		case APPLICATION:
 			getContext().filter.getServletContext().setAttribute(key, value);
@@ -896,9 +911,12 @@ public class ActionContext {
 			getContext().request.getSession().removeAttribute(key);
 			break;
 		case STICKY:
-			Map<String, Object> sticky = (Map<String, Object>) getContext().filter.getServletContext().getAttribute(STICKY_SCOPED_ATTRIBUTES_KEY);
-			if (sticky != null) {
-				sticky.remove(key);
+			String user = getRemoteUser();
+			if(Strings.isValid(user)) {
+				Map<String, Map<String, Object>> sticky = (Map<String, Map<String, Object>>) getContext().filter.getServletContext().getAttribute(STICKY_SCOPED_ATTRIBUTES_KEY);
+				if (sticky != null && sticky.get(user) != null) {
+					sticky.get(user).remove(key);
+				}
 			}
 			break;
 		case APPLICATION:
@@ -1016,11 +1034,14 @@ public class ActionContext {
 			}
 			break;
 		case STICKY:
-			Map<String, Object> sticky = (Map<String, Object>) getContext().filter.getServletContext().getAttribute(STICKY_SCOPED_ATTRIBUTES_KEY);
-			if (sticky != null) {
-				for (String name : sticky.keySet()) {
-					if (pattern == null || pattern.matches(name)) {
-						names.add(name);
+			String user = getRemoteUser();
+			if(Strings.isValid(user)) {
+				Map<String, Map<String, Object>> sticky = (Map<String, Map<String, Object>>) getContext().filter.getServletContext().getAttribute(STICKY_SCOPED_ATTRIBUTES_KEY);
+				if (sticky != null && sticky.get(user) != null) {
+					for (String name : sticky.get(user).keySet()) {
+						if (pattern == null || pattern.matches(name)) {
+							names.add(name);
+						}
 					}
 				}
 			}
@@ -1085,6 +1106,28 @@ public class ActionContext {
 		return value;
 	}
 
+	
+	/**
+	 * Looks up any value whose name matches the given regular expression in the
+	 * given set of scopes.
+	 * 
+	 * @param pattern
+	 *   a pattern to match against value names, as a string.
+	 * @param scopes
+	 *   a set of scopes to look into.
+	 * @return
+	 *   a map containing all the values whose names match the given pattern in 
+	 *   the given scopes.
+	 * @throws ZephyrException
+	 */
+	public static Map<String, Object> matchValues(String pattern, Scope... scopes) throws ZephyrException {
+		if (!Strings.isValid(pattern)) {
+			logger.error("regular expression to match against value names must be a valid string");
+			throw new ZephyrException("Regular expression to match against value names must be a valid string.");
+		}
+		return matchValues(new Regex(pattern), scopes);	
+	}
+	
 	/**
 	 * Looks up any value whose name matches the given regular expression in the
 	 * given set of scopes.
@@ -1098,7 +1141,7 @@ public class ActionContext {
 	 *   the given scopes.
 	 * @throws ZephyrException
 	 */
-	public static Map<String, Object> findValues(Regex pattern, Scope... scopes) throws ZephyrException {
+	public static Map<String, Object> matchValues(Regex pattern, Scope... scopes) throws ZephyrException {
 		if (pattern == null) {
 			logger.error("regular expression to match against value names must not be null");
 			throw new ZephyrException("Regular expression to match against value names must not be null.");

@@ -22,61 +22,34 @@ package org.example.demo.part1.actions;
 /**
  * @author Andrea Funto'
  */
-public class Contacts {
-
-	/**
-	 * The user's phone number.
-	 */
-	private String phone;
+public enum Sex {
 	
 	/**
-	 * The user's email address.
+	 * The user is a male.
 	 */
-	private String email;
+	MALE,
 	
 	/**
-	 * Constructor.
+	 * The user is a female.
 	 */
-	public Contacts() {
-	}
-
+	FEMALE;
+	
 	/**
-	 * Returns the value of the field phone.
-	 *
-	 * @return 
-	 *   the value of field phone.
+	 * Converts the given string to the matching enumeration value, or returns null.
+	 * 
+	 * @param string
+	 *   a string description of the sex.
+	 * @return
+	 *   a value from the enumeration, or null if none matches.
 	 */
-	public String getPhone() {
-		return phone;
-	}
-
-	/**
-	 * Sets the value of field phone.
-	 *
-	 * @param phone 
-	 *   the new value for field phone.
-	 */
-	public void setPhone(String phone) {
-		this.phone = phone;
-	}
-
-	/**
-	 * Returns the value of the field email.
-	 *
-	 * @return 
-	 *   the value of field email.
-	 */
-	public String getEmail() {
-		return email;
-	}
-
-	/**
-	 * Sets the value of field email.
-	 *
-	 * @param email 
-	 *   the new value for field email.
-	 */
-	public void setEmail(String email) {
-		this.email = email;
+	public static Sex fromString(String string) {
+		if(string != null) {
+			for(Sex sex : Sex.values()) {
+				if(sex.name().equalsIgnoreCase(string)) {
+					return sex;
+				}
+			}
+		}
+		return null;
 	}
 }

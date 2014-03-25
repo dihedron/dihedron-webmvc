@@ -147,11 +147,11 @@
 			</table>
 			<input type="submit" title="Submit" name="Submit" value="Submit" />	
 			
-			<z:useBean var="user" name="user" type="java.lang.String"></z:useBean>
-			<c:if test="${user !=null && user.trim().length() > 0}">
+			<z:useBean var="user1" name="json1" type="java.lang.String"></z:useBean>
+			<c:if test="${user1 !=null && user1.trim().length() > 0}">
 				<br><br>
 				The server answered:
-				<pre><c:out value="${user}"/></pre>
+				<pre><c:out value="${user1}"/></pre>
 			</c:if>			
 				
 		</form>
@@ -236,9 +236,9 @@
 						<label for="user:sex">Sex: </label>
 					</td>					
 					<td>
-						<input type="radio" name="sex" value="male">Male
+						<input type="radio" name="user:sex" value="male">Male
 						
-						<input type="radio" name="sex" value="female">Female
+						<input type="radio" name="user:sex" value="female">Female
 					</td>
 				</tr>
 				<tr>
@@ -246,25 +246,25 @@
 						<label for="user:music">Music Interests: </label>
 					</td>
 					<td>
-						<input type="checkbox" name="music" value="Rock">Rock
-						<input type="checkbox" name="music" value="Pop">Pop
-						<input type="checkbox" name="music" value="Jazz">Jazz
-						<input type="checkbox" name="music" value="Blues">Blues
-						<input type="checkbox" name="music" value="Funk">Funk 					
-						<input type="checkbox" name="music" value="Reggae">Reggae
-						<input type="checkbox" name="music" value="Blues">Classical
-						<input type="checkbox" name="music" value="Funk">Ska 					
-						<input type="checkbox" name="music" value="Reggae">New Wave
+						<input type="checkbox" name="user:music" value="Rock">Rock
+						<input type="checkbox" name="user:music" value="Pop">Pop
+						<input type="checkbox" name="user:music" value="Jazz">Jazz
+						<input type="checkbox" name="user:music" value="Blues">Blues
+						<input type="checkbox" name="user:music" value="Funk">Funk 					
+						<input type="checkbox" name="user:music" value="Reggae">Reggae
+						<input type="checkbox" name="user:music" value="Blues">Classical
+						<input type="checkbox" name="user:music" value="Funk">Ska 					
+						<input type="checkbox" name="user:music" value="Reggae">New Wave
 					</td>
 				</tr>
 			</table>
 			<input type="submit" title="Submit" name="Submit" value="Submit" />	
 			
-			<z:useBean var="user" name="user" type="java.lang.String"></z:useBean>
-			<c:if test="${user !=null && user.trim().length() > 0}">
+			<z:useBean var="user2" name="json2" type="java.lang.String"></z:useBean>
+			<c:if test="${user2 !=null && user2.trim().length() > 0}">
 				<br><br>
 				The server answered:
-				<pre><c:out value="${user}"/></pre>
+				<pre><c:out value="${user2}"/></pre>
 			</c:if>			
 				
 		</form>

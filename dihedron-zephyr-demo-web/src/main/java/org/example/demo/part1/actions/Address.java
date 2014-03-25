@@ -18,17 +18,11 @@
  */
 package org.example.demo.part1.actions;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Andrea Funto'
  */
 public class Address {
-	/**
-	 * The logger.
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(Address.class);
 
 	/**
 	 * The user's street.
@@ -55,6 +49,84 @@ public class Address {
 	 */
 	public Address() {
 	}
-	
-	
+
+	/**
+	 * Returns the value of the field street.
+	 *
+	 * @return 
+	 *   the value of field street.
+	 */
+	public String getStreet() {
+		return street;
+	}
+
+	/**
+	 * Sets the value of field street.
+	 *
+	 * @param street 
+	 *   the new value for field street.
+	 */
+	public void setStreet(String street) {
+		this.street = street;
+	}
+
+	/**
+	 * Returns the value of the field number.
+	 *
+	 * @return 
+	 *   the value of field number.
+	 */
+	public String getNumber() {
+		return number;
+	}
+
+	/**
+	 * Sets the value of field number.
+	 *
+	 * @param number 
+	 *   the new value for field number.
+	 */
+	public void setNumber(String number) {
+		this.number = number;
+	}
+
+	/**
+	 * Returns the value of the field zip.
+	 *
+	 * @return 
+	 *   the value of field zip.
+	 */
+	public String getZip() {
+		return zip;
+	}
+
+	/**
+	 * Sets the value of field zip.
+	 *
+	 * @param zip 
+	 *   the new value for field zip.
+	 */
+	public void setZip(String zip) {
+		this.zip = zip;
+	}
+
+	/**
+	 * Returns the value of the field town.
+	 *
+	 * @return 
+	 *   the value of field town.
+	 */
+	public String getTown() {
+		return town;
+	}
+
+	/**
+	 * Sets the value of field town.
+	 *
+	 * @param town 
+	 *   the new value for field town.
+	 */
+	public void setTown(String town) {
+		this.town = town;
+	}
 }

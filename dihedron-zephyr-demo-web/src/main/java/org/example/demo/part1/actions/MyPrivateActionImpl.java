@@ -93,7 +93,7 @@ public class MyPrivateActionImpl {
 			@In(value="town", from=Scope.FORM) @Size(min=2, max=120) String town,
 			@In(value="sex", from=Scope.FORM) @Pattern(regexp="^(?:fe){0,1}male$", flags=Flag.CASE_INSENSITIVE) String sex,			
 			@In(value="music", from=Scope.FORM) String[] music,
-			@Out(value="user", to=Scope.REQUEST) $<String> user
+			@Out(value="json1", to=Scope.REQUEST) $<String> json
 	) {
 		
 		StringBuilder buffer = new StringBuilder();
@@ -109,7 +109,7 @@ public class MyPrivateActionImpl {
 		buffer.append("\t'sex': '").append(sex).append("',\n");
 		buffer.append("\t'music': [").append(Strings.join(",  ", music)).append("]\n");
 		buffer.append("}\n");
-		user.set(buffer.toString());
+		json.set(buffer.toString());
 		
 		return Action.SUCCESS;
 	}
@@ -121,10 +121,11 @@ public class MyPrivateActionImpl {
 	)
 	public String onModelFormSubmission(
 			@Model(value="user\\:(.*)", from=Scope.FORM) User user,
-			@Out(value="json", to=Scope.REQUEST) $<String> json
+			@Out(value="json2", to=Scope.REQUEST) $<String> json
 	) {
 		
 		StringBuilder buffer = new StringBuilder();
+		buffer.append("{\n");
 //		buffer.append("{\n");
 //		buffer.append("\t'name': '").append(name).append("',\n");
 //		buffer.append("\t'surname': '").append(surname).append("',\n");
