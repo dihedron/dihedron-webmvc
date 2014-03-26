@@ -63,7 +63,7 @@ public class AutoRenderer extends AbstractRenderer {
 	 *      javax.servlet.http.HttpServletResponse, java.lang.String)
 	 */
 	@Override
-	public boolean render(HttpServletRequest request, HttpServletResponse response, String data) throws IOException, ZephyrException {
+	public Status render(HttpServletRequest request, HttpServletResponse response, String data) throws IOException, ZephyrException {
 		try {
 			RequestDispatcher dispatcher = request.getRequestDispatcher(response.encodeURL(data));
 	
@@ -77,6 +77,6 @@ public class AutoRenderer extends AbstractRenderer {
 			logger.error("error re-routing and forwaring request to JSP '{}'", data);
 			throw new ZephyrException("Error forwarding reuqest to JSP '" + data + "' for rendering", e);
 		}
-		return true;
+		return Status.COMPLETE;
 	}
 }

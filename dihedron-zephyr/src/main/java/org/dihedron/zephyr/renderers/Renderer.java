@@ -34,6 +34,27 @@ import org.dihedron.zephyr.exceptions.ZephyrException;
  * @author Andrea Funto'
  */
 public interface Renderer {
+	
+	/**
+	 * An enumeration used to indicate whether the rendering request was completed 
+	 * and needs no further processing, or the request still needs to be perfected
+	 * and further processing is needed.
+	 * 
+	 * @author Andrea Funto'
+	 */
+	public enum Status {
+		/**
+		 * The request is complete, no further rendereing is needed, so the 
+		 * processing can stop.
+		 */
+		COMPLETE,
+		
+		/**
+		 * The request could not be completed by this renderer, so further processing
+		 * is needed on some other entity's part.
+		 */
+		CONTINUE
+	}
     
     /**
      * Returns whether the selection of this renderer can only represent the 
@@ -44,7 +65,7 @@ public interface Renderer {
      * 
      * @return
      *   whether the renderer can only render output or it can be chained, e.g.
-     *   to forward contro to another target before performing the fihal rendering.
+     *   to forward control to another target before performing the fihal rendering.
      */
     boolean isTerminal();
 
@@ -71,5 +92,5 @@ public interface Renderer {
      * @throws ZephyrException 
      *   if any servlet-specific error occurs during the processing.
      */
-    boolean render(HttpServletRequest request, HttpServletResponse response, String data) throws IOException, ZephyrException;
+    Status render(HttpServletRequest request, HttpServletResponse response, String data) throws IOException, ZephyrException;
 }

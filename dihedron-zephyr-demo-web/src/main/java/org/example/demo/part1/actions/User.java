@@ -18,6 +18,8 @@
  */
 package org.example.demo.part1.actions;
 
+import javax.validation.constraints.Size;
+
 
 /**
  * @author Andrea Funto'
@@ -27,16 +29,18 @@ public class User {
 	/**
 	 * The user's name.
 	 */
+	@Size(min = 2, max = 20)
 	private String name;
 	
 	/**
 	 * The user's family name.
 	 */
+	@Size(min = 2, max = 20)
 	private String surname;
 	
 	/**
 	 * The user's sex.
-	 */
+	 */	
 	private Sex sex;
 	
 	/**
@@ -115,7 +119,7 @@ public class User {
 	 *
 	 * @param sex 
 	 *   the new value for field sex.
-	 */
+	 */	
 	public void setSex(String sex) {
 		this.sex = Sex.fromString(sex);
 	}

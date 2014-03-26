@@ -228,7 +228,7 @@
 						<label for="user:address.town">Town: </label>
 					</td>
 					<td>
-						<input name="town" type="text" size="100" value="${town}" placeholder="please enter the town you live in..."/>
+						<input name="user:address.town" type="text" size="100" value="${town}" placeholder="please enter the town you live in..."/>
 					</td>
 				</tr>
 				<tr>

@@ -1,20 +1,20 @@
 /**
- * Copyright (c) 2012, 2013, Andrea Funto'. All rights reserved.
+ * Copyright (c) 2014, Andrea Funto'. All rights reserved.
+ * 
+ * This file is part of the Zephyr framework ("Zephyr").
  *
- * This file is part of the Strutlets framework ("Strutlets").
- *
- * Strutlets is free software: you can redistribute it and/or modify it under 
+ * Zephyr is free software: you can redistribute it and/or modify it under 
  * the terms of the GNU Lesser General Public License as published by the Free 
  * Software Foundation, either version 3 of the License, or (at your option) 
  * any later version.
  *
- * Strutlets is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * Zephyr is distributed in the hope that it will be useful, but WITHOUT ANY 
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR 
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more 
  * details.
  *
  * You should have received a copy of the GNU Lesser General Public License 
- * along with Strutlets. If not, see <http://www.gnu.org/licenses/>.
+ * along with Zephyr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.dihedron.zephyr.validation;
 
@@ -39,7 +39,7 @@ public class DefaultValidationHandler implements ValidationHandler {
     @Override
     public String onParametersViolations(String action, String method, Set<ConstraintViolation<?>> violations) {
         for (ConstraintViolation<?> violation : violations) {
-            logger.warn("{}!{}:violation on parameter value {}: {}", action, method, violation.getInvalidValue(), violation.getMessage());
+            logger.warn("{}!{}: violation on parameter '{}' having value '{}': {}", action, method, violation.getPropertyPath().toString(), violation.getInvalidValue(), violation.getMessage());
         }
         return null;
     }
@@ -50,7 +50,7 @@ public class DefaultValidationHandler implements ValidationHandler {
     @Override
     public String onResultViolations(String action, String method, Set<ConstraintViolation<?>> violations) {
         for (ConstraintViolation<?> violation : violations) {
-            logger.warn("{}!{}: violation on return value {}: {}", action, method, violation.getInvalidValue(), violation.getMessage());
+            logger.warn("{}!{}: violation on return value '{}': {}", action, method, violation.getInvalidValue(), violation.getMessage());
         }
         return null;
     }
@@ -61,7 +61,8 @@ public class DefaultValidationHandler implements ValidationHandler {
     @Override
     public String onModelViolations(String action, String method, int index, Class<?> model, Set<ConstraintViolation<?>> violations) {
         for (ConstraintViolation<?> violation : violations) {
-            logger.warn("{}!{}: violation on model bean {} (no. {}), value {}: {}", action, method, model.getSimpleName(), index, violation.getInvalidValue(), violation.getMessage());
+            logger.warn("{}!{}: violation on model bean {}, property '{}' (no. {}), having value '{}': {} ({})", action, method, model.getSimpleName(), 
+            		violation.getPropertyPath().toString(), index, violation.getInvalidValue(), violation.getMessage());
         }
         return null;
     }

@@ -18,6 +18,10 @@
  */
 package org.example.demo.part1.actions;
 
+import javax.validation.constraints.Pattern;
+
+import org.hibernate.validator.constraints.Email;
+
 
 /**
  * @author Andrea Funto'
@@ -27,11 +31,13 @@ public class Contacts {
 	/**
 	 * The user's phone number.
 	 */
+	@Pattern(regexp="^\\d{2}-\\d{3}-\\d{5}$")
 	private String phone;
 	
 	/**
 	 * The user's email address.
 	 */
+	@Email
 	private String email;
 	
 	/**

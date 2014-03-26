@@ -3,12 +3,12 @@
  *
  * This file is part of the Zephyr framework ("Zephyr").
  *
- * Zephyr is free software: you can redistribute it and/or modify it under 
+ * Zephyr is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free 
  * Software Foundation, either version 3 of the License, or (at your option) 
  * any later version.
  *
- * Zephyr is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * Zephyr is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR 
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more 
  * details.
@@ -19,8 +19,17 @@
 
 package org.dihedron.zephyr.renderers.impl;
 
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.dihedron.zephyr.exceptions.ZephyrException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  * @author Andrea Funto'
@@ -42,37 +51,25 @@ public abstract class JsonRenderer extends BeanRenderer {
      */
     private static final Logger logger = LoggerFactory.getLogger(JsonRenderer.class);
 
-//    /**
-//     * @see org.dihedron.zephyr.renderers.Renderer#getId()
-//     */
-//    @Override
-//    public String getId() {
-//        return ID;
-//    }
-//
-//    /**
-//     * @see org.dihedron.zephyr.renderers.Renderer#render(javax.portlet.PortletRequest, javax.portlet.PortletResponse, java.lang.String)
-//     */
-//    @Override
-//    public void render(PortletRequest request, PortletResponse response, String data) throws IOException, PortletException {
-//
-//        String bean = data;
-//        logger.trace("rendering bean '{}'", bean);
-//
-//        Object object = getBean(request, bean);
-//        ObjectMapper mapper = new ObjectMapper();
-//        mapper.enable(SerializationFeature.INDENT_OUTPUT);
-//        mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-//        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-//        String json = mapper.writeValueAsString(object);
-//        logger.trace("json object is:\n{}", json);
-//
-//        if (response instanceof MimeResponse) {
-//            // this works in both RENDER and RESOURCE (AJAX) phases
-//            ((MimeResponse) response).setContentType(JSON_MIME_TYPE);
-//        }
-//        getWriter(response).print(json);
-//        getWriter(response).flush();
-//
-//    }
+	/**
+	 * @see org.dihedron.zephyr.renderers.Renderer#render(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
+	 */
+	@Override
+	public Status render(HttpServletRequest request, HttpServletResponse response, String data) throws IOException, ZephyrException {
+        String bean = data;
+        logger.trace("rendering bean '{}'", bean);
+
+        Object object = getBean(request, bean);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        String json = mapper.writeValueAsString(object);
+        logger.trace("json object is:\n{}", json);
+        response.setContentType(JSON_MIME_TYPE);
+        getWriter(response).print(json);
+        getWriter(response).flush();
+        // no further processing
+        return Status.COMPLETE;
+    }
 }
