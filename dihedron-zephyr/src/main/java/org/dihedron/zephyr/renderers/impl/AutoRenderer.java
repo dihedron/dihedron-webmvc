@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Andrea Funto'
  */
-public class AutoRenderer extends AbstractRenderer {
+public abstract class AutoRenderer extends AbstractRenderer {
 
 	public static final String ID = "auto";
 

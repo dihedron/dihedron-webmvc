@@ -63,7 +63,7 @@ public class RendererRegistryLoader {
             Set<Class<? extends Renderer>> renderers = reflections.getSubTypesOf(Renderer.class);
             for (Class<? extends Renderer> clazz : renderers) {
                 logger.trace("analysing renderer class: '{}'...", clazz.getName());
-                if (!Modifier.isAbstract(clazz.getModifiers())/* && clazz.isAnnotationPresent(Alias.class)*/) {
+                if (!Modifier.isAbstract(clazz.getModifiers())) {
 					try {			
 						String id = (String)clazz.getField("ID").get(null);						
 	                    logger.trace("... registering '{}' renderer: '{}'", id, clazz.getCanonicalName());

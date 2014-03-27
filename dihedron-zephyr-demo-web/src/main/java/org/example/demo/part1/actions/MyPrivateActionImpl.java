@@ -32,6 +32,7 @@ import org.dihedron.zephyr.annotations.Out;
 import org.dihedron.zephyr.annotations.Result;
 import org.dihedron.zephyr.aop.$;
 import org.dihedron.zephyr.protocol.Scope;
+import org.dihedron.zephyr.renderers.impl.JsonRenderer;
 import org.dihedron.zephyr.renderers.impl.JspRenderer;
 import org.hibernate.validator.constraints.Email;
 import org.slf4j.Logger;
@@ -116,29 +117,13 @@ public class MyPrivateActionImpl {
 
 	@Invocable(
 		results =  {
-			@Result(value=Action.SUCCESS, renderer=JspRenderer.ID, data="index.jsp")
+			@Result(value=Action.SUCCESS, renderer=JsonRenderer.ID, data="user")
 		}
 	)
 	public String onModelFormSubmission(
-			@Model(value="user\\:(.*)", from=Scope.FORM) User user,
-			@Out(value="json2", to=Scope.REQUEST) $<String> json
+			@Model(value="user\\:(.*)", from=Scope.FORM) @Out(value="user") $<User> user
 	) {
-		
-		StringBuilder buffer = new StringBuilder();
-		buffer.append("{\n");
-//		buffer.append("{\n");
-//		buffer.append("\t'name': '").append(name).append("',\n");
-//		buffer.append("\t'surname': '").append(surname).append("',\n");
-//		buffer.append("\t'phone': '").append(phone).append("',\n");
-//		buffer.append("\t'email': '").append(email).append("',\n");
-//		buffer.append("\t'street': '").append(street).append("',\n");
-//		buffer.append("\t'number': '").append(number).append("',\n");
-//		buffer.append("\t'zip': '").append(zip).append("',\n");
-//		buffer.append("\t'town': '").append(town).append("',\n");
-//		buffer.append("\t'sex': '").append(sex).append("',\n");
-//		buffer.append("\t'music': [").append(Strings.join(",  ", music)).append("]\n");
-//		buffer.append("}\n");
-		json.set(buffer.toString());
+
 		
 		return Action.SUCCESS;
 	}

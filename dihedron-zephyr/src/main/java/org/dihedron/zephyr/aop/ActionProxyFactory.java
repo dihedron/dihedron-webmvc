@@ -1164,7 +1164,6 @@ public class ActionProxyFactory {
         preCode.append("\t\t\tString[] matches = (String[])regex.getAllMatches(key).get(0);\n");
         preCode.append("\t\t\tkey = matches[0];\n");
         preCode.append("\t\t\tlogger.trace(\"key after masking out is '{}'\", key);\n");
-        preCode.append("\t\t}\n");
 
 //		// if there is a mask, remove it from the key name
 //		preCode.append("\t\tif(org.dihedron.commons.utils.Strings.isValid(\"").append(mask).append("\")) {\n");
@@ -1174,9 +1173,11 @@ public class ActionProxyFactory {
 //		preCode.append("\t\t}\n");
 
         // create an OGNL interpreter and launch it against the model object
-        preCode.append("\t\t// create the OGNL expression\n");
-        preCode.append("\t\torg.dihedron.zephyr.ognl.OgnlExpression ognl = new org.dihedron.zephyr.ognl.OgnlExpression(key);\n");
-        preCode.append("\t\tognl.setValue(context, ").append(variable).append(".get(), entry.getValue());\n");
+        preCode.append("\t\t\t// create the OGNL expression\n");
+        preCode.append("\t\t\torg.dihedron.zephyr.ognl.OgnlExpression ognl = new org.dihedron.zephyr.ognl.OgnlExpression(key);\n");
+        preCode.append("\t\t\tognl.setValue(context, ").append(variable).append(".get(), entry.getValue());\n");
+
+        preCode.append("\t\t}\n");
 
         // end of loop on values
         preCode.append("\t}\n\n");

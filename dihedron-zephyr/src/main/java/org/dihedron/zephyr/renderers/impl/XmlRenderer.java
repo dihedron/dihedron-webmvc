@@ -19,6 +19,15 @@
 
 package org.dihedron.zephyr.renderers.impl;
 
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+
+import org.dihedron.zephyr.exceptions.ZephyrException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +35,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Andrea Funto'
  */
-public abstract class XmlRenderer extends BeanRenderer {
+public class XmlRenderer extends BeanRenderer {
 
     /**
      * The renderer unique id.
@@ -43,36 +52,25 @@ public abstract class XmlRenderer extends BeanRenderer {
      */
     private static final Logger logger = LoggerFactory.getLogger(XmlRenderer.class);
 
-//    /**
-//     * @see org.dihedron.zephyr.renderers.Renderer#getId()
-//     */
-//    @Override
-//    public String getId() {
-//        return ID;
-//    }
-//
-//    /**
-//     * @see org.dihedron.zephyr.renderers.Renderer#render(javax.portlet.PortletRequest, javax.portlet.PortletResponse, java.lang.String)
-//     */
-//    @Override
-//    public void render(PortletRequest request, PortletResponse response, String data) throws IOException, PortletException {
-//
-//        String bean = data;
-//        logger.trace("rendering bean '{}'", bean);
-//
-//        Object object = getBean(request, bean);
-//        JAXBContext context;
-//        try {
-//            if (response instanceof MimeResponse) {
-//                // this works in both RENDER and RESOURCE (AJAX) phases
-//                ((MimeResponse) response).setContentType(XML_MIME_TYPE);
-//            }
-//            context = JAXBContext.newInstance("org.dihedron.strutlets");
-//            Marshaller marshaller = context.createMarshaller();
-//            marshaller.marshal(object, getWriter(response));
-//        } catch (JAXBException e) {
-//            logger.error("error marshalling bean to XML", e);
-//            throw new PortletException("Error marshalling Java bean to XML", e);
-//        }
-//    }
+    /**
+     * @see org.dihedron.zephyr.renderers.Renderer#render(javax.portlet.PortletRequest, javax.portlet.PortletResponse, java.lang.String)
+     */
+    @Override
+    public Status render(HttpServletRequest request, HttpServletResponse response, String data) throws IOException, ZephyrException {
+
+        String bean = data;
+        logger.trace("rendering bean '{}'", bean);
+        Object object = getBean(request, bean);
+        JAXBContext context;
+        try {
+            response.setContentType(XML_MIME_TYPE);
+            context = JAXBContext.newInstance("org.dihedron.zephyr");
+            Marshaller marshaller = context.createMarshaller();
+            marshaller.marshal(object, getWriter(response));
+        } catch (JAXBException e) {
+            logger.error("error marshalling bean to XML", e);
+            throw new ZephyrException("Error marshalling Java bean to XML", e);
+        }
+        return Status.COMPLETE;
+    }
 }

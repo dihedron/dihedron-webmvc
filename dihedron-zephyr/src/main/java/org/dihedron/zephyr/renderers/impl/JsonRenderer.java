@@ -34,7 +34,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 /**
  * @author Andrea Funto'
  */
-public abstract class JsonRenderer extends BeanRenderer {
+public class JsonRenderer extends BeanRenderer {
 
     /**
      * The renderer unique id.
@@ -58,7 +58,6 @@ public abstract class JsonRenderer extends BeanRenderer {
 	public Status render(HttpServletRequest request, HttpServletResponse response, String data) throws IOException, ZephyrException {
         String bean = data;
         logger.trace("rendering bean '{}'", bean);
-
         Object object = getBean(request, bean);
         ObjectMapper mapper = new ObjectMapper();
         mapper.enable(SerializationFeature.INDENT_OUTPUT);

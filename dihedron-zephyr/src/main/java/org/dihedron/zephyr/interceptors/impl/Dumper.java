@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import org.dihedron.commons.reflection.Types;
 import org.dihedron.commons.regex.Regex;
 import org.dihedron.commons.strings.StringTokeniser;
 import org.dihedron.commons.strings.Strings;
@@ -131,7 +132,16 @@ public class Dumper extends Interceptor {
 		if(names != null) {
 			for(String name : names) {
 				if(regex == null || !regex.matches(name)) { 
-					builder.append("'").append(name).append("' = '").append(ActionContext.getValue(name, scope)).append("'\n");
+					Object value = ActionContext.getValue(name, scope);
+					String string = null;
+					if(value != null) {
+						if(Types.isArray(value)) {
+							string = "[" + Strings.join((Object[])value) + "]";
+						} else {
+							string = value.toString();
+						}
+					}
+					builder.append("'").append(name).append("' = '").append(string).append("' (type: ").append(value != null ? value.getClass().getName() : "n.a.").append(")\n");
 				}
 			}
 		}

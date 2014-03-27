@@ -4,6 +4,29 @@
 <head>
 	<title>Zephyr Demo</title>
 	<link href="css/main.css" type="text/css" rel="stylesheet">
+	<script src="js/jquery-2.1.0.js"></script>
+	
+	<script>
+	$(document).ready(function() {
+		$('#modelForm > input[type="submit"]').on('click', function(event) {
+			$('#result').html('submitting...');
+			var data = $('#modelForm').serialize();
+			$.ajax({
+				type: "POST",
+				url: "TestAction!onModelFormSubmission",
+				data: data,
+				success: function(data) {
+					$('#result').html(JSON.stringify(data));
+				},
+				dataType: "json"
+			});
+			/* stop the form from submitting the normal way and refreshing the page */
+			event.preventDefault();			
+		});
+	});
+
+
+	</script>
 </head>
 <body>
 	<h2>Zephyr Test Cases</h2>
@@ -12,9 +35,9 @@
 	<fieldset>
 		<legend><b>Plain Form Submission (GET)</b></legend>
 		<p>By pressing the below button you are submitting a plain form to an action, using the HTTP GET method.</p> 
-		<p>The form contains a single parameter called "message", which is passed to the server-side action through an <code>@In</code>code> parameter; the receiving action will reverse the string 
-		and send it back through an <code>@Out</code> parameter called "echo", which will be stored as a request attribute and be made available to the page via the Zephyr tag library.</p>
-		<form action="TestAction!onSimpleFormSubmission">
+		<p>The form contains a single parameter called "message", which is passed to the server-side action through an <code>@In</code> parameter; the receiving action will reverse the string 
+		and send it back through an <code>@Out</code> parameter called "echoGET", which will be stored as a request attribute and be made available to the page via the Zephyr tag library.</p>
+		<form action="TestAction!onSimpleFormSubmission" method="get" id="simpleGetForm">
 			<label for="message">Message</label><input type="text" name="message" value="" />
 			<input type="submit" title="Submit" name="Submit" value="Submit" />
 			<z:useBean var="echoGET" name="echoGET" type="java.lang.String"></z:useBean>
@@ -30,14 +53,14 @@
 	<fieldset>
 		<legend><b>Plain Form Submission (POST)</b></legend>
 		<p>By pressing the below button you are submitting a plain form to an action, using an HTTP POST call.</p> 
-		<p>The form contains a single parameter called "message", which is passed to the server-side action through an <code>@In</code>code> parameter; the receiving action will reverse the string 
-		and send it back through an <code>@Out</code> parameter called "echo", which will be stored as a request attribute and be made available to the page via the Zephyr tag library.</p>
-		<form action="TestAction!onSimpleFormSubmission" method="post">
+		<p>The form contains a single parameter called "message", which is passed to the server-side action through an <code>@In</code> parameter; the receiving action will reverse the string 
+		and send it back through an <code>@Out</code> parameter called "echoPOST", which will be stored as a request attribute and be made available to the page via the Zephyr tag library.</p>
+		<form action="TestAction!onSimpleFormSubmission" method="post" id="simplePostForm">
 			<label for="message">Message</label><input type="text" name="message" value="" />
 			<input type="submit" title="Submit" name="Submit" value="Submit" />
 			<z:useBean var="echoPOST" name="echoPOST" type="java.lang.String"></z:useBean>
 			<c:if test="${echoPOST !=null && echoPOST.trim().length() > 0}">
-				<br><br>
+				<br><br>form
 				The reverse of what you said is: <b><c:out value="${echoPOST}"/></b>:
 				
 			</c:if>			
@@ -52,7 +75,7 @@
 		<p>The form contains many parameters of different types; each of them is mapped to the an input (<code>@In</code>) parameter to the server side method.</p>
 		<p>The method requires validation of some of its inputs, so some warning messages might appear on the log if any of the constraints is not satisfied.</p>  
 		<p>The JSON representation of the form will be returned as an <code>@Out</code> parameter and be made available on the page.</p>
-		<form action="TestAction!onComplexFormSubmission" method="post">
+		<form action="TestAction!onComplexFormSubmission" method="post" id="complexForm">
 			<table>
 				<tr>
 					<td>
@@ -160,12 +183,15 @@
 	<br>
 	
 	<fieldset>
-		<legend><b>Model-based Form Submission with Validation (POST)</b></legend>
-		<p>By pressing the below button you are submitting a complex form to an action, using an HTTP POST call.</p> 
+		<legend><b>Output Model-based Form AJAX Submission with Validation and JSON rendering</b></legend>
+		<p>By pressing the below button you are submitting a complex form to an action, using an AJAX HTTP POST call.</p> 
 		<p>The form contains many parameters of different types; each of them is mapped to a Model object (<code>@Model</code> annotation), possibly setting values into nested objects.</p>
-		<p>The method requires validation of some of its inputs, so some warning messages might appear on the log if any of the constraints is not satisfied.</p>  
-		<p>The JSON representation of the form will be returned as an <code>@Out</code> parameter and be made available on the page.</p>
-		<form action="TestAction!onModelFormSubmission" method="post">
+		<p>The method requires validation of some of its inputs, so some warning messages might appear on the log if any of the constraints is not satisfied.</p> 
+		<p>Once the object has been populated through <code>@Model</code> annotation processing, it is stored into the REQUEST scope through an <code>@Out</code> annotation; then conteol is
+		passed to the JSON renderer, which does not return a JSP page: it picks the bean from the REQUEST scope and converts it to JSON.</p>
+		<p>Thus, this very complex example (yet a very simple one in terms of coding) showcases how parameters can be injected and stored automagically, plus how AJAX calls can be performed 
+		and how the server can answer with a JSON object format.</p>   
+		<form action="TestAction!onModelFormSubmission" method="post" id="modelForm">
 			<table>
 				<tr>
 					<td>
@@ -258,15 +284,11 @@
 					</td>
 				</tr>
 			</table>
-			<input type="submit" title="Submit" name="Submit" value="Submit" />	
+			<input type="submit" title="Submit" name="Submit" />	
 			
-			<z:useBean var="user2" name="json2" type="java.lang.String"></z:useBean>
-			<c:if test="${user2 !=null && user2.trim().length() > 0}">
-				<br><br>
-				The server answered:
-				<pre><c:out value="${user2}"/></pre>
-			</c:if>			
-				
+			<br><br>
+			Server Response:<br>
+			<pre id="result"></pre>				
 		</form>
 	</fieldset>
 </body>
