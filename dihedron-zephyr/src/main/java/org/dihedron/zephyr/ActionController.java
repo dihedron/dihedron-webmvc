@@ -44,6 +44,7 @@ import org.dihedron.commons.variables.SystemPropertyValueProvider;
 import org.dihedron.commons.variables.Variables;
 import org.dihedron.zephyr.actions.ActionFactory;
 import org.dihedron.zephyr.actions.Result;
+import org.dihedron.zephyr.annotations.Action;
 import org.dihedron.zephyr.exceptions.DeploymentException;
 import org.dihedron.zephyr.exceptions.ZephyrException;
 import org.dihedron.zephyr.interceptors.InterceptorStack;
@@ -190,8 +191,9 @@ public class ActionController implements Filter {
 
 		try {
 			ActionContext.bindContext(filter, request, response, configuration, server);
+			String invocationResult = null;
 			Result result = null;
-			while(TargetId.isValidTargetId(targetId) && (result == null || result.getRendererId().equals("auto") || result.getRendererId().equals("chain"))) {
+			while(TargetId.isValidTargetId(targetId) && (result == null ||/* result.getRendererId().equals("auto") ||*/ result.getRendererId().equals("chain"))) {
 				
 				logger.info("invoking target '{}'...", targetId);
 				
@@ -212,12 +214,17 @@ public class ActionController implements Filter {
 				// get the stack for the given action
 				InterceptorStack stack = interceptors.getStackOrDefault(target.getInterceptorStackId());
 		    	    	
-		    	// create and fire the action stack invocation
+		    	// create and fire the action stack invocation				
 				ActionInvocation invocation = null;
 				try {
 					logger.info("invoking interceptors' stack...");
 					invocation = new ActionInvocation(target, action, stack, request, response);
-					result = target.getResult(invocation.invoke());
+					invocationResult = invocation.invoke();
+					if(invocationResult.equals(Action.DONE)) {
+						logger.trace("action request performed view rendering too, request is complete");
+						return;
+					}					
+					result = target.getResult(invocationResult);
 					logger.info("... invocation done!");
 				} finally {
 					invocation.cleanup();
@@ -227,58 +234,6 @@ public class ActionController implements Filter {
 					logger.error("misconfiguration in registry: target '{}' and result '{}' have no valid processing information", target.getId(), result);
 					throw new ZephyrException("No valid information found in registry for target '" + target.getId() + "', result '" + result + "', please check your actions");
 				}
-//				String subtarget = result.getData();
-//				if(TargetId.isValidTargetId(subtarget)) {
-//					logger.debug("target '{}' on result '{}' wants its output rendered by target '{}', forwarding...", target, result, subtarget);
-//					continue;
-//    			} else {
-//    				logger.trace("moving over to rendering '{}'...", subtarget);
-//    				break;
-//    			}
-//	
-//				PrintWriter writer = new PrintWriter(response.getWriter());
-//				
-//				writer.println("<h1>invocation:</h1><br>");
-//				writer.println("<html><head><title>Zephyr</title></head>");
-//				writer.println("<body>");
-//				writer.println("<table>");
-//				writer.println("<thead>");
-//				writer.println("<tr>");
-//				writer.println("<td>Target</td>");
-//				writer.println("<td>Result</td>");
-//				writer.println("</tr>");
-//				writer.println("</thead>");
-//				writer.println("<tbody>");
-//				writer.println("<tr>");
-//				writer.println("<td>" + targetId + "</td>");
-//				writer.println("<td>" + result + "</td>");
-//				writer.println("</tr>");
-//				writer.println("</tbody>");
-//				writer.println("</table>");
-//				writer.println("<br>");
-//	
-//				writer.println("<h1>configuratio parameters:</h1><br>");
-//				writer.println("<table>");
-//				writer.println("<thead>");
-//				writer.println("<tr>");
-//				writer.println("<td>Name</td>");
-//				writer.println("<td>Value</td>");
-//				writer.println("</tr>");
-//				writer.println("</thead>");
-//				writer.println("<tbody>");
-//				for (Parameter parameter : Parameter.values()) {
-//					writer.println("<tr>");
-//					writer.println("<td>" + parameter.getName() + "</td>");
-//					writer.println("<td>" + parameter.getValueFor(filter) + "</td>");
-//					writer.println("</tr>");				
-//				}			
-//				writer.println("</tbody>");
-//				writer.println("</table>");
-//	
-//				writer.println("<h1>list of configuration properties:</h1><br><ul>");
-//				writer.println("</ol>");
-//				writer.println("</body>");
-//				writer.println("</html>");
 			} 
 			
 			if(result == null) {

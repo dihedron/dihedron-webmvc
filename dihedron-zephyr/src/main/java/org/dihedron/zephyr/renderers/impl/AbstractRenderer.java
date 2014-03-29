@@ -32,16 +32,6 @@ import org.dihedron.zephyr.renderers.Renderer;
  * @author Andrea Funto'
  */
 public abstract class AbstractRenderer implements Renderer { 
-		
-	/**
-	 * By default renderers are terminal.
-	 * 
-	 * @see org.dihedron.zephyr.renderers.Renderer#isTerminal()
-	 */
-	@Override
-	public boolean isTerminal() {
-		return true;
-	}
 
     /**
      * Returns the {@code PrintWriter} associated with the response object.

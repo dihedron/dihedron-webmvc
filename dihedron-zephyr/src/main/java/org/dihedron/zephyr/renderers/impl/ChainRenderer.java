@@ -46,25 +46,12 @@ public class ChainRenderer extends AbstractRenderer {
 	 * The logger.
 	 */
 	private static final Logger logger = LoggerFactory.getLogger(ChainRenderer.class);
-	
-	/**
-	 * The chain renderer is non-terminal: by specifying it we are asking the framework
-	 * to forward control to yet another target before the actually rendering can occur.
-	 * 
-	 * @return
-	 *   {@code true}, to indicate that this is not a process sink, and further processing
-	 *   is neededbefore the actal rendering can take plavce
-	 */
-	@Override
-	public boolean isTerminal() {
-		return false;
-	}
 
 	/**
 	 * @see org.dihedron.zephyr.renderers.Renderer#render(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
 	 */
 	@Override
-	public Status render(HttpServletRequest request, HttpServletResponse response, String data) throws IOException, ZephyrException {
+	public void render(HttpServletRequest request, HttpServletResponse response, String data) throws IOException, ZephyrException {
 		try {
 			RequestDispatcher dispatcher = request.getRequestDispatcher(response.encodeURL(data));
 	
@@ -78,6 +65,5 @@ public class ChainRenderer extends AbstractRenderer {
 			logger.error("error re-routing and forwaring request to JSP '{}'", data);
 			throw new ZephyrException("Error forwarding reuqest to JSP '" + data + "' for rendering", e);
 		}
-		return Status.COMPLETE;
 	}
 }

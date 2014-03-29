@@ -58,6 +58,18 @@ public @interface Action {
      * The default return code for a failed execution.
      */
     public static final String ERROR = "error";
+    
+    /**
+     * The special return value to indicate that the complete rendering life cycle, 
+     * <em>including the rendering</em>, has been completed and no further processing
+     * is needed. An action should return this result when it has already taken 
+     * care of serving the result data, e.g. when the action produces a binary 
+     * stream and writes it directly to the output stream. Under these circumstances, 
+     * the framework needs not route control to the view. There is no need to
+     * indicate a <code>@Result</code> for this value: it is handled internally
+     * by the framework as a "do-nothing" indication.  
+     */
+    public static final String DONE = "done";
 
     /**
      * An alternative name for the action, so that the user need not know the

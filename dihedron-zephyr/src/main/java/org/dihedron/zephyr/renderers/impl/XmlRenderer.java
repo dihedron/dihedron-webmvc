@@ -56,7 +56,7 @@ public class XmlRenderer extends BeanRenderer {
      * @see org.dihedron.zephyr.renderers.Renderer#render(javax.portlet.PortletRequest, javax.portlet.PortletResponse, java.lang.String)
      */
     @Override
-    public Status render(HttpServletRequest request, HttpServletResponse response, String data) throws IOException, ZephyrException {
+    public void render(HttpServletRequest request, HttpServletResponse response, String data) throws IOException, ZephyrException {
 
         String bean = data;
         logger.trace("rendering bean '{}'", bean);
@@ -71,6 +71,5 @@ public class XmlRenderer extends BeanRenderer {
             logger.error("error marshalling bean to XML", e);
             throw new ZephyrException("Error marshalling Java bean to XML", e);
         }
-        return Status.COMPLETE;
     }
 }

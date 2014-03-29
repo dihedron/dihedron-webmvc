@@ -55,7 +55,7 @@ public class JsonRenderer extends BeanRenderer {
 	 * @see org.dihedron.zephyr.renderers.Renderer#render(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
 	 */
 	@Override
-	public Status render(HttpServletRequest request, HttpServletResponse response, String data) throws IOException, ZephyrException {
+	public void render(HttpServletRequest request, HttpServletResponse response, String data) throws IOException, ZephyrException {
         String bean = data;
         logger.trace("rendering bean '{}'", bean);
         Object object = getBean(request, bean);
@@ -68,7 +68,5 @@ public class JsonRenderer extends BeanRenderer {
         response.setContentType(JSON_MIME_TYPE);
         getWriter(response).print(json);
         getWriter(response).flush();
-        // no further processing
-        return Status.COMPLETE;
     }
 }

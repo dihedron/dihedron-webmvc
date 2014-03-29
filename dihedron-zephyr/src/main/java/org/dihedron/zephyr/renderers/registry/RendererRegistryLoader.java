@@ -19,7 +19,6 @@
 
 package org.dihedron.zephyr.renderers.registry;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 
 import javassist.Modifier;

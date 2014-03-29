@@ -34,40 +34,6 @@ import org.dihedron.zephyr.exceptions.ZephyrException;
  * @author Andrea Funto'
  */
 public interface Renderer {
-	
-	/**
-	 * An enumeration used to indicate whether the rendering request was completed 
-	 * and needs no further processing, or the request still needs to be perfected
-	 * and further processing is needed.
-	 * 
-	 * @author Andrea Funto'
-	 */
-	public enum Status {
-		/**
-		 * The request is complete, no further rendereing is needed, so the 
-		 * processing can stop.
-		 */
-		COMPLETE,
-		
-		/**
-		 * The request could not be completed by this renderer, so further processing
-		 * is needed on some other entity's part.
-		 */
-		CONTINUE
-	}
-    
-    /**
-     * Returns whether the selection of this renderer can only represent the 
-     * final step in an invocation: renderers belong to two classes: those 
-     * that can be chained (such as the "chain" renderer) and those that can
-     * only provide output to the user and thus represent the final step in the
-     * processing of a request. 
-     * 
-     * @return
-     *   whether the renderer can only render output or it can be chained, e.g.
-     *   to forward control to another target before performing the fihal rendering.
-     */
-    boolean isTerminal();
 
     /**
      * Renders the output to the client.
@@ -81,16 +47,10 @@ public interface Renderer {
      *   the name of a java bean for the JSON and XML renderers, etc. Renderer
      *   data can be a JSON string if the renderer requires more complex or
      *   structured data to perform its work.  
-     * @return
-     *   {@code true} to signify that there is no further processing to be performed 
-     *   by the invocation chain because this renderer did all there was to do, 
-     *   including sending response data to the end user; {@code false} to let 
-     *   the framework pass control over to the next filter in the chain and have
-     *   it handle the actual response sending task.  
      * @throws IOException     
      *   if it cannot write to the output stream.
      * @throws ZephyrException 
      *   if any servlet-specific error occurs during the processing.
      */
-    Status render(HttpServletRequest request, HttpServletResponse response, String data) throws IOException, ZephyrException;
+    void render(HttpServletRequest request, HttpServletResponse response, String data) throws IOException, ZephyrException;
 }

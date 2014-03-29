@@ -19,6 +19,7 @@
 package org.dihedron.zephyr.actions;
 
 import org.dihedron.commons.strings.Strings;
+import org.dihedron.zephyr.renderers.impl.JspRenderer;
 
 /**
  * @author Andrea Funto'
@@ -27,9 +28,9 @@ public class Result {
 
 	/**
 	 * The default renderer to be used for results that do not have a renderer
-	 * type specified explicitly in the XML or in the annotations.
+	 * type specified explicitly in the annotations.
 	 */
-	public static final String DEFAULT_RENDERER_ID = "auto";
+	public static final String DEFAULT_RENDERER_ID = JspRenderer.ID;
 
 	/**
 	 * The result identifier (e.g. "error", "success").
