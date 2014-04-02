@@ -47,6 +47,16 @@ public enum Scope {
 	REQUEST(false),
 	
 	/**
+	 * The "conversation" scope allows to store values across several interactions
+	 * between client and server, and automatically have its creation/removal
+	 * managed by the framework. By declaring the use of one or more conversations
+	 * in an invokable method's annotation, along with the kind of interaction the
+	 * methods will have with it, the framework will make sure that a conversation 
+	 * is established, available or removed automatically.
+	 */
+	CONVERSATION(false),
+	
+	/**
 	 * An attribute set at this scope is available throughout the user's session,
 	 * to which it is private. Thus, once set it will hang around as long as 
 	 * the user's session is valid, and it will be available to the same

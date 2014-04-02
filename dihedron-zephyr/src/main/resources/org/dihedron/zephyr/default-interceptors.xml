@@ -12,7 +12,7 @@
 			</parameter>
 			<parameter>
 				<key>scopes</key>
-				<value>form,request,session,sticky,application</value>
+				<value>form,request,conversation,session,sticky,application</value>
 			</parameter>
 		</interceptor>
 		<!-- 

@@ -21,7 +21,9 @@ package org.dihedron.zephyr.interceptors.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.dihedron.commons.reflection.Types;
@@ -32,6 +34,7 @@ import org.dihedron.zephyr.ActionContext;
 import org.dihedron.zephyr.ActionInvocation;
 import org.dihedron.zephyr.exceptions.ZephyrException;
 import org.dihedron.zephyr.interceptors.Interceptor;
+import org.dihedron.zephyr.protocol.Conversation;
 import org.dihedron.zephyr.protocol.Scope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +63,7 @@ public class Dumper extends Interceptor {
 	private static final int SECTION_HEADER_LENGTH = 64;
 	
 	private static final char SECTION_HEADER_PADDING = '=';
+	private static final char CONVERSATION_HEADER_PADDING = '-';
 	
 	private static final String SECTION_FOOTER = "================================================================";
 
@@ -128,22 +132,46 @@ public class Dumper extends Interceptor {
 	 */
 	private void dumpValues(Scope scope, StringBuilder builder) throws ZephyrException {
 		Set<String> names = ActionContext.getValueNames(scope);
-		builder.append(Strings.centre(" " + scope.name() + " SCOPE ", SECTION_HEADER_LENGTH, SECTION_HEADER_PADDING)).append("\n");		
-		if(names != null) {
+		builder.append(Strings.centre(" " + scope.name() + " SCOPE ", SECTION_HEADER_LENGTH, SECTION_HEADER_PADDING)).append("\n");
+		if(scope == Scope.CONVERSATION) {
+			Map<String, List<String>> conversations = new HashMap<>();
 			for(String name : names) {
-				if(regex == null || !regex.matches(name)) { 
-					Object value = ActionContext.getValue(name, scope);
-					String string = null;
-					if(value != null) {
-						if(Types.isArray(value)) {
-							string = "[" + Strings.join((Object[])value) + "]";
-						} else {
-							string = value.toString();
-						}
+				String id = Conversation.getConversationId(name);
+				String key = Conversation.getValueId(name);
+				List<String> keys = conversations.get(id);
+				if(keys == null) {
+					keys = new ArrayList<>();
+					conversations.put(id, keys);
+				}
+				keys.add(key);
+			}
+			for(String conversation : conversations.keySet()) {
+				builder.append(Strings.centre(" " + conversation + " ", SECTION_HEADER_LENGTH, CONVERSATION_HEADER_PADDING)).append("\n");
+				for(String key : conversations.get(conversation)) {
+					dumpValue(conversation + ":" + key, ActionContext.getValue(conversation + ":" + key, Scope.CONVERSATION), builder);
+				}
+			}
+		} else {		
+			if(names != null) {
+				for(String name : names) {
+					if(regex == null || !regex.matches(name)) { 
+						Object value = ActionContext.getValue(name, scope);
+						dumpValue(name, value, builder);
 					}
-					builder.append("'").append(name).append("' = '").append(string).append("' (type: ").append(value != null ? value.getClass().getName() : "n.a.").append(")\n");
 				}
 			}
 		}
 	}	
+	
+	private void dumpValue(String name, Object value, StringBuilder builder) {
+		String string = null;
+		if(value != null) {
+			if(Types.isArray(value)) {
+				string = "[" + Strings.join((Object[])value) + "]";
+			} else {
+				string = value.toString();
+			}
+		}
+		builder.append("'").append(name).append("' = '").append(string).append("' (type: ").append(value != null ? value.getClass().getName() : "n.a.").append(")\n");		
+	}
 }

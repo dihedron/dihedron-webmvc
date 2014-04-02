@@ -45,6 +45,8 @@ public @interface Invocable {
      *   the array of expected results.
      */
     Result[] results() default {};
+    
+//    Conversation conversation();
 
     /**
      * The optional implementation of the validator interface that will provide

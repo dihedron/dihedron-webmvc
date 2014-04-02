@@ -51,6 +51,7 @@ import org.dihedron.zephyr.interceptors.InterceptorStack;
 import org.dihedron.zephyr.interceptors.registry.InterceptorsRegistry;
 import org.dihedron.zephyr.plugins.Plugin;
 import org.dihedron.zephyr.plugins.PluginManager;
+import org.dihedron.zephyr.protocol.Scope;
 import org.dihedron.zephyr.renderers.Renderer;
 import org.dihedron.zephyr.renderers.impl.CachingRendererRegistry;
 import org.dihedron.zephyr.renderers.registry.RendererRegistry;
@@ -191,6 +192,19 @@ public class ActionController implements Filter {
 
 		try {
 			ActionContext.bindContext(filter, request, response, configuration, server);
+			
+			// TODO: test, remove!
+			ActionContext.setValue("conversation_A:key1", "value1a", Scope.CONVERSATION);
+			ActionContext.setValue("conversation_A:key2", "value2a", Scope.CONVERSATION);
+			ActionContext.setValue("conversation_A:key3", "value3a", Scope.CONVERSATION);
+			ActionContext.setValue("conversation_A:key4", "value4a", Scope.CONVERSATION);
+			ActionContext.setValue("conversation_B:key1", "value1b", Scope.CONVERSATION);
+			ActionContext.setValue("conversation_B:key2", "value2b", Scope.CONVERSATION);
+			ActionContext.setValue("conversation_B:key3", "value3b", Scope.CONVERSATION);
+			ActionContext.setValue("conversation_B:key4", "value4b", Scope.CONVERSATION);
+			
+			// TODO: end test
+			
 			String invocationResult = null;
 			Result result = null;
 			while(TargetId.isValidTargetId(targetId) && (result == null ||/* result.getRendererId().equals("auto") ||*/ result.getRendererId().equals("chain"))) {

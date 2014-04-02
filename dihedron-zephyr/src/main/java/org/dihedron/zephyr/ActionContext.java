@@ -41,6 +41,7 @@ import org.dihedron.commons.regex.Regex;
 import org.dihedron.commons.strings.Strings;
 import org.dihedron.zephyr.exceptions.ZephyrException;
 import org.dihedron.zephyr.interceptors.Interceptor;
+import org.dihedron.zephyr.protocol.Conversation;
 import org.dihedron.zephyr.protocol.HttpMethod;
 import org.dihedron.zephyr.protocol.Scope;
 import org.dihedron.zephyr.webserver.WebServer;
@@ -68,15 +69,16 @@ public class ActionContext {
 	 */
 	private static final int MILLISECONDS_PER_SEC = 1000;
 
-	public static class SessionInfo {
-
-	}
+	/**
+	 * The key under which conversation-scoped attributes are stored in the session.
+	 */
+	protected static final String CONVERSATION_SCOPED_ATTRIBUTES_KEY = "org.dihedron.zephyr.conversation_scoped_attributes";
 
 	/**
-	 * The key under which sticky-scoped attributes are stored in the session.
+	 * The key under which sticky-scoped attributes are stored in the application area.
 	 */
 	protected static final String STICKY_SCOPED_ATTRIBUTES_KEY = "org.dihedron.zephyr.sticky_scoped_attributes";
-
+	
 	/**
 	 * The key under which interceptor data is stored in the session.
 	 */
@@ -651,6 +653,18 @@ public class ActionContext {
 		case REQUEST:
 			result = getContext().request.getAttribute(key) != null;
 			break;
+		case CONVERSATION:
+			String conversationId = Conversation.getConversationId(key);
+			String valueId = Conversation.getValueId(key);
+			if(Strings.areValid(conversationId, valueId)) {
+				logger.trace("checking existence of value '{}' in conversation '{}'", valueId, conversationId);
+				@SuppressWarnings("unchecked")
+				Map<String, Map<String, Object>> conversations = (Map<String, Map<String, Object>>) getValue(CONVERSATION_SCOPED_ATTRIBUTES_KEY, Scope.SESSION);
+				if (conversations != null && conversations.get(conversationId) != null) {
+					result = conversations.get(conversationId).containsKey(valueId);
+				}
+			}
+			break;			
 		case SESSION:
 			result = getContext().request.getSession().getAttribute(key) != null;
 			break;
@@ -658,7 +672,7 @@ public class ActionContext {
 			String user = getRemoteUser();
 			if(Strings.isValid(user)) {
 				@SuppressWarnings("unchecked")
-				Map<String, Map<String, Object>> sticky = (Map<String, Map<String, Object>>) getContext().filter.getServletContext().getAttribute(STICKY_SCOPED_ATTRIBUTES_KEY);
+				Map<String, Map<String, Object>> sticky = (Map<String, Map<String, Object>>) getValue(STICKY_SCOPED_ATTRIBUTES_KEY, Scope.APPLICATION);
 				if (sticky != null && sticky.get(user) != null) {
 					result = sticky.get(user).containsKey(key);
 				}
@@ -710,6 +724,18 @@ public class ActionContext {
 		case REQUEST:
 			value = getContext().request.getAttribute(key);
 			break;
+		case CONVERSATION:
+			String conversationId = Conversation.getConversationId(key);
+			String valueId = Conversation.getValueId(key);
+			if(Strings.areValid(conversationId, valueId)) {
+				logger.trace("retrieving value '{}' in conversation '{}'", valueId, conversationId);
+				@SuppressWarnings("unchecked")
+				Map<String, Map<String, Object>> conversations = (Map<String, Map<String, Object>>) getValue(CONVERSATION_SCOPED_ATTRIBUTES_KEY, Scope.SESSION);
+				if (conversations != null && conversations.get(conversationId) != null) {
+					value = conversations.get(conversationId).get(valueId);
+				}
+			}
+			break;						
 		case SESSION:
 			value = getContext().request.getSession().getAttribute(key);
 			break;
@@ -717,7 +743,7 @@ public class ActionContext {
 			String user = getRemoteUser();
 			if(Strings.isValid(user)) {
 				@SuppressWarnings("unchecked")
-				Map<String, Map<String, Object>> sticky = (Map<String, Map<String, Object>>) getContext().filter.getServletContext().getAttribute(STICKY_SCOPED_ATTRIBUTES_KEY);
+				Map<String, Map<String, Object>> sticky = (Map<String, Map<String, Object>>) getValue(STICKY_SCOPED_ATTRIBUTES_KEY, Scope.APPLICATION);
 				if (sticky != null && sticky.get(user) != null) {
 					value = sticky.get(user).get(key);
 				}
@@ -802,23 +828,43 @@ public class ActionContext {
 			throw new ZephyrException("Trying to store value in read-only scope '" + scope.name() + "'.");
 		}
 
+		Map<String, Object> map = null;
 		switch (scope) {
 		case REQUEST:
 			getContext().request.setAttribute(key, value);
+			break;
+		case CONVERSATION:
+			String conversationId = Conversation.getConversationId(key);
+			String valueId = Conversation.getValueId(key);
+			if(Strings.areValid(conversationId, valueId)) {
+				logger.trace("setting value '{}' in conversation '{}'", valueId, conversationId);
+				synchronized(ActionContext.class) {
+					Map<String, Map<String, Object>> conversations = (Map<String, Map<String, Object>>) getValue(CONVERSATION_SCOPED_ATTRIBUTES_KEY, Scope.SESSION);
+					if(conversations == null)  {
+						conversations = Collections.synchronizedMap(new HashMap<String, Map<String, Object>>());
+						setValue(CONVERSATION_SCOPED_ATTRIBUTES_KEY, conversations, Scope.SESSION);
+					}
+					map = conversations.get(conversationId); 
+					if(map == null) {
+						map = new HashMap<>();
+						conversations.put(conversationId, map);
+					}
+					map.put(valueId, value);
+				}
+			}
 			break;
 		case SESSION:
 			getContext().request.getSession().setAttribute(key, value);
 			break;
 		case STICKY:
-			Map<String, Object> map = null;
 			String user = getRemoteUser();
 			if(Strings.isValid(user)) {
 				user = user.trim();
 				synchronized(ActionContext.class) {
-					Map<String, Map<String, Object>> sticky = (Map<String, Map<String, Object>>) getContext().filter.getServletContext().getAttribute(STICKY_SCOPED_ATTRIBUTES_KEY);
+					Map<String, Map<String, Object>> sticky = (Map<String, Map<String, Object>>) getValue(STICKY_SCOPED_ATTRIBUTES_KEY, Scope.APPLICATION);
 					if(sticky == null)  {
 						sticky = Collections.synchronizedMap(new HashMap<String, Map<String, Object>>());
-						getContext().filter.getServletContext().setAttribute(STICKY_SCOPED_ATTRIBUTES_KEY, sticky);
+						setValue(STICKY_SCOPED_ATTRIBUTES_KEY, sticky, Scope.APPLICATION);
 					}
 					map = sticky.get(user); 
 					if(map == null) {
@@ -835,8 +881,7 @@ public class ActionContext {
 		default:
 			logger.error("should never get here: is this a bug?");
 		}
-		logger.debug("value '{}' in scope '{}' set to value '{}' (class {})", key, scope.name(), value, value != null ? value.getClass().getSimpleName()
-				: "n.a.");
+		logger.debug("value '{}' in scope '{}' set to value '{}' (class {})", key, scope.name(), value, value != null ? value.getClass().getSimpleName() : "n.a.");
 	}
 
 	/**
@@ -907,13 +952,24 @@ public class ActionContext {
 		case REQUEST:
 			getContext().request.removeAttribute(key);
 			break;
+		case CONVERSATION:
+			String conversationId = Conversation.getConversationId(key);
+			String valueId = Conversation.getValueId(key);
+			if(Strings.areValid(conversationId, valueId)) {
+				logger.trace("retrieving value '{}' in conversation '{}'", valueId, conversationId);
+				Map<String, Map<String, Object>> conversations = (Map<String, Map<String, Object>>) getValue(CONVERSATION_SCOPED_ATTRIBUTES_KEY, Scope.SESSION);
+				if (conversations != null && conversations.get(conversationId) != null) {
+					conversations.get(conversationId).remove(valueId);
+				}
+			}
+			break;						
 		case SESSION:
 			getContext().request.getSession().removeAttribute(key);
 			break;
 		case STICKY:
 			String user = getRemoteUser();
 			if(Strings.isValid(user)) {
-				Map<String, Map<String, Object>> sticky = (Map<String, Map<String, Object>>) getContext().filter.getServletContext().getAttribute(STICKY_SCOPED_ATTRIBUTES_KEY);
+				Map<String, Map<String, Object>> sticky = (Map<String, Map<String, Object>>) getValue(STICKY_SCOPED_ATTRIBUTES_KEY, Scope.APPLICATION);
 				if (sticky != null && sticky.get(user) != null) {
 					sticky.get(user).remove(key);
 				}
@@ -958,12 +1014,12 @@ public class ActionContext {
 	 *   the scope from which to remove values.
 	 * @throws ZephyrException
 	 */
-	public static void removeValues(Regex pattern, Scope scope) throws ZephyrException {
+	public static void removeValues(String pattern, Scope scope) throws ZephyrException {
 		if (pattern == null) {
 			logger.error("regular expression to match against value names must not be null");
 			throw new ZephyrException("Regular expression to match against value names must not be null.");
 		}
-		Set<String> names = getValueNames(scope, pattern);
+		Set<String> names = getValueNames(pattern,scope);
 		removeValues(names, scope);
 	}
 
@@ -975,7 +1031,14 @@ public class ActionContext {
 	 * @throws ZephyrException
 	 */
 	public static void clearValues(Scope scope) throws ZephyrException {
-		removeValues(new Regex(".*"), scope);
+		switch(scope) {
+		case CONVERSATION:
+			removeValues(".*:.*", scope);
+			break;
+		default:
+			removeValues(".*", scope);
+			break;
+		}		
 	}
 
 	/**
@@ -983,10 +1046,12 @@ public class ActionContext {
 	 * 
 	 * @param scope
 	 *   the scope whose value (attribute/parameter) names should be retrieved.
-	 * @return the names of the attributes/parameters in the given scope.
+	 * @return 
+	 *   the names of the attributes/parameters in the given scope.
+	 * @throws ZephyrException 
 	 */
-	public static Set<String> getValueNames(Scope scope) {
-		return getValueNames(scope, null);
+	public static Set<String> getValueNames(Scope scope) throws ZephyrException {
+		return getValueNames(null, scope);
 	}
 
 	/**
@@ -994,23 +1059,28 @@ public class ActionContext {
 	 * possibly filtering out those that do not match the given pattern (if
 	 * provided).
 	 * 
-	 * @param scope
-	 *   the scope whose value (attribute/parameter) names should be retrieved.
 	 * @param pattern
 	 *   an optional regular expression: only names matching it will be returned.
+	 * @param scope
+	 *   the scope whose value (attribute/parameter) names should be retrieved.
 	 * @return 
 	 *   the names of the attributes/parameters in the given scope.
+	 * @throws ZephyrException 
 	 */
 	@SuppressWarnings("unchecked")
-	public static Set<String> getValueNames(Scope scope, Regex pattern) {
+	public static Set<String> getValueNames(String pattern, Scope scope) throws ZephyrException {
 		Set<String> names = new HashSet<>();
 		Enumeration<?> enumeration = null;
+		Regex regex = null;
+		if(Strings.isValid(pattern)) {
+			regex = new Regex(pattern);
+		}		
 		switch (scope) {
 		case FORM:
 			enumeration = getContext().request.getParameterNames();
 			while (enumeration.hasMoreElements()) {
 				String name = (String) enumeration.nextElement();
-				if (pattern == null || pattern.matches(name)) {
+				if (regex == null || regex.matches(name)) {
 					names.add(name);
 				}
 			}
@@ -1019,8 +1089,24 @@ public class ActionContext {
 			enumeration = getContext().request.getAttributeNames();
 			while (enumeration.hasMoreElements()) {
 				String name = (String) enumeration.nextElement();
-				if (pattern == null || pattern.matches(name)) {
+				if (regex == null || regex.matches(name)) {
 					names.add(name);
+				}
+			}
+			break;
+		case CONVERSATION:			
+			Regex conversation = Strings.isValid(Conversation.getConversationId(pattern)) ? new Regex(Conversation.getConversationId(pattern)) : new Regex(".*");  
+			regex = Strings.isValid(Conversation.getValueId(pattern)) ? new Regex(Conversation.getValueId(pattern)) : new Regex(".*");
+			Map<String, Map<String, Object>> conversations = (Map<String, Map<String, Object>>) getValue(CONVERSATION_SCOPED_ATTRIBUTES_KEY, Scope.SESSION);
+			if (conversations != null) {
+				for(String conversationId : conversations.keySet()) {
+					if(conversation.matches(conversationId)) {
+						for (String name : conversations.get(conversationId).keySet()) {
+							if (regex.matches(name)) {
+								names.add(conversationId + ":" + name);
+							}
+						}							
+					}
 				}
 			}
 			break;
@@ -1028,7 +1114,7 @@ public class ActionContext {
 			enumeration = getContext().request.getSession().getAttributeNames();
 			while (enumeration.hasMoreElements()) {
 				String name = (String) enumeration.nextElement();
-				if (pattern == null || pattern.matches(name)) {
+				if (regex == null || regex.matches(name)) {
 					names.add(name);
 				}
 			}
@@ -1036,10 +1122,10 @@ public class ActionContext {
 		case STICKY:
 			String user = getRemoteUser();
 			if(Strings.isValid(user)) {
-				Map<String, Map<String, Object>> sticky = (Map<String, Map<String, Object>>) getContext().filter.getServletContext().getAttribute(STICKY_SCOPED_ATTRIBUTES_KEY);
+				Map<String, Map<String, Object>> sticky = (Map<String, Map<String, Object>>) getValue(STICKY_SCOPED_ATTRIBUTES_KEY, Scope.APPLICATION);
 				if (sticky != null && sticky.get(user) != null) {
 					for (String name : sticky.get(user).keySet()) {
-						if (pattern == null || pattern.matches(name)) {
+						if (regex == null || regex.matches(name)) {
 							names.add(name);
 						}
 					}
@@ -1050,7 +1136,7 @@ public class ActionContext {
 			enumeration = getContext().filter.getServletContext().getAttributeNames();
 			while (enumeration.hasMoreElements()) {
 				String name = (String) enumeration.nextElement();
-				if (pattern == null || pattern.matches(name)) {
+				if (regex == null || regex.matches(name)) {
 					names.add(name);
 				}
 			}
@@ -1058,7 +1144,7 @@ public class ActionContext {
 		case CONFIGURATION:
 			if (getContext().configuration != null) {
 				for (String name : getContext().configuration.getKeys()) {
-					if (pattern == null || pattern.matches(name)) {
+					if (regex == null || regex.matches(name)) {
 						names.add(name);
 					}
 				}
@@ -1068,14 +1154,14 @@ public class ActionContext {
 			enumeration = System.getProperties().keys();
 			while (enumeration.hasMoreElements()) {
 				String name = (String) enumeration.nextElement();
-				if (pattern == null || pattern.matches(name)) {
+				if (regex == null || regex.matches(name)) {
 					names.add(name);
 				}
 			}
 			break;
 		case ENVIRONMENT:
 			for (String name : System.getenv().keySet()) {
-				if (pattern == null || pattern.matches(name)) {
+				if (regex == null || regex.matches(name)) {
 					names.add(name);
 				}
 			}
