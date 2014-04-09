@@ -27,6 +27,11 @@ import org.dihedron.commons.strings.Strings;
  * @author Andrea Funto'
  */
 public class Conversation {
+	
+	/**
+	 * The ID for unnamed conversations.
+	 */
+	private static final String DEFAULT_CONVERSATION_ID = "org.dihedron.zephyr.default_conversation";	
 
 	/**
 	 * Given a conversational value identifier (in the form {@code conversation:key}),
@@ -46,7 +51,7 @@ public class Conversation {
 				return id.trim();
 			}
 		}
-		return null;
+		return DEFAULT_CONVERSATION_ID;
 	}
 
 	/**
