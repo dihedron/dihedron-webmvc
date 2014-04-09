@@ -36,9 +36,9 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Conversation {
+public @interface Conversational {
 	
-	public enum Type {
+	public enum Role {
 		/**
 		 * Uses an existing conversation if available, otherwise establishes a new one.
 		 */
@@ -57,7 +57,7 @@ public @interface Conversation {
 		/**
 		 * Closes an existing conversation, removing it.
 		 */
-		DESTROYS;		
+		DESTROYS
 	}
 
     /**
@@ -74,5 +74,5 @@ public @interface Conversation {
      * @return
      *   type of involvement in a conversation.
      */
-    Type type() default Type.USES;
+    Role role() default Role.USES;
 }

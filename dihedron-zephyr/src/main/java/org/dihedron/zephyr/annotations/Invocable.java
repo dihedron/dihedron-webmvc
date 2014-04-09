@@ -19,10 +19,15 @@
 
 package org.dihedron.zephyr.annotations;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 import org.dihedron.zephyr.validation.DefaultValidationHandler;
 import org.dihedron.zephyr.validation.ValidationHandler;
-
-import java.lang.annotation.*;
 
 /**
  * Annotation to be placed on methods that will be exposed as action, event,
@@ -45,8 +50,15 @@ public @interface Invocable {
      *   the array of expected results.
      */
     Result[] results() default {};
-    
-//    Conversation conversation();
+   
+//    /**
+//     * The optional description of a conversation to which the annotated method 
+//     * may take part.
+//     * 
+//     * @return
+//     *   the definition of a conversation to which this method may take part.
+//     */
+//    Conversation conversation() default @Conversation();
 
     /**
      * The optional implementation of the validator interface that will provide

@@ -25,6 +25,8 @@ import javax.validation.constraints.Size;
 import org.dihedron.commons.strings.Strings;
 import org.dihedron.zephyr.ActionContext;
 import org.dihedron.zephyr.annotations.Action;
+import org.dihedron.zephyr.annotations.Conversational;
+import org.dihedron.zephyr.annotations.Conversational.Role;
 import org.dihedron.zephyr.annotations.In;
 import org.dihedron.zephyr.annotations.Invocable;
 import org.dihedron.zephyr.annotations.Model;
@@ -123,9 +125,42 @@ public class MyPrivateActionImpl {
 	public String onModelFormSubmission(
 			@Model(value="user\\:(.*)", from=Scope.FORM) @Out(value="user") $<User> user
 	) {
-
-		
 		return Action.SUCCESS;
 	}
 	
+	@Invocable(
+		results = {
+			@Result(value=Action.SUCCESS, renderer=JspRenderer.ID, data="index.jsp")
+		}
+	)
+	@Conversational(value="tray", role=Role.INITIATES)
+	public String onStartShopping() {
+		logger.info("creating conversation for shopping tray");
+		return Action.SUCCESS;
+	}
+	
+	@Invocable(
+		results = {
+			@Result(value=Action.SUCCESS, renderer=JspRenderer.ID, data="index.jsp")
+		}
+	)
+	@Conversational(value="tray", role=Role.REQUIRES)
+	public String onAddItemToTray(
+		@In(value="item", from=Scope.FORM),
+		@Out(value="")
+	) {
+		logger.info("creating conversation for shopping tray");
+		return Action.SUCCESS;
+	}
+	
+	@Invocable(
+		results = {
+			@Result(value=Action.SUCCESS, renderer=JspRenderer.ID, data="index.jsp")
+		}
+	)
+	@Conversational(value="tray", role=Role.DESTROYS)
+	public String onCheckOut() {
+		logger.info("creating conversation for shopping tray");
+		return Action.SUCCESS;
+	}		
 }
