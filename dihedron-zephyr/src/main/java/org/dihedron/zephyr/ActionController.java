@@ -194,14 +194,14 @@ public class ActionController implements Filter {
 			ActionContext.bindContext(filter, request, response, configuration, server);
 			
 			// TODO: test, remove!
-			ActionContext.setValue("conversation_A:key1", "value1a", Scope.CONVERSATION);
-			ActionContext.setValue("conversation_A:key2", "value2a", Scope.CONVERSATION);
-			ActionContext.setValue("conversation_A:key3", "value3a", Scope.CONVERSATION);
-			ActionContext.setValue("conversation_A:key4", "value4a", Scope.CONVERSATION);
-			ActionContext.setValue("conversation_B:key1", "value1b", Scope.CONVERSATION);
-			ActionContext.setValue("conversation_B:key2", "value2b", Scope.CONVERSATION);
-			ActionContext.setValue("conversation_B:key3", "value3b", Scope.CONVERSATION);
-			ActionContext.setValue("conversation_B:key4", "value4b", Scope.CONVERSATION);
+//			ActionContext.setValue("conversation_A:key1", "value1a", Scope.CONVERSATION);
+//			ActionContext.setValue("conversation_A:key2", "value2a", Scope.CONVERSATION);
+//			ActionContext.setValue("conversation_A:key3", "value3a", Scope.CONVERSATION);
+//			ActionContext.setValue("conversation_A:key4", "value4a", Scope.CONVERSATION);
+//			ActionContext.setValue("conversation_B:key1", "value1b", Scope.CONVERSATION);
+//			ActionContext.setValue("conversation_B:key2", "value2b", Scope.CONVERSATION);
+//			ActionContext.setValue("conversation_B:key3", "value3b", Scope.CONVERSATION);
+//			ActionContext.setValue("conversation_B:key4", "value4b", Scope.CONVERSATION);
 			
 			// TODO: end test
 			
