@@ -50,6 +50,8 @@ public class RenewingRendererRegistry implements RendererRegistry {
 	 */
 	public RenewingRendererRegistry() {
 		logger.info("instantiating renewing renderers registry...");
+		// handle the special case of the "done" do-nothing, built-in renderer
+		this.renderers.put(DoneRenderer.ID, DoneRenderer.class);
 	}
 
 	@Override

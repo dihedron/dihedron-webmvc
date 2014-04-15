@@ -45,13 +45,14 @@ public class CachingRendererRegistry implements RendererRegistry {
      * The map containing an instance of each registered renderers.
      */
     private Map<String, Renderer> renderers = new HashMap<>();
-
+    
     /**
      * Constructor.
      */
     public CachingRendererRegistry() {
         logger.info("instantiating caching renderers registry...");
-        //this.addRenderer("jsp", "org.dihedron.strutlets.renderers.impl.JspRenderer");
+        // handle the special case of the "done" do-nothing renderer
+        this.renderers.put(DoneRenderer.ID, new DoneRenderer());
     }
     
     @Override
@@ -75,7 +76,7 @@ public class CachingRendererRegistry implements RendererRegistry {
     public Renderer getRenderer(String id) throws ZephyrException {
         Renderer renderer = null;
         if (Strings.isValid(id)) {
-            renderer = this.renderers.get(id);
+    		renderer = this.renderers.get(id);
         }
         return renderer;
     }
