@@ -73,11 +73,16 @@ public enum Parameter {
      * are looked for, if non null.
      */
     RENDERERS_JAVA_PACKAGES("zephyr:renderers-packages"),
+    
+    /**
+     * The directory in which temporary uploaded files will be stored.
+     */
+    UPLOADED_FILES_DIRECTORY("zephyr:upload-directory"),
 
     /**
      * The default page to be shown when an internal error occurs.
      */
-    DEFAULT_ERROR_JSP("zephyr:default-error-page"),
+    DEFAULT_ERROR_PAGE("zephyr:default-error-page"),
 
     /**
      * The parameter used to specify the root directory for JSP renderers.

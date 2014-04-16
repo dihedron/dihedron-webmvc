@@ -21,9 +21,9 @@ package org.dihedron.zephyr.exceptions;
 
 
 /**
- * An exception thrown when the application is is not fully configured. It might
+ * An exception thrown when the application is not fully configured. It might
  * be thrown when no action could be found for a given client request, or when
- * the processing of the action yields a result value for which no rebder URL
+ * the processing of the action yields a result value for which no render URL
  * is available or can be inferred.
  *
  * @author Andrea Funto'

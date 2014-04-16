@@ -19,7 +19,13 @@
 
 package org.dihedron.zephyr;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -31,10 +37,12 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
 
 import org.dihedron.commons.properties.Properties;
 import org.dihedron.commons.regex.Regex;
@@ -58,6 +66,87 @@ import org.slf4j.LoggerFactory;
  * @author Andrea Funto'
  */
 public class ActionContext {
+	
+	public static class FileInfo {
+		/**
+		 * the original name of the file (as per the user's upload).
+		 */
+		private String name;
+		
+		/**
+		 * The File object containing the uploaded file data.
+		 */
+		private File file;
+		
+		/**
+		 * The size of the uploaded file, as reported in the request.
+		 */
+		private long size;
+		
+		/**
+		 * The contet type of the file.
+		 */
+		private String contentType;
+		
+		/**
+		 * Constructor.
+		 *
+		 * @param name
+		 *   the name of the file (in the request).
+		 * @param file
+		 *   the File object containing the uploaded data.
+		 * @param size
+		 *   the size of the file (as per the upload request).
+		 * @param contentType
+		 *   the content type of the uploaded file.
+		 */
+		FileInfo(String name, File file, long size, String contentType) {
+			this.name = name;
+			this.file = file;
+			this.size = size;
+			this.contentType = contentType;
+		}
+
+		/**
+		 * Returns the name of the file (as it appears in the upload form).
+		 *
+		 * @return 
+		 *   the name of the file (as it appears in the upload form).
+		 */
+		public String getName() {
+			return name;
+		}
+
+		/**
+		 * Returns the File object containing the uploaded file data.
+		 *
+		 * @return 
+		 *   the File object containing the uploaded file data.
+		 */
+		public File getFile() {
+			return file;
+		}
+
+		/**
+		 * Returns the size of the uplaoded file.
+		 *
+		 * @return 
+		 *   the size of the uploaded file.
+		 */
+		public long getSize() {
+			return size;
+		}
+
+		/**
+		 * Returns the content type of the uploaded file.
+		 *
+		 * @return 
+		 *   the content type of the uploaded file.
+		 */
+		public String getContentType() {
+			return contentType;
+		}
+	}
 
 	/**
 	 * The logger.
@@ -68,6 +157,18 @@ public class ActionContext {
 	 * The number of milliseconds in a second.
 	 */
 	private static final int MILLISECONDS_PER_SEC = 1000;
+	
+	/**
+	 * The string representing a mime-multipart-data request.
+	 */
+	private static final String CONTENT_TYPE_MULTIPART = "multipart/";	
+	
+	/**
+	 * The default encoding for file names in mime multipart/data forms.
+	 */
+	private static final String DEFAULT_ENCODING = "UTF-8";
+    
+//	private static final int DEFAULT_BUFFER_SIZE = 10240; // 10KB.	
 
 	/**
 	 * The key under which conversation-scoped attributes are stored in the session.
@@ -123,6 +224,21 @@ public class ActionContext {
 	 * actions need need to exploit web server specific APIs.
 	 */
 	private WebServer server = null;
+	
+	/**
+	 * The directory into which uploaded files will be temporarily stored.
+	 */
+	private File uploadDirectory = null;
+	
+	/**
+	 * The encoding of uploaded file names.
+	 */
+	private String encoding = DEFAULT_ENCODING;
+	
+	/**
+	 * A map of file names to temporary files.
+	 */
+	private Map<String, FileInfo> files = null;
 
 	/**
 	 * Retrieves the per-thread instance.
@@ -150,13 +266,43 @@ public class ActionContext {
 	 * @param server
 	 *   a reference to the web server specific plugin.
 	 */
-	static void bindContext(FilterConfig filter, HttpServletRequest request, HttpServletResponse response, Properties configuration, WebServer server) {
+	static void bindContext(FilterConfig filter, HttpServletRequest request, HttpServletResponse response, Properties configuration, WebServer server,
+			File uploadDirectory) {
 		logger.debug("initialising the action context for thread {}", Thread.currentThread().getId());
 		getContext().filter = filter;
 		getContext().request = request;
 		getContext().response = response;
 		getContext().configuration = configuration;
 		getContext().server = server;
+		getContext().uploadDirectory = uploadDirectory;
+		
+		// this is where we try to retrieve all files (if there are any that were 
+		// uploaded) and store them as temporary files on disk; these objects will
+		// be accessible as ordinary values under the "FORM" scope through a 
+		// custom "filename-to-file" map, which will be clened up when the context
+		// is unbound
+		String encoding = request.getCharacterEncoding();
+        getContext().encoding = Strings.isValid(encoding)? encoding : DEFAULT_ENCODING;
+        logger.trace("request encoding is: '{}'", getContext().encoding);
+        
+        try {
+	        if(isMultipartRequest(request)) {
+	        	logger.trace("handling multi-part request");
+	        	getContext().files = new HashMap<String, FileInfo>();
+		        for (Part part : request.getParts()) {		        	
+		            String filename = getFileName(part);
+		            logger.trace("storing file '{}' from request", filename);
+		            if (filename != null) {
+		                FileInfo fileinfo = getFileInfo(part, filename);
+		                getContext().files.put(filename, fileinfo);    
+		            }		            
+		        }        
+	        } else {
+	        	logger.trace("handling plain request");
+	        }
+        } catch(ServletException | IOException e) {
+        	// TODO: what shall we do with these? throw a brand new ZephyrException?
+        }
 	}
 
 	/**
@@ -1309,6 +1455,18 @@ public class ActionContext {
 		return data != null ? clazz.cast(data) : null;
 	}
 
+
+    /**
+     * Returns true if the given request is a multipart request.
+     * @param request The request to be checked.
+     * @return True if the given request is a multipart request.
+     */
+    public static boolean isMultipartRequest(HttpServletRequest request) {
+        return HttpMethod.fromString(request.getMethod()) == HttpMethod.POST
+            && request.getContentType() != null
+            && request.getContentType().toLowerCase().startsWith(CONTENT_TYPE_MULTIPART);
+    }	
+	
 	/**
 	 * Returns the underlying request object.
 	 * 
@@ -1341,4 +1499,66 @@ public class ActionContext {
 	public static HttpSession getSession() {
 		return getContext().request.getSession();
 	}
+	
+	// PRIVATE UTILITY METHODS
+	
+	private static final String CONTENT_DISPOSITION = "content-disposition";
+	
+	private static final String CONTENT_DISPOSITION_FILENAME = "filename";
+	
+    /**
+     * Returns the filename from the content-disposition header of the given part.
+     * 
+     * @param part
+     *   the part of the mime multi-part form.
+     * @return
+     *   the name of the file, if available, or null.
+     */
+    private static String getFileName(Part part) {
+    	String filename = null;
+        for (String header : part.getHeader(CONTENT_DISPOSITION).split(";")) {
+        	logger.trace("analysing header '{}'...", header);
+            if (header.trim().startsWith(CONTENT_DISPOSITION_FILENAME)) {
+                filename = header.substring(header.indexOf('=') + 1).trim().replace("\"", "");
+                logger.trace("filename from the request: '{}'", filename);
+                // fix stupid MSIE behaviour (it passes full client side path along filename)
+            	// TODO: check on this, as it may be a Linux file with an embedded '\' character
+                filename = filename
+                    .substring(filename.lastIndexOf('/') + 1)
+                    .substring(filename.lastIndexOf('\\') + 1);
+                break;
+            }
+        }
+        logger.trace("filename : '{}'", filename);
+        return null;
+    }	
+    
+    private static final int DEFAULT_BUFFER_SIZE = 1024 * 1024;
+    
+    /**
+     * Process given part as File part which is to be saved in the temprary upload
+     * directory with a slightly transformed version of the given filename.
+     */
+    private static FileInfo getFileInfo(Part part, String filename) throws IOException {
+
+        // get filename prefix (actual name) and suffix (extension)
+        String prefix = filename;
+        String suffix = "";
+        if (filename.contains(".")) {
+            prefix = filename.substring(0, filename.lastIndexOf('.'));
+            suffix = filename.substring(filename.lastIndexOf('.'));
+        }
+
+        // write uploaded file and set it to be deleted automatically on exit
+        File file = File.createTempFile(prefix + "_", suffix, getContext().uploadDirectory);
+        file.deleteOnExit();
+        try (InputStream input = new BufferedInputStream(part.getInputStream(), DEFAULT_BUFFER_SIZE); OutputStream output = new BufferedOutputStream(new FileOutputStream(file), DEFAULT_BUFFER_SIZE)){
+            byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+            for (int length = 0; ((length = input.read(buffer)) > 0);) {
+                output.write(buffer, 0, length);
+            }
+        }
+        
+        return new FileInfo(filename, file, part.getSize(), part.getContentType());
+    }
 }

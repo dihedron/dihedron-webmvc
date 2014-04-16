@@ -18,10 +18,14 @@
  */
 package org.dihedron.zephyr;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +33,7 @@ import java.util.Map;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -51,7 +56,6 @@ import org.dihedron.zephyr.interceptors.InterceptorStack;
 import org.dihedron.zephyr.interceptors.registry.InterceptorsRegistry;
 import org.dihedron.zephyr.plugins.Plugin;
 import org.dihedron.zephyr.plugins.PluginManager;
-import org.dihedron.zephyr.protocol.Scope;
 import org.dihedron.zephyr.renderers.Renderer;
 import org.dihedron.zephyr.renderers.impl.CachingRendererRegistry;
 import org.dihedron.zephyr.renderers.registry.RendererRegistry;
@@ -121,11 +125,18 @@ public class ActionController implements Filter {
 	 * The registry of supported renderers.
 	 */
 	private RendererRegistry renderers;
+	
+	/**
+	 * The directory into which file will be uploaded.
+	 */
+	private File uploadDirectory = null;
 
 	/**
 	 * The default package for stock portal- and application-server plugins.
 	 */
 	public static final String DEFAULT_CONTAINERS_CLASSPATH = "org.dihedron.zephyr.webserver";
+	
+	public static final String DEFAULT_UPLOAD_DIRECTORY = "/tmp/zephyr-${server}-${port}";
 
 	/**
 	 * Constructor.
@@ -162,6 +173,8 @@ public class ActionController implements Filter {
 			initialiseInterceptorsRegistry();
 
 			initialiseRenderersRegistry();
+			
+			initialiseUploadDirectory();
 
 		} finally {
 
@@ -180,7 +193,7 @@ public class ActionController implements Filter {
 
 		String contextPath = request.getContextPath();
 		// NOTE: getPathInfo() does not work in filters, where the exact servlet that will 
-		// end up handling the rquest is not determined; the only reliable way seems to be 
+		// end up handling the request is not determined; the only reliable way seems to be 
 		// by stripping the context path from the complete request URI
 		String targetId = request.getRequestURI().substring(contextPath.length() + 1); // strip the leading '/'
 		String queryString = request.getQueryString();
@@ -191,7 +204,7 @@ public class ActionController implements Filter {
 		logger.trace("servicing request for '{}' (query string: '{}', context path: '{}', request URI: '{}')...", targetId, queryString, contextPath, uri);
 
 		try {
-			ActionContext.bindContext(filter, request, response, configuration, server);
+			ActionContext.bindContext(filter, request, response, configuration, server, uploadDirectory);
 			
 			// TODO: test, remove!
 //			ActionContext.setValue("conversation_A:key1", "value1a", Scope.CONVERSATION);
@@ -207,7 +220,7 @@ public class ActionController implements Filter {
 			
 			String invocationResult = null;
 			Result result = null;
-			while(TargetId.isValidTargetId(targetId) && (result == null ||/* result.getRendererId().equals("auto") ||*/ result.getRendererId().equals("chain"))) {
+			while(TargetId.isValidTargetId(targetId) && (result == null || result.getRendererId().equals("chain"))) {
 				
 				logger.info("invoking target '{}'...", targetId);
 				
@@ -260,6 +273,14 @@ public class ActionController implements Filter {
 		} finally {
 			ActionContext.unbindContext();
 		}
+	}
+	
+	public File getUploadDirectory() {
+		return uploadDirectory;
+	}
+	
+	public long getMaxUploadSize() {
+		return 10 * 1024 * 1024; // 10 MB
 	}
 
 	private void initialiseConfiguration() {
@@ -394,8 +415,7 @@ public class ActionController implements Filter {
 			}
 		} else {
 			logger.error("no Java packages specified for actions: check parameter '{}'", Parameter.ACTIONS_JAVA_PACKAGES.getName());
-			throw new DeploymentException("No Java package specified for actions: check parameter '" + Parameter.ACTIONS_JAVA_PACKAGES.getName()
-					+ "'");
+			throw new DeploymentException("No Java package specified for actions: check parameter '" + Parameter.ACTIONS_JAVA_PACKAGES.getName() + "'");
 		}
 		logger.trace("actions configuration:\n{}", registry.toString());
 	}
@@ -464,6 +484,48 @@ public class ActionController implements Filter {
 			}
 		}
 		logger.trace("renderers configuration:\n{}", renderers.toString());
+	}
+	
+	private void initialiseUploadDirectory() throws ZephyrException {
+		String uploadDir = Parameter.RENDERERS_JAVA_PACKAGES.getValueFor(filter);
+		if(Strings.isValid(uploadDir)) {
+			logger.info("using user-provided upload directory: '{}'", uploadDir);
+			uploadDirectory = new File(uploadDir);
+			if(!uploadDirectory.exists()) {
+				if(uploadDirectory.mkdirs()) {
+					logger.info("directory tree created under '{}'", uploadDirectory.getAbsolutePath());
+				} else {
+					logger.error("cannot create directory tree for uploaded files: '{}'", uploadDirectory.getAbsolutePath());
+					throw new DeploymentException("Error creating file upload directory under path '" + uploadDirectory.getAbsolutePath() + "'");
+				}
+			}
+			
+			if(!uploadDirectory.isDirectory()) {
+				logger.error("filesystem object {} is not a directory", uploadDirectory.getAbsolutePath());
+				throw new DeploymentException("Filesystem object at path '" + uploadDirectory.getAbsolutePath() + "' is not a directory");
+			}			
+		} else {
+			uploadDirectory = (File)filter.getServletContext().getAttribute(ServletContext.TEMPDIR);
+			logger.info("using application-server upload directory: '{}'", uploadDirectory.getAbsolutePath());			
+		}
+		
+		// check if directory is writable
+		if(!uploadDirectory.canWrite()) {
+			logger.error("upload directory {} is not writable", uploadDirectory.getAbsolutePath());
+			throw new DeploymentException("Directory at path '" + uploadDirectory.getAbsolutePath() + "' is not a writable");			
+		}
+		
+		// remove all pre-existing files
+		try {
+			DirectoryStream<Path> files = Files.newDirectoryStream(uploadDirectory.toPath());
+			for(Path file : files) {
+				file.toFile().delete();
+			}
+		} catch(IOException e) {
+			logger.warn("error deleting all files from upload directory", e);
+		}
+		
+		logger.info("upload directory '{}' ready", uploadDirectory.getAbsolutePath());
 	}
 
 //	protected String invokeTarget(TargetId targetId, HttpServletRequest request, HttpServletRequest response) throws ZephyrException {
