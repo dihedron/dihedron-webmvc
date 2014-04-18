@@ -284,11 +284,18 @@ public class ActionContext {
 		String encoding = request.getCharacterEncoding();
         getContext().encoding = Strings.isValid(encoding)? encoding : DEFAULT_ENCODING;
         logger.trace("request encoding is: '{}'", getContext().encoding);
-        
+
+        // the following implementation is based on the Serlet 3.0 standard; this
+        // version of the standard being bugged (see https://java.net/jira/browse/SERVLET_SPEC-87)
+        // there is no reliable and cross-application-server way to get a the parts 
+        // of a multipart/form-data request in a Filter: the spec does only explain
+        // how to do it in a Servlet with the proper annotations. Thus, we have to
+        // revert to old-style Apache FileUpload and all its dependencies, which
         try {
 	        if(isMultipartRequest(request)) {
 	        	logger.trace("handling multi-part request");
 	        	getContext().files = new HashMap<String, FileInfo>();
+	        	logger.trace("there are {} parts in the request", request.getParts().size());
 		        for (Part part : request.getParts()) {		        	
 		            String filename = getFileName(part);
 		            logger.trace("storing file '{}' from request", filename);

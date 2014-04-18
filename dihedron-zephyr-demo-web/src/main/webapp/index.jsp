@@ -291,5 +291,47 @@
 			<pre id="result"></pre>				
 		</form>
 	</fieldset>
+	
+	<br>
+	
+	<fieldset>
+		<legend><b>File Upload</b></legend>
+		<p>The following form allows to upload multiple files; the server will compute the MD5 checksum on those files, and print it out.</p>
+		<p>This example showcases file handling: the controller will intercept the MIMe multipart-data upload, will parse the names of the
+		files and make them available as temporary files through <code>@In</code> parameters to the actions, which will be able to access 
+		them without having to deal with streams, buffer etc.</p>
+		<i>
+		<p><em>NOTE:</em> this example may or may not work, depending on the application server, due to a bug in the Servlet 3.0 specification:
+		the specifications requires application servers to parse incoming multipart/form-data requests only if the target servlet is annotated
+		with <code>@MultipartConfig</code>; filters, and the Zephyr Controller with them, is not a servlet, and does not require any servlet 
+		to be deployed to work; thus, the HttpServletRequest#getParts() method may return an empty collection if the implementors interpreted
+		the specification as forbidding the parts parsing unless the target is an annotated servlet. This is the case with Apache Tomcat, but
+		you can force the server to behave in a less strict way by setting the <code>allowCasualMultipartParsing</code> parameter in the context.</p>
+		<p>For additional details on the Servlet 3.0 Specification bug see <a href="https://java.net/jira/browse/SERVLET_SPEC-87">here</a>.</p>
+		<p>For more details on how to configure Tomcat to enable multipart/form-data parsing in Servlet Filters see 
+		<a href="http://tomcat.apache.org/tomcat-7.0-doc/config/context.html">here</a>.</p>
+		</i>   
+		<form action="TestAction!onFileUpload" method="post" enctype="multipart/form-data" id="uploadForm">
+			<table>
+				<tr>
+					<td>
+						<label for="file01">First file:</label>
+					</td>
+					<td>
+						<input name="file01" type="file" size="100" placeholder="please select a file..."/>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="file02">Second file:</label>
+					</td>
+					<td>
+						<input name="file02" type="file" size="100" placeholder="please select a file..."/>
+					</td>
+				</tr>
+			</table>
+			<input type="submit" title="Submit" name="Submit" />
+		</form>
+	</fieldset>
 </body>
 </html>

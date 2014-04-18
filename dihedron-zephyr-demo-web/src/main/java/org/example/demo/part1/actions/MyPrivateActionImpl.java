@@ -165,5 +165,17 @@ public class MyPrivateActionImpl {
 	) {
 		logger.info("checking out items from shopping tray");
 		return Action.SUCCESS;
+	}
+	
+	@Invocable(
+		results = {
+			@Result(value=Action.SUCCESS, renderer=JspRenderer.ID, data="index.jsp")
+		}
+	)
+	public String onFileUpload(
+		//@InOut(value=":tray", from=Scope.CONVERSATION, to=Scope.CONVERSATION) $<List<String>> tray
+	) {
+		logger.info("received a file upload");
+		return Action.SUCCESS;
 	}		
 }
