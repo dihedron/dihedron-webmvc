@@ -127,9 +127,9 @@ public class ActionController implements Filter {
 	private RendererRegistry renderers;
 	
 	/**
-	 * The directory into which file will be uploaded.
+	 * The configuration for file upload handling.
 	 */
-	private File uploadDirectory = null;
+	private FileUploadConfiguration uploadInfo = null;
 
 	/**
 	 * The default package for stock portal- and application-server plugins.
@@ -174,7 +174,7 @@ public class ActionController implements Filter {
 
 			initialiseRenderersRegistry();
 			
-			initialiseUploadDirectory();
+			initialiseFileUploadConfiguration();
 
 		} finally {
 
@@ -204,7 +204,7 @@ public class ActionController implements Filter {
 		logger.trace("servicing request for '{}' (query string: '{}', context path: '{}', request URI: '{}')...", targetId, queryString, contextPath, uri);
 
 		try {
-			ActionContext.bindContext(filter, request, response, configuration, server, uploadDirectory);
+			ActionContext.bindContext(filter, request, response, configuration, server, uploadInfo);
 			
 			// TODO: test, remove!
 //			ActionContext.setValue("conversation_A:key1", "value1a", Scope.CONVERSATION);
@@ -274,12 +274,8 @@ public class ActionController implements Filter {
 			ActionContext.unbindContext();
 		}
 	}
-	
-	public File getUploadDirectory() {
-		return uploadDirectory;
-	}
-	
-	public long getMaxUploadSize() {
+		
+	private long getMaxUploadSize() {
 		return 10 * 1024 * 1024; // 10 MB
 	}
 
@@ -486,38 +482,43 @@ public class ActionController implements Filter {
 		logger.trace("renderers configuration:\n{}", renderers.toString());
 	}
 	
-	private void initialiseUploadDirectory() throws ZephyrException {
+	private void initialiseFileUploadConfiguration() throws ZephyrException {
+		
+		this.uploadInfo = new FileUploadConfiguration();
+		
+		// initialise uploaded files repository		
+		File repository = null;
 		String uploadDir = Parameter.RENDERERS_JAVA_PACKAGES.getValueFor(filter);
 		if(Strings.isValid(uploadDir)) {
 			logger.info("using user-provided upload directory: '{}'", uploadDir);
-			uploadDirectory = new File(uploadDir);
-			if(!uploadDirectory.exists()) {
-				if(uploadDirectory.mkdirs()) {
-					logger.info("directory tree created under '{}'", uploadDirectory.getAbsolutePath());
+			repository  = new File(uploadDir);
+			if(!repository.exists()) {
+				if(repository.mkdirs()) {
+					logger.info("directory tree created under '{}'", repository.getAbsolutePath());
 				} else {
-					logger.error("cannot create directory tree for uploaded files: '{}'", uploadDirectory.getAbsolutePath());
-					throw new DeploymentException("Error creating file upload directory under path '" + uploadDirectory.getAbsolutePath() + "'");
+					logger.error("cannot create directory tree for uploaded files: '{}'", repository.getAbsolutePath());
+					throw new DeploymentException("Error creating file upload directory under path '" + repository.getAbsolutePath() + "'");
 				}
 			}
 			
-			if(!uploadDirectory.isDirectory()) {
-				logger.error("filesystem object {} is not a directory", uploadDirectory.getAbsolutePath());
-				throw new DeploymentException("Filesystem object at path '" + uploadDirectory.getAbsolutePath() + "' is not a directory");
+			if(!repository.isDirectory()) {
+				logger.error("filesystem object {} is not a directory", repository.getAbsolutePath());
+				throw new DeploymentException("Filesystem object at path '" + repository.getAbsolutePath() + "' is not a directory");
 			}			
 		} else {
-			uploadDirectory = (File)filter.getServletContext().getAttribute(ServletContext.TEMPDIR);
-			logger.info("using application-server upload directory: '{}'", uploadDirectory.getAbsolutePath());			
+			repository = (File)filter.getServletContext().getAttribute(ServletContext.TEMPDIR);
+			logger.info("using application-server upload directory: '{}'", repository.getAbsolutePath());			
 		}
-		
+				
 		// check if directory is writable
-		if(!uploadDirectory.canWrite()) {
-			logger.error("upload directory {} is not writable", uploadDirectory.getAbsolutePath());
-			throw new DeploymentException("Directory at path '" + uploadDirectory.getAbsolutePath() + "' is not a writable");			
+		if(!repository.canWrite()) {
+			logger.error("upload directory {} is not writable", repository.getAbsolutePath());
+			throw new DeploymentException("Directory at path '" + repository.getAbsolutePath() + "' is not a writable");			
 		}
 		
 		// remove all pre-existing files
 		try {
-			DirectoryStream<Path> files = Files.newDirectoryStream(uploadDirectory.toPath());
+			DirectoryStream<Path> files = Files.newDirectoryStream(repository.toPath());
 			for(Path file : files) {
 				file.toFile().delete();
 			}
@@ -525,8 +526,13 @@ public class ActionController implements Filter {
 			logger.warn("error deleting all files from upload directory", e);
 		}
 		
-		logger.info("upload directory '{}' ready", uploadDirectory.getAbsolutePath());
+		logger.info("upload directory '{}' ready", repository.getAbsolutePath());
+		
+		this.uploadInfo.setRepository(repository);
+		
+		// initialise maximum uploadable file size
 	}
+	
 
 //	protected String invokeTarget(TargetId targetId, HttpServletRequest request, HttpServletRequest response) throws ZephyrException {
 //

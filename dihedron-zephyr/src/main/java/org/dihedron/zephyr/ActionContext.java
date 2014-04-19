@@ -19,31 +19,29 @@
 
 package org.dihedron.zephyr;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.servlet.http.Part;
 
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.dihedron.commons.properties.Properties;
 import org.dihedron.commons.regex.Regex;
 import org.dihedron.commons.strings.Strings;
@@ -128,7 +126,7 @@ public class ActionContext {
 		}
 
 		/**
-		 * Returns the size of the uplaoded file.
+		 * Returns the size of the uploaded file.
 		 *
 		 * @return 
 		 *   the size of the uploaded file.
@@ -226,19 +224,22 @@ public class ActionContext {
 	private WebServer server = null;
 	
 	/**
-	 * The directory into which uploaded files will be temporarily stored.
-	 */
-	private File uploadDirectory = null;
-	
-	/**
 	 * The encoding of uploaded file names.
 	 */
 	private String encoding = DEFAULT_ENCODING;
 	
 	/**
-	 * A map of file names to temporary files.
+	 * A map containing names and information about all the form fields in a 
+	 * multipart/form-data request; if the form is not multipart, the form values 
+	 * can be retrieved directly from the request in the ordinary way (see 
+	 * {@link HttpServletRequest#getParameter(String)} for details); if the 
+	 * request is multipart, then the standard says that parameters will all be 
+	 * mixed up in the request, and the context will extract them and place them 
+	 * in this map. Thus, when this map is null, the request is not multipart 
+	 * and values will be picked from the request, when not null, all parameters
+	 * (be they form fields or uploaded files) will be available inside this map.
 	 */
-	private Map<String, FileInfo> files = null;
+	private Map<String, FileItem> parts = null;
 
 	/**
 	 * Retrieves the per-thread instance.
@@ -265,16 +266,15 @@ public class ActionContext {
 	 *   web.xml.
 	 * @param server
 	 *   a reference to the web server specific plugin.
+	 * @throws ZephyrException 
 	 */
-	static void bindContext(FilterConfig filter, HttpServletRequest request, HttpServletResponse response, Properties configuration, WebServer server,
-			File uploadDirectory) {
+	static void bindContext(FilterConfig filter, HttpServletRequest request, HttpServletResponse response, Properties configuration, WebServer server, FileUploadConfiguration uploadInfo) throws ZephyrException {
 		logger.debug("initialising the action context for thread {}", Thread.currentThread().getId());
 		getContext().filter = filter;
 		getContext().request = request;
 		getContext().response = response;
 		getContext().configuration = configuration;
 		getContext().server = server;
-		getContext().uploadDirectory = uploadDirectory;
 		
 		// this is where we try to retrieve all files (if there are any that were 
 		// uploaded) and store them as temporary files on disk; these objects will
@@ -285,31 +285,40 @@ public class ActionContext {
         getContext().encoding = Strings.isValid(encoding)? encoding : DEFAULT_ENCODING;
         logger.trace("request encoding is: '{}'", getContext().encoding);
 
-        // the following implementation is based on the Serlet 3.0 standard; this
-        // version of the standard being bugged (see https://java.net/jira/browse/SERVLET_SPEC-87)
-        // there is no reliable and cross-application-server way to get a the parts 
-        // of a multipart/form-data request in a Filter: the spec does only explain
-        // how to do it in a Servlet with the proper annotations. Thus, we have to
-        // revert to old-style Apache FileUpload and all its dependencies, which
         try {
-	        if(isMultipartRequest(request)) {
-	        	logger.trace("handling multi-part request");
-	        	getContext().files = new HashMap<String, FileInfo>();
-	        	logger.trace("there are {} parts in the request", request.getParts().size());
-		        for (Part part : request.getParts()) {		        	
-		            String filename = getFileName(part);
-		            logger.trace("storing file '{}' from request", filename);
-		            if (filename != null) {
-		                FileInfo fileinfo = getFileInfo(part, filename);
-		                getContext().files.put(filename, fileinfo);    
-		            }		            
-		        }        
+        
+	        // check that we have a file upload request
+	        if(ServletFileUpload.isMultipartContent(request)) {  
+        	
+	        	getContext().parts = new HashMap<String, FileItem>();
+	        	
+	        	logger.trace("handling multipart/form-data request");
+	        	
+		        // create a factory for disk-based file items
+		        DiskFileItemFactory factory = new DiskFileItemFactory();
+		
+		        // configure the repository (to ensure a secure temporary location is used)
+		        factory.setRepository(uploadInfo.getRepository());
+		        
+		        // TODO: handle max file size and mem threshold
+		
+		        // create a new file upload handler
+		        ServletFileUpload upload = new ServletFileUpload(factory);
+		
+		        // parse the request & process the uploaded items
+		        List<FileItem> items = upload.parseRequest(request);
+		        logger.trace("{} items in the multipart/form-data request", items.size());
+		        for(FileItem item : items) {
+		        	logger.trace("storing field '{}' (type: '{}') into parts map", item.getFieldName(), item.isFormField() ? "field" : "file"); 
+		        	getContext().parts.put(item.getFieldName(), item);
+		        }		        
 	        } else {
-	        	logger.trace("handling plain request");
+	        	logger.trace("handling plain form request");
 	        }
-        } catch(ServletException | IOException e) {
-        	// TODO: what shall we do with these? throw a brand new ZephyrException?
-        }
+    	} catch(FileUploadException e) {
+    		logger.warn("error handling uploaded file", e);
+    		throw new ZephyrException("Error handling uploaded file", e);
+    	}        
 	}
 
 	/**
@@ -327,6 +336,17 @@ public class ActionContext {
 		getContext().response = null;
 		getContext().configuration = null;
 		getContext().server = null;
+		getContext().parts = null;
+		
+//		if(getContext().parts != null) {
+//			for(Entry<String, FileItem> entry : getContext().parts.entrySet()) {
+//				FileItem part = entry.getValue();
+//				if(!part.isFormField() && !part.isInMemory()) {
+//					logger.trace("releasing on-disk uploaded file '{}'", part.getFieldName());
+//					
+//				}
+//			}
+//		}
 		context.remove();
 	}
 
@@ -437,7 +457,6 @@ public class ActionContext {
 	 *   an Enumeration of Locales, in decreasing order, in which the
 	 *   portal will accept content for this request
 	 */
-	@SuppressWarnings("unchecked")
 	public static Enumeration<Locale> getLocales() {
 		return (Enumeration<Locale>) getContext().request.getLocales();
 	}
@@ -1507,65 +1526,65 @@ public class ActionContext {
 		return getContext().request.getSession();
 	}
 	
-	// PRIVATE UTILITY METHODS
-	
-	private static final String CONTENT_DISPOSITION = "content-disposition";
-	
-	private static final String CONTENT_DISPOSITION_FILENAME = "filename";
-	
-    /**
-     * Returns the filename from the content-disposition header of the given part.
-     * 
-     * @param part
-     *   the part of the mime multi-part form.
-     * @return
-     *   the name of the file, if available, or null.
-     */
-    private static String getFileName(Part part) {
-    	String filename = null;
-        for (String header : part.getHeader(CONTENT_DISPOSITION).split(";")) {
-        	logger.trace("analysing header '{}'...", header);
-            if (header.trim().startsWith(CONTENT_DISPOSITION_FILENAME)) {
-                filename = header.substring(header.indexOf('=') + 1).trim().replace("\"", "");
-                logger.trace("filename from the request: '{}'", filename);
-                // fix stupid MSIE behaviour (it passes full client side path along filename)
-            	// TODO: check on this, as it may be a Linux file with an embedded '\' character
-                filename = filename
-                    .substring(filename.lastIndexOf('/') + 1)
-                    .substring(filename.lastIndexOf('\\') + 1);
-                break;
-            }
-        }
-        logger.trace("filename : '{}'", filename);
-        return null;
-    }	
-    
-    private static final int DEFAULT_BUFFER_SIZE = 1024 * 1024;
-    
-    /**
-     * Process given part as File part which is to be saved in the temprary upload
-     * directory with a slightly transformed version of the given filename.
-     */
-    private static FileInfo getFileInfo(Part part, String filename) throws IOException {
-
-        // get filename prefix (actual name) and suffix (extension)
-        String prefix = filename;
-        String suffix = "";
-        if (filename.contains(".")) {
-            prefix = filename.substring(0, filename.lastIndexOf('.'));
-            suffix = filename.substring(filename.lastIndexOf('.'));
-        }
-
-        // write uploaded file and set it to be deleted automatically on exit
-        File file = File.createTempFile(prefix + "_", suffix, getContext().uploadDirectory);
-        file.deleteOnExit();
-        try (InputStream input = new BufferedInputStream(part.getInputStream(), DEFAULT_BUFFER_SIZE); OutputStream output = new BufferedOutputStream(new FileOutputStream(file), DEFAULT_BUFFER_SIZE)){
-            byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-            for (int length = 0; ((length = input.read(buffer)) > 0);) {
-                output.write(buffer, 0, length);
-            }
-        }
-        
-        return new FileInfo(filename, file, part.getSize(), part.getContentType());
-    }
+//	// PRIVATE UTILITY METHODS
+//	
+//	private static final String CONTENT_DISPOSITION = "content-disposition";
+//	
+//	private static final String CONTENT_DISPOSITION_FILENAME = "filename";
+//	
+//    /**
+//     * Returns the filename from the content-disposition header of the given part.
+//     * 
+//     * @param part
+//     *   the part of the mime multi-part form.
+//     * @return
+//     *   the name of the file, if available, or null.
+//     */
+//    private static String getFileName(Part part) {
+//    	String filename = null;
+//        for (String header : part.getHeader(CONTENT_DISPOSITION).split(";")) {
+//        	logger.trace("analysing header '{}'...", header);
+//            if (header.trim().startsWith(CONTENT_DISPOSITION_FILENAME)) {
+//                filename = header.substring(header.indexOf('=') + 1).trim().replace("\"", "");
+//                logger.trace("filename from the request: '{}'", filename);
+//                // fix stupid MSIE behaviour (it passes full client side path along filename)
+//            	// TODO: check on this, as it may be a Linux file with an embedded '\' character
+//                filename = filename
+//                    .substring(filename.lastIndexOf('/') + 1)
+//                    .substring(filename.lastIndexOf('\\') + 1);
+//                break;
+//            }
+//        }
+//        logger.trace("filename : '{}'", filename);
+//        return null;
+//    }	
+//    
+//    private static final int DEFAULT_BUFFER_SIZE = 1024 * 1024;
+//    
+//    /**
+//     * Process given part as File part which is to be saved in the temprary upload
+//     * directory with a slightly transformed version of the given filename.
+//     */
+//    private static FileInfo getFileInfo(Part part, String filename) throws IOException {
+//
+//        // get filename prefix (actual name) and suffix (extension)
+//        String prefix = filename;
+//        String suffix = "";
+//        if (filename.contains(".")) {
+//            prefix = filename.substring(0, filename.lastIndexOf('.'));
+//            suffix = filename.substring(filename.lastIndexOf('.'));
+//        }
+//
+//        // write uploaded file and set it to be deleted automatically on exit
+//        File file = File.createTempFile(prefix + "_", suffix, getContext().uploadDirectory);
+//        file.deleteOnExit();
+//        try (InputStream input = new BufferedInputStream(part.getInputStream(), DEFAULT_BUFFER_SIZE); OutputStream output = new BufferedOutputStream(new FileOutputStream(file), DEFAULT_BUFFER_SIZE)){
+//            byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+//            for (int length = 0; ((length = input.read(buffer)) > 0);) {
+//                output.write(buffer, 0, length);
+//            }
+//        }
+//        
+//        return new FileInfo(filename, file, part.getSize(), part.getContentType());
+//    }
 }
