@@ -20,7 +20,6 @@ package org.example.demo.part1.actions;
 
 import java.util.List;
 
-import javax.management.relation.Role;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Pattern.Flag;
 import javax.validation.constraints.Size;
@@ -38,6 +37,7 @@ import org.dihedron.zephyr.aop.$;
 import org.dihedron.zephyr.protocol.Scope;
 import org.dihedron.zephyr.renderers.impl.JsonRenderer;
 import org.dihedron.zephyr.renderers.impl.JspRenderer;
+import org.dihedron.zephyr.upload.UploadedFile;
 import org.hibernate.validator.constraints.Email;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,9 +173,10 @@ public class MyPrivateActionImpl {
 		}
 	)
 	public String onFileUpload(
-		//@InOut(value=":tray", from=Scope.CONVERSATION, to=Scope.CONVERSATION) $<List<String>> tray
+		@In(value="file01", from=Scope.FORM) UploadedFile file1,
+		@In(value="file02", from=Scope.FORM) UploadedFile file2
 	) {
-		logger.info("received a file upload");
+		logger.info("received a file upload: file1 has size }, file2 has size {}", file1.getSize(), file2.getSize());
 		return Action.SUCCESS;
 	}		
 }

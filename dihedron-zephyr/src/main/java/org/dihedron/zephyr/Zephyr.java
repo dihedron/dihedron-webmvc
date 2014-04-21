@@ -31,7 +31,7 @@ import java.util.Properties;
  * @author Andrea Funto'
  */
 public final class Zephyr {
-
+		
     /**
      * The logger.
      */
@@ -47,22 +47,13 @@ public final class Zephyr {
      * Initialises the library properties.
      */
     static {
-        InputStream stream = null;
-        try {
-//            logger.trace("trying to open the zephyr properties stream");
-            stream = Zephyr.class.getClassLoader().getResourceAsStream("zephyr.properties");
-//            logger.trace("zephyr properties stream acquired, loading properties (stream is {})", stream != null ? "valid" : "null");
+    	logger.trace("trying to open the zephyr properties stream");
+    	try(InputStream stream = Zephyr.class.getClassLoader().getResourceAsStream("zephyr.properties")) {
+            logger.trace("zephyr properties stream acquired, loading properties (stream is {})", stream != null ? "valid" : "null");
             properties.load(stream);
-//            logger.trace("zephyr properties loaded and ready");
+            logger.trace("zephyr properties loaded and ready");
         } catch (IOException e) {
             logger.error("error opening the zephyr properties file", e);
-        } finally {
-            if (stream != null) {
-                try {
-                    stream.close();
-                } catch (IOException e) {
-                }
-            }
         }
     }
 
@@ -78,7 +69,8 @@ public final class Zephyr {
     /**
      * Returns the Zephyr framework's web site.
      *
-     * @return the Zephyr framework web site.
+     * @return 
+     *   the Zephyr framework web site.
      */
     public static String getWebSite() {
         return properties.getProperty("zephyr.website");

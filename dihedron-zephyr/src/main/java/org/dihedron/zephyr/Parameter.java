@@ -80,6 +80,25 @@ public enum Parameter {
     UPLOADED_FILES_DIRECTORY("zephyr:upload-directory"),
 
     /**
+     * The maximum size of uploaded files; files exceeding this size will not be 
+     * accepted.
+     */
+    UPLOADED_FILES_MAX_SIZE_SINGLE("zephyr:upload-max-size-single"),
+
+    /**
+     * The maximum size of uploaded files; files exceeding this size will not be 
+     * accepted.
+     */
+    UPLOADED_FILES_MAX_SIZE_TOTAL("zephyr:upload-max-size-total"),
+    
+    /**
+     * The maximum size of uploaded files that will be kept in memory; files 
+     * smaller than this threshold will be kept in memory, larger ones will be 
+     * written out to disk (see {@link #UPLOADED_FILES_DIRECTORY}.
+     */
+    UPLOADED_SMALL_FILE_SIZE_THRESHOLD("zephyr:upload-small-file-threshold"),
+
+    /**
      * The default page to be shown when an internal error occurs.
      */
     DEFAULT_ERROR_PAGE("zephyr:default-error-page"),

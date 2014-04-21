@@ -64,10 +64,12 @@ import org.dihedron.zephyr.targets.Target;
 import org.dihedron.zephyr.targets.TargetId;
 import org.dihedron.zephyr.targets.registry.TargetFactory;
 import org.dihedron.zephyr.targets.registry.TargetRegistry;
+import org.dihedron.zephyr.upload.FileUploadConfiguration;
 import org.dihedron.zephyr.webserver.WebServer;
 import org.dihedron.zephyr.webserver.WebServerPluginFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 /**
  * This class implements the servlet filter interface and provides all the
@@ -136,8 +138,6 @@ public class ActionController implements Filter {
 	 */
 	public static final String DEFAULT_CONTAINERS_CLASSPATH = "org.dihedron.zephyr.webserver";
 	
-	public static final String DEFAULT_UPLOAD_DIRECTORY = "/tmp/zephyr-${server}-${port}";
-
 	/**
 	 * Constructor.
 	 */
@@ -274,11 +274,10 @@ public class ActionController implements Filter {
 			ActionContext.unbindContext();
 		}
 	}
-		
-	private long getMaxUploadSize() {
-		return 10 * 1024 * 1024; // 10 MB
-	}
 
+	/**
+	 * Reads the actions' configuration info from the URL specified in the web.xml.
+	 */
 	private void initialiseConfiguration() {
 		String value = Parameter.ACTIONS_CONFIGURATION.getValueFor(filter);
 		if (Strings.isValid(value)) {
@@ -306,7 +305,7 @@ public class ActionController implements Filter {
 			} catch (IOException e) {
 				logger.error("error reading from URL '{}', actions configuration will be unavailable", value);
 			} catch (PropertiesException e) {
-				logger.error("is you see this error, the code has attempted to fill a locked configuration map", e);
+				logger.error("if you see this error, the code has attempted to fill a locked configuration map", e);
 			} finally {
 				if (stream != null) {
 					try {
@@ -482,16 +481,22 @@ public class ActionController implements Filter {
 		logger.trace("renderers configuration:\n{}", renderers.toString());
 	}
 	
+	/**
+	 * Initialises support for file uploads.
+	 * 
+	 * @throws ZephyrException
+	 *   if it cannot create or access the uploaded files repository.
+	 */
 	private void initialiseFileUploadConfiguration() throws ZephyrException {
 		
 		this.uploadInfo = new FileUploadConfiguration();
 		
 		// initialise uploaded files repository		
 		File repository = null;
-		String uploadDir = Parameter.RENDERERS_JAVA_PACKAGES.getValueFor(filter);
-		if(Strings.isValid(uploadDir)) {
-			logger.info("using user-provided upload directory: '{}'", uploadDir);
-			repository  = new File(uploadDir);
+		String value = Parameter.UPLOADED_FILES_DIRECTORY.getValueFor(filter);
+		if(Strings.isValid(value)) {
+			logger.info("using user-provided upload directory: '{}'", value);
+			repository  = new File(value);
 			if(!repository.exists()) {
 				if(repository.mkdirs()) {
 					logger.info("directory tree created under '{}'", repository.getAbsolutePath());
@@ -518,8 +523,10 @@ public class ActionController implements Filter {
 		
 		// remove all pre-existing files
 		try {
+			logger.trace("removing all existing files from directory '{}'...", repository.getAbsolutePath());
 			DirectoryStream<Path> files = Files.newDirectoryStream(repository.toPath());
 			for(Path file : files) {
+				logger.trace("...removing '{}'", file);
 				file.toFile().delete();
 			}
 		} catch(IOException e) {
@@ -530,7 +537,36 @@ public class ActionController implements Filter {
 		
 		this.uploadInfo.setRepository(repository);
 		
-		// initialise maximum uploadable file size
+		// initialise maximum uploadable file size per single file
+		value = Parameter.UPLOADED_FILES_MAX_SIZE_SINGLE.getValueFor(filter);
+		if(Strings.isValid(value)) {
+			logger.trace("setting maximum uploadable size to {}", value);
+			this.uploadInfo.setMaxUploadFileSize(Long.parseLong(value));
+		} else {
+			logger.trace("using default value for maximum uploadable file size: {}", FileUploadConfiguration.DEFAULT_MAX_UPLOADABLE_FILE_SIZE_SINGLE);
+			this.uploadInfo.setMaxUploadFileSize(FileUploadConfiguration.DEFAULT_MAX_UPLOADABLE_FILE_SIZE_SINGLE);
+		}
+		
+		// initialise maximum total uploadable file size
+		value = Parameter.UPLOADED_FILES_MAX_SIZE_TOTAL.getValueFor(filter);
+		if(Strings.isValid(value)) {
+			logger.trace("setting maximum total uploadable size to {}", value);
+			this.uploadInfo.setMaxUploadTotalSize(Long.parseLong(value));
+		} else {
+			logger.trace("using default value for maximum total uploadable size: {}", FileUploadConfiguration.DEFAULT_MAX_UPLOADABLE_FILE_SIZE_TOTAL);
+			this.uploadInfo.setMaxUploadTotalSize(FileUploadConfiguration.DEFAULT_MAX_UPLOADABLE_FILE_SIZE_TOTAL);
+		}
+
+		// initialise small file threshold
+		value = Parameter.UPLOADED_SMALL_FILE_SIZE_THRESHOLD.getValueFor(filter);
+		if(Strings.isValid(value)) {
+			logger.trace("setting small files size threshold to {}", value);
+			this.uploadInfo.setInMemorySizeThreshold(Integer.parseInt(value));
+		} else {
+			logger.trace("using default value for small files size threshold: {}", FileUploadConfiguration.DEFAULT_SMALL_FILE_SIZE_THRESHOLD);
+			this.uploadInfo.setInMemorySizeThreshold(FileUploadConfiguration.DEFAULT_SMALL_FILE_SIZE_THRESHOLD);
+		}
+		logger.trace("done configuring file upload support");
 	}
 	
 
