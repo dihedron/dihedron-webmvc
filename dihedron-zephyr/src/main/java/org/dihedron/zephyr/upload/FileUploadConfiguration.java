@@ -40,7 +40,7 @@ public class FileUploadConfiguration {
 	
 	/**
 	 * The default maximum size for an individual uploaded file, if not provided
-	 * via configuration parameter {@link Parameter#UPLOADED_FILES_MAX_SIZE_SINGLE}.
+	 * via configuration parameter {@link Parameter#UPLOADED_FILES_MAX_FILE_SIZE}.
 	 */
 	public static final long DEFAULT_MAX_UPLOADABLE_FILE_SIZE_SINGLE = 20 * MEGABYTE;
 	

@@ -155,16 +155,16 @@ public class InterceptorsRegistry {
 			logger.warn("invalid input stream");
 			return;
 		}
-		InputStream stream = input; 
+//		InputStream stream = input; 
 		
-		InputStream xsd = null;
-		try {
+//		InputStream xsd = null;
+		try (InputStream stream = input; InputStream xsd = Resource.getAsStreamFromClassPath(INTERCEPTORS_CONFIG_XSD)){
 		
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setValidating(VALIDATE_XML);
 			factory.setNamespaceAware(true);
 
-			xsd = Resource.getAsStreamFromClassPath(INTERCEPTORS_CONFIG_XSD);
+//			xsd = Resource.getAsStreamFromClassPath(INTERCEPTORS_CONFIG_XSD);
 			if(xsd == null) {
 				logger.warn("error loading XSD for interceptors configuration");
 			} else {
@@ -210,23 +210,23 @@ public class InterceptorsRegistry {
 		} catch (Exception e) {
 			logger.error("error parsing input configuration", e);
 			throw new ZephyrException("error parsing input configuration", e);
-		} finally {
-			if(stream != null) {
-				try {
-					stream.close();
-					stream = null;
-				} catch(IOException e) {
-					throw new ZephyrException("error closing XML configuration stream", e);
-				}
-			}
-			if(xsd != null) {
-				try {
-					xsd.close();
-					xsd = null;
-				} catch(IOException e) {
-					throw new ZephyrException("error closing XSD configuration stream", e);
-				}				
-			}
+//		} finally {
+//			if(stream != null) {
+//				try {
+//					stream.close();
+//					stream = null;
+//				} catch(IOException e) {
+//					throw new ZephyrException("error closing XML configuration stream", e);
+//				}
+//			}
+//			if(xsd != null) {
+//				try {
+//					xsd.close();
+//					xsd = null;
+//				} catch(IOException e) {
+//					throw new ZephyrException("error closing XSD configuration stream", e);
+//				}				
+//			}
 		}
 	}
 	

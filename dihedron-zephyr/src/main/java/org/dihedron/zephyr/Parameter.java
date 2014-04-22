@@ -29,6 +29,13 @@ import javax.servlet.FilterConfig;
 public enum Parameter {
 
     /**
+     * The parameter used to specify the comma-separated list of Java packages
+     * where actions are to be located. Each of these packages will be scanned
+     * for <code>@Action</code>-annotated classes.
+     */
+    ACTIONS_JAVA_PACKAGES("zephyr:actions-packages"),
+    
+    /**
      * A properties file used to initialise values for the actions managed by
      * this <code>ActionController</code>. The path to the file must be expressed
      * as an URL, according to one of the following formats:<ul>
@@ -38,13 +45,6 @@ public enum Parameter {
      * </ul>.
      */
     ACTIONS_CONFIGURATION("zephyr:actions-configuration"),
-
-    /**
-     * The parameter used to specify the comma-separated list of Java packages
-     * where actions are to be located. Each of these packages will be scanned
-     * for <code>@Action</code>-annotated classes.
-     */
-    ACTIONS_JAVA_PACKAGES("zephyr:actions-packages"),
 
     /**
      * The parameter used to specify if JSR-349 bean validation code should be
@@ -83,13 +83,13 @@ public enum Parameter {
      * The maximum size of uploaded files; files exceeding this size will not be 
      * accepted.
      */
-    UPLOADED_FILES_MAX_SIZE_SINGLE("zephyr:upload-max-size-single"),
+    UPLOADED_FILES_MAX_FILE_SIZE("zephyr:upload-max-file-size"),
 
     /**
      * The maximum size of uploaded files; files exceeding this size will not be 
      * accepted.
      */
-    UPLOADED_FILES_MAX_SIZE_TOTAL("zephyr:upload-max-size-total"),
+    UPLOADED_FILES_MAX_REQUEST_SIZE("zephyr:upload-max-request-size"),
     
     /**
      * The maximum size of uploaded files that will be kept in memory; files 

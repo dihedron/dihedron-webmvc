@@ -21,7 +21,9 @@ package org.dihedron.zephyr;
 
 import static org.dihedron.zephyr.Constants.MILLISECONDS_PER_SECOND;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -41,6 +43,7 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.FileCleanerCleanup;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -210,8 +213,8 @@ public class ActionContext {
 		        DiskFileItemFactory factory = new DiskFileItemFactory();
 		        
 		        // register a tracker to perform automatic file cleanup
-		        FileCleaningTracker tracker = FileCleanerCleanup.getFileCleaningTracker(getContext().filter.getServletContext());
-		        factory.setFileCleaningTracker(tracker);
+//		        FileCleaningTracker tracker = FileCleanerCleanup.getFileCleaningTracker(getContext().filter.getServletContext());
+//		        factory.setFileCleaningTracker(tracker);
 		
 		        // configure the repository (to ensure a secure temporary location 
 		        // is used and the size of the )
@@ -254,6 +257,22 @@ public class ActionContext {
 		getContext().response = null;
 		getContext().configuration = null;
 		getContext().server = null;
+		// remove all files if this is a multipart/form-data request, because
+		// the file tracker does not seem to work as expected
+		if(isMultiPartRequest()) {
+			for(Entry<String, FileItem> entry : getContext().parts.entrySet()) {
+				if(!entry.getValue().isFormField() && !entry.getValue().isInMemory()) {
+					File file = ((DiskFileItem)entry.getValue()).getStoreLocation();
+					try {
+						logger.trace("removing uploaded file '{}' from disk...", file.getAbsolutePath());
+						Files.delete(file.toPath());
+						logger.trace("... file deleted");
+					} catch(IOException e) {
+						logger.trace("... error deleting file", e);
+					}
+				}
+			}
+		}		
 		getContext().parts = null;
 		
 //		if(getContext().parts != null) {

@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Andrea Funto'
  */
-@Action(alias="TestAction")
+@Action(alias="TestAction", interceptors="custom")
 public class MyPrivateActionImpl {
 	/**
 	 * The logger.
@@ -176,7 +176,8 @@ public class MyPrivateActionImpl {
 		@In(value="file01", from=Scope.FORM) UploadedFile file1,
 		@In(value="file02", from=Scope.FORM) UploadedFile file2
 	) {
-		logger.info("received a file upload: file1 has size }, file2 has size {}", file1.getSize(), file2.getSize());
+		
+		logger.info("received a file upload: file1 has size {}, file2 has size {}", file1 != null ? file1.getSize() : 0, file2 != null ? file2.getSize() : 0);
 		return Action.SUCCESS;
 	}		
 }

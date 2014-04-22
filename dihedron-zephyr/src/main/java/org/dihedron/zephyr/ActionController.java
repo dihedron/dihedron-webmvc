@@ -168,9 +168,9 @@ public class ActionController implements Filter {
 
 			initialiseRuntimeEnvironment();
 
-			initialiseTargetsRegistry();
-
 			initialiseInterceptorsRegistry();
+			
+			initialiseTargetsRegistry();
 
 			initialiseRenderersRegistry();
 			
@@ -435,26 +435,20 @@ public class ActionController implements Filter {
 		String value = Parameter.INTERCEPTORS_DECLARATION.getValueFor(filter);
 		if(Strings.isValid(value)) {			
     		logger.debug("loading interceptors' configuration from '{}'", value);
-    		InputStream stream = null;
-    		try {
-	    		URL url = URLFactory.makeURL(value);
-	    		if(url != null) {
-	    			stream = url.openConnection().getInputStream();	    			
-	    			interceptors.loadFromStream(stream);
-	    			logger.trace("interceptors stacks:\n{}", interceptors.toString());
-	    		}
-    		} catch(MalformedURLException e) {
-    			logger.error("invalid URL '{}' for interceptors stacks: check parameter '{}' in your web.xml", value, Parameter.INTERCEPTORS_DECLARATION.getName());
+
+    		URL url = null;
+			try {
+				url = URLFactory.makeURL(value);
+			} catch (MalformedURLException e) {
+				logger.error("invalid URL '{}' for interceptors stacks: check parameter '{}' in your web.xml", value, Parameter.INTERCEPTORS_DECLARATION.getName());
+				return;
+			}
+
+			try(InputStream stream = url.openConnection().getInputStream()) {
+    			interceptors.loadFromStream(stream);
+    			logger.trace("interceptors stacks:\n{}", interceptors.toString());
     		} catch (IOException e) {
     			logger.error("error reading from URL '{}', interceptors stacks will be unavailable", value);
-			} finally  {
-				if(stream != null) {
-					try {
-						stream.close();
-					} catch (IOException e) {
-						logger.error("error closing input stream", e);
-					}
-				}
 			}			
 		}    	
     }	
@@ -538,7 +532,7 @@ public class ActionController implements Filter {
 		this.uploadInfo.setRepository(repository);
 		
 		// initialise maximum uploadable file size per single file
-		value = Parameter.UPLOADED_FILES_MAX_SIZE_SINGLE.getValueFor(filter);
+		value = Parameter.UPLOADED_FILES_MAX_FILE_SIZE.getValueFor(filter);
 		if(Strings.isValid(value)) {
 			logger.trace("setting maximum uploadable size to {}", value);
 			this.uploadInfo.setMaxUploadFileSize(Long.parseLong(value));
@@ -548,7 +542,7 @@ public class ActionController implements Filter {
 		}
 		
 		// initialise maximum total uploadable file size
-		value = Parameter.UPLOADED_FILES_MAX_SIZE_TOTAL.getValueFor(filter);
+		value = Parameter.UPLOADED_FILES_MAX_REQUEST_SIZE.getValueFor(filter);
 		if(Strings.isValid(value)) {
 			logger.trace("setting maximum total uploadable size to {}", value);
 			this.uploadInfo.setMaxUploadTotalSize(Long.parseLong(value));

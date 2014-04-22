@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="interceptors.xsd">
+	<stack id="custom">
+		<interceptor id="profiler" class="org.dihedron.zephyr.interceptors.impl.Profiler"/>
+		<interceptor id="dumper" class="org.dihedron.zephyr.interceptors.impl.Dumper">		 
+			<parameter>
+				<key>exclude</key>
+				<value>\s*org\.apache\.tomcat\.util\.scan\.MergedWebXml\s*</value>
+				<!-- 
+				<value>^[A-Z_]*$|^org\.apache.*|^javax\.servlet.*|^org\.dihedron\.zephyr.*|^j_.*</value>
+				-->
+			</parameter>
+			<parameter>
+				<key>scopes</key>
+				<value>form,request,conversation,session,sticky,application,configuration</value>
+			</parameter>
+		</interceptor>
+		<!-- 
+		<interceptor id="double-submit" class="org.dihedron.strutlets.interceptors.impl.Resubmit">
+			<parameter>
+				<key>result</key>
+				<value>error_double_submit</value>
+			</parameter>
+		</interceptor>
+		-->
+	</stack>
+</configuration>

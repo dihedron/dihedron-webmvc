@@ -47,11 +47,11 @@ public final class Zephyr {
      * Initialises the library properties.
      */
     static {
-    	logger.trace("trying to open the zephyr properties stream");
+//    	logger.trace("trying to open the zephyr properties stream");
     	try(InputStream stream = Zephyr.class.getClassLoader().getResourceAsStream("zephyr.properties")) {
-            logger.trace("zephyr properties stream acquired, loading properties (stream is {})", stream != null ? "valid" : "null");
+//            logger.trace("zephyr properties stream acquired, loading properties (stream is {})", stream != null ? "valid" : "null");
             properties.load(stream);
-            logger.trace("zephyr properties loaded and ready");
+//            logger.trace("zephyr properties loaded and ready");
         } catch (IOException e) {
             logger.error("error opening the zephyr properties file", e);
         }
