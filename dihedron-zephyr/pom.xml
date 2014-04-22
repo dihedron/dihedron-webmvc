@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.dihedron.zephyr</groupId>
 		<artifactId>zephyr-parent</artifactId>
-		<version>0.0.2-SNAPSHOT</version>
+		<version>1.0.0.RC1</version>
 		<relativePath>..</relativePath>
 	</parent>
 
