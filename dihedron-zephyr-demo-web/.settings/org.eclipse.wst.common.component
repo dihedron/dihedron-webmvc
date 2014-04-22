@@ -8,6 +8,6 @@
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <property name="java-output-path" value="/dihedron-zephyr-demo-web/target/classes"/>
-        <property name="context-root" value="dihedron-zephyr-demo-web"/>
+        <property name="context-root" value="zephyr-demo-web"/>
     </wb-module>
 </project-modules>
