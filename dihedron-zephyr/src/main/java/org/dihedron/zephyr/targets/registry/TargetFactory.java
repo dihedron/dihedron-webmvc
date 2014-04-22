@@ -31,7 +31,9 @@ import org.dihedron.zephyr.annotations.Action;
 import org.dihedron.zephyr.annotations.Invocable;
 import org.dihedron.zephyr.aop.ActionProxy;
 import org.dihedron.zephyr.aop.ActionProxyFactory;
+import org.dihedron.zephyr.exceptions.DeploymentException;
 import org.dihedron.zephyr.exceptions.ZephyrException;
+import org.dihedron.zephyr.interceptors.registry.InterceptorsRegistry;
 import org.reflections.Reflections;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
@@ -75,6 +77,9 @@ public class TargetFactory {
      *
      * @param registry     
      *   the repository where new targets will be stored.
+     * @param interceptors
+     *   the interceptors registry: this is used to verify that the interceptors 
+     *   stack requested by the action does actually exist.  
      * @param javaPackage  
      *   the Java package to be scanned for actions.
      * @param doValidation 
@@ -82,7 +87,7 @@ public class TargetFactory {
      *   proxies.
      * @throws ZephyrException
      */
-    public void makeFromJavaPackage(TargetRegistry registry, String javaPackage, boolean doValidation) throws ZephyrException {
+    public void makeFromJavaPackage(TargetRegistry registry, InterceptorsRegistry interceptors, String javaPackage, boolean doValidation) throws ZephyrException {
 
         if (Strings.isValid(javaPackage)) {            
             if(!javaPackage.endsWith(".")) {
@@ -101,7 +106,7 @@ public class TargetFactory {
             Set<Class<?>> actions = reflections.getTypesAnnotatedWith(Action.class);
             for (Class<?> action : actions) {
             	if(!instrumentedActions.contains(action)) {
-            		makeFromJavaClass(registry, action, doValidation);
+            		makeFromJavaClass(registry, interceptors, action, doValidation);
             		instrumentedActions.add(action);
             	} else {
             		logger.warn("skipping class '{}' as it is already instrumented: check your configuration for duplicate packages in '{}'", action.getName(), Parameter.ACTIONS_JAVA_PACKAGES.getName());
@@ -116,6 +121,9 @@ public class TargetFactory {
      *
      * @param registry     
      *   the repository where new targets will be stored.
+     * @param interceptors
+     *   the interceptors registry: this is used to verify that the interceptors 
+     *   stack requested by the action does actually exist.  
      * @param actionClass  
      *   the action class to be scanned for annotated methods (targets).
      * @param doValidation 
@@ -123,17 +131,20 @@ public class TargetFactory {
      *   proxies.
      * @throws ZephyrException
      */
-    public void makeFromJavaClass(TargetRegistry registry, Class<?> actionClass, boolean doValidation) throws ZephyrException {
+    public void makeFromJavaClass(TargetRegistry registry, InterceptorsRegistry interceptors, Class<?> actionClass, boolean doValidation) throws ZephyrException {
         logger.trace("analysing action class: '{}'...", actionClass.getName());
 
         // only add classes that are not abstract to the target registry
         if (!Modifier.isAbstract(actionClass.getModifiers())) {
             logger.trace("class '{}' is not abstract", actionClass.getSimpleName());
 
-            String interceptors = actionClass.getAnnotation(Action.class).interceptors();
+            String interceptor = actionClass.getAnnotation(Action.class).interceptors();
+            if(!interceptors.hasStack(interceptor)) {
+            	throw new DeploymentException("Class '" + actionClass.getSimpleName() + "' specifies a non-existing interceptors stack: '" + interceptor + "': check annotation value");
+            }
 
             // let the factory inspect the action and generate a factory method
-            // ans a set of proxy methods for valid @Invocable-annotated action methods
+            // and a set of proxy methods for valid @Invocable-annotated action methods
             // (possibly walking up the class hierarchy and discarding duplicates,
             // static and unannotated methods...)
             ActionProxy proxy = factory.makeActionProxy(actionClass, doValidation);
@@ -146,7 +157,7 @@ public class TargetFactory {
                     logger.trace("... adding annotated method '{}' in class '{}' (proxy: '{}' in class '{}')", actionMethod.getName(),
                             actionClass.getSimpleName(), proxyMethod.getName(), proxy.getProxyClass().getSimpleName());
                     Invocable invocable = actionMethod.getAnnotation(Invocable.class);
-                    registry.addTarget(actionClass, actionMethod, proxy.getActionFactory(), proxyMethod, invocable, interceptors);
+                    registry.addTarget(actionClass, actionMethod, proxy.getActionFactory(), proxyMethod, invocable, interceptor);
                 } else {
                     logger.trace("... discarding unannotated method '{}' in class '{}'", actionMethod.getName(), actionClass.getSimpleName());
                 }

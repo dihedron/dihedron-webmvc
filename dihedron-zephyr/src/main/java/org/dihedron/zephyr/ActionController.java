@@ -406,7 +406,7 @@ public class ActionController implements Filter {
 			logger.trace("scanning for actions in packages: '{}'", parameter);
 			String[] packages = Strings.split(parameter, ",", true);
 			for (String pkg : packages) {
-				loader.makeFromJavaPackage(registry, pkg, generateValidationCode);
+				loader.makeFromJavaPackage(registry, interceptors, pkg, generateValidationCode);
 			}
 		} else {
 			logger.error("no Java packages specified for actions: check parameter '{}'", Parameter.ACTIONS_JAVA_PACKAGES.getName());

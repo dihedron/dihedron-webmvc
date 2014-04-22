@@ -29,11 +29,9 @@ import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.SchemaFactory;
 
 import org.dihedron.commons.streams.Resource;
+import org.dihedron.commons.strings.Strings;
 import org.dihedron.commons.xml.DomHelper;
 import org.dihedron.zephyr.exceptions.ZephyrException;
 import org.dihedron.zephyr.interceptors.Interceptor;
@@ -155,16 +153,12 @@ public class InterceptorsRegistry {
 			logger.warn("invalid input stream");
 			return;
 		}
-//		InputStream stream = input; 
-		
-//		InputStream xsd = null;
 		try (InputStream stream = input; InputStream xsd = Resource.getAsStreamFromClassPath(INTERCEPTORS_CONFIG_XSD)){
 		
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setValidating(VALIDATE_XML);
 			factory.setNamespaceAware(true);
 
-//			xsd = Resource.getAsStreamFromClassPath(INTERCEPTORS_CONFIG_XSD);
 			if(xsd == null) {
 				logger.warn("error loading XSD for interceptors configuration");
 			} else {
@@ -210,24 +204,19 @@ public class InterceptorsRegistry {
 		} catch (Exception e) {
 			logger.error("error parsing input configuration", e);
 			throw new ZephyrException("error parsing input configuration", e);
-//		} finally {
-//			if(stream != null) {
-//				try {
-//					stream.close();
-//					stream = null;
-//				} catch(IOException e) {
-//					throw new ZephyrException("error closing XML configuration stream", e);
-//				}
-//			}
-//			if(xsd != null) {
-//				try {
-//					xsd.close();
-//					xsd = null;
-//				} catch(IOException e) {
-//					throw new ZephyrException("error closing XSD configuration stream", e);
-//				}				
-//			}
 		}
+	}
+	
+	/**
+	 * Returns whether a stack exists that corresponds to the given stack id.
+	 * 
+	 * @param id
+	 *   the id of the stack being checked.
+	 * @return
+	 *   {@code true} if the stack exists, {@code false} otherwise.
+	 */
+	public boolean hasStack(String id) {
+		return Strings.isValid(id) && stacks.containsKey(id);
 	}
 	
 	/**
