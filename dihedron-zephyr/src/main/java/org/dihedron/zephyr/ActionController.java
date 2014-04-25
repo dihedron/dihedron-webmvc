@@ -21,15 +21,23 @@ package org.dihedron.zephyr;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.management.ManagementFactory;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -91,7 +99,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Andrea Funto'
  */
-public class ActionController implements Filter {
+public class ActionController implements Filter, ActionControllerMBean {
 
 	/**
 	 * The logger.
@@ -175,6 +183,8 @@ public class ActionController implements Filter {
 			initialiseRenderersRegistry();
 			
 			initialiseFileUploadConfiguration();
+			
+			initialiseJMXSupport();
 
 		} finally {
 
@@ -563,6 +573,56 @@ public class ActionController implements Filter {
 		logger.trace("done configuring file upload support");
 	}
 	
+	// JMX SUPPORT
+	
+	private void initialiseJMXSupport() {
+		ObjectName name = null;
+		try {
+			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+			Hashtable<String, String> attributes = new Hashtable<>();
+			attributes.put("type", "ActionController");
+			attributes.put("instance", filter.getFilterName());
+			attributes.put("version", Zephyr.getVersion());
+	        name = new ObjectName(Zephyr.DIHEDRON_ZEPHYR_DOMAIN, attributes);  
+	        mbs.registerMBean(this, name);
+	        logger.info("JMX MBean successfully registered under name '{}'", name.getCanonicalName());
+		} catch (MalformedObjectNameException e) {
+			logger.error("invalid object name", e);
+		} catch (InstanceAlreadyExistsException e) {
+			logger.error("an instance with the given name ('" + name.getCanonicalName() + "') already esistes in this JMX server", e);
+		} catch (MBeanRegistrationException e) {
+			logger.error("error registering '" + name.getCanonicalName() + "' MBean", e);
+		} catch (NotCompliantMBeanException e) {
+			logger.error("MBean '" + name.getCanonicalName() + "' is not compliant", e);
+		}
+	}
+	
+	/**
+	 * Returns the name of this instance.
+	 * 
+	 * @see org.dihedron.zephyr.ActionControllerMBean#getApplicationName()
+	 */
+	public String getApplicationName() {
+		return filter != null ? filter.getFilterName() : "uninitialised";
+	}
+
+	/**
+	 * Returns the name of the Zephyr framework.
+	 * 
+	 * @see org.dihedron.zephyr.ActionControllerMBean#getFrameworkName()
+	 */
+	public String getFrameworkName() {
+		return Zephyr.getName();
+	}
+	
+	/**
+	 * Returns the current version of the framework.
+	 * 
+	 * @see org.dihedron.zephyr.ActionControllerMBean#getFrameworkVersion()
+	 */
+	public String getFrameworkVersion() {
+		return Zephyr.getVersion();
+	}
 
 //	protected String invokeTarget(TargetId targetId, HttpServletRequest request, HttpServletRequest response) throws ZephyrException {
 //

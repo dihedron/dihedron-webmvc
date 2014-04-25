@@ -31,6 +31,11 @@ import java.util.Properties;
  * @author Andrea Funto'
  */
 public final class Zephyr {
+	
+	/**
+	 * A string representing the Zephyr framework domain name (JMX).
+	 */
+	public static final String DIHEDRON_ZEPHYR_DOMAIN = "org.dihedron.zephyr";
 		
     /**
      * The logger.
@@ -55,6 +60,16 @@ public final class Zephyr {
         } catch (IOException e) {
             logger.error("error opening the zephyr properties file", e);
         }
+    }
+    
+    /**
+     * Returns the name of the framework.
+     * 
+     * @return
+     *   the name of the framework.
+     */
+    public static String getName() {
+    	return "Zephyr MVC";
     }
 
     /**
