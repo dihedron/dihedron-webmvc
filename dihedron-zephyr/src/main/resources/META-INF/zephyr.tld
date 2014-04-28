@@ -24,9 +24,10 @@
     <tag>
         <name>useBean</name>
         <description>
-            Picks a bean from the given scope (render parameters, request, session or
-            application attributes) and makes it available to the current page context
-            and to the JSP EL.
+            Picks a bean from the given scope (form parameters, request, session,
+            sticky, conversation, application or configuration attributes) and 
+            makes it available to the current page context and to the JSP EL under
+            the given variable name.
         </description>
         <tag-class>org.dihedron.zephyr.taglib.UseBeanTag</tag-class>
         <tei-class>org.dihedron.zephyr.taglib.UseBeanTagExtraInfo</tei-class>
@@ -61,9 +62,35 @@
     <tag>
         <name>version</name>
         <description>
-            Prints out the current Zephyr library version.
+            Prints out the current Zephyr MVC library version.
         </description>
         <tag-class>org.dihedron.zephyr.taglib.VersionTag</tag-class>
         <body-content>empty</body-content>
     </tag>
+    
+    <tag>
+        <name>website</name>
+        <description>
+            Prints out the URL to the Zephyr MVC library web site.
+        </description>
+        <tag-class>org.dihedron.zephyr.taglib.WebSiteTag</tag-class>
+        <body-content>empty</body-content>
+    </tag>
+    
+    <tag>
+        <name>hyperlink</name>
+        <description>
+            Prints out a hyperlink to the Zephyr MVC library website along with
+            its text description and version.
+        </description>
+        <tag-class>org.dihedron.zephyr.taglib.HyperLinkTag</tag-class>
+        <body-content>empty</body-content>
+        <attribute>
+            <name>target</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        
+    </tag>
+    
 </taglib>

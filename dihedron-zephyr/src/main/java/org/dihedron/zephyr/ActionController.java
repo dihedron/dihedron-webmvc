@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.management.InstanceAlreadyExistsException;
+import javax.management.InstanceNotFoundException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
@@ -194,6 +195,8 @@ public class ActionController implements Filter, ActionControllerMBean {
 	@Override
 	public void destroy() {
 		logger.info("zephyr filter for {} is down", filter.getFilterName());
+		
+		cleanupJMXSupport();
 	}
 
 	@Override
@@ -399,16 +402,13 @@ public class ActionController implements Filter, ActionControllerMBean {
 		registry.setJspPathInfo(Parameter.JSP_ROOT_PATH.getValueFor(filter), Parameter.JSP_PATH_PATTERN.getValueFor(filter));
 
 		// pre-scan existing classes and methods in the default actions package
-		TargetFactory loader = new TargetFactory();
+		TargetFactory loader = null;
 
-		boolean generateValidationCode = false;
 		String value = Parameter.ACTIONS_ENABLE_VALIDATION.getValueFor(filter);
 		if (Strings.isValid(value) && value.equalsIgnoreCase("true")) {
-			logger.info("enabling JSR-349 bean validation code generation");
-			generateValidationCode = true;
+			loader = new TargetFactory(true);
 		} else {
-			logger.info("JSR-349 bean validation code generation will be disabled");
-			generateValidationCode = false;
+			loader = new TargetFactory(false);
 		}
 
 		String parameter = Parameter.ACTIONS_JAVA_PACKAGES.getValueFor(filter);
@@ -416,7 +416,7 @@ public class ActionController implements Filter, ActionControllerMBean {
 			logger.trace("scanning for actions in packages: '{}'", parameter);
 			String[] packages = Strings.split(parameter, ",", true);
 			for (String pkg : packages) {
-				loader.makeFromJavaPackage(registry, interceptors, pkg, generateValidationCode);
+				loader.makeFromJavaPackage(registry, interceptors, pkg);
 			}
 		} else {
 			logger.error("no Java packages specified for actions: check parameter '{}'", Parameter.ACTIONS_JAVA_PACKAGES.getName());
@@ -578,6 +578,7 @@ public class ActionController implements Filter, ActionControllerMBean {
 	private void initialiseJMXSupport() {
 		ObjectName name = null;
 		try {
+			logger.info("registering Zephyr Controller JMX MBean...");
 			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 			Hashtable<String, String> attributes = new Hashtable<>();
 			attributes.put("type", "ActionController");
@@ -585,16 +586,37 @@ public class ActionController implements Filter, ActionControllerMBean {
 			attributes.put("version", Zephyr.getVersion());
 	        name = new ObjectName(Zephyr.DIHEDRON_ZEPHYR_DOMAIN, attributes);  
 	        mbs.registerMBean(this, name);
-	        logger.info("JMX MBean successfully registered under name '{}'", name.getCanonicalName());
+	        logger.info("... Zephyr Controller JMX MBean successfully registered under name '{}'", name.getCanonicalName());
 		} catch (MalformedObjectNameException e) {
 			logger.error("invalid object name", e);
 		} catch (InstanceAlreadyExistsException e) {
-			logger.error("an instance with the given name ('" + name.getCanonicalName() + "') already esistes in this JMX server", e);
+			logger.error("an instance with the given name ('" + name.getCanonicalName() + "') already esists in this JMX server", e);
 		} catch (MBeanRegistrationException e) {
 			logger.error("error registering '" + name.getCanonicalName() + "' MBean", e);
 		} catch (NotCompliantMBeanException e) {
 			logger.error("MBean '" + name.getCanonicalName() + "' is not compliant", e);
 		}
+	}
+	
+	private void cleanupJMXSupport() {
+		ObjectName name = null;
+		try {
+			logger.info("unregistering Zephyr Controller JMX MBean...");
+			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+			Hashtable<String, String> attributes = new Hashtable<>();
+			attributes.put("type", "ActionController");
+			attributes.put("instance", filter.getFilterName());
+			attributes.put("version", Zephyr.getVersion());
+	        name = new ObjectName(Zephyr.DIHEDRON_ZEPHYR_DOMAIN, attributes);  
+	        mbs.unregisterMBean(name);
+	        logger.info("... Zephyr Controller JMX MBean with name '{}' successfully unregistered", name.getCanonicalName());
+		} catch (MalformedObjectNameException e) {
+			logger.error("invalid object name", e);
+		} catch (MBeanRegistrationException e) {
+			logger.error("error unregistering '" + name.getCanonicalName() + "' MBean", e);
+		} catch (InstanceNotFoundException e) {
+			logger.error("an instance with the given name ('" + name.getCanonicalName() + "') does not esist in this JMX server", e);
+		}		
 	}
 	
 	/**

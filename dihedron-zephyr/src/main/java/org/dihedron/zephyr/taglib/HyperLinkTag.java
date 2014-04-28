@@ -25,18 +25,39 @@ import javax.servlet.jsp.tagext.SimpleTagSupport;
 import org.dihedron.zephyr.Zephyr;
 
 /**
- * Prints out the current version of the Zephyr MVC framework.
+ * Prints out a hyperlink to the current Zephyr MVC framework website.
  * 
  * @author Andrea Funto'
  */
-public class VersionTag extends SimpleTagSupport {
+public class HyperLinkTag extends SimpleTagSupport {
 
 	/**
-	 * Prints out the current version of the Zephyr MVC framework.
+	 * The default value of the target attribute; by default the hyperlink is
+	 * opened in a new window/tab ("_blank");
+	 */
+	private static final String DEFAULT_TARGET = "_blank";
+	
+	/**
+	 * The target of the generated hyperlink.
+	 */
+	private String target = DEFAULT_TARGET;
+	
+    /**
+     * Sets the value of the "target" attribute.
+     * 
+     * @param target
+     *   the name of the target window for the hyperlink.
+     */
+    public void setTarget(String target) {
+        this.target = target;
+    }
+    
+	/**
+	 * Prints out a hyperlink to the current Zephyr MVC framework website.
 	 * 
 	 * @see javax.servlet.jsp.tagext.SimpleTagSupport#doTag()
 	 */
-	public void doTag() throws IOException { 
-		getJspContext().getOut().println(Zephyr.getVersion());
+	public void doTag() throws IOException { 		
+		getJspContext().getOut().println("<a href=\"" + Zephyr.getWebSite() + "\" target=\"" + target + "\">Zephyr " + Zephyr.getVersion() + "</a>");
 	}
 }

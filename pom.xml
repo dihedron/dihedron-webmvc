@@ -120,7 +120,7 @@
 			<dependency>
 				<groupId>org.dihedron.commons</groupId>
 				<artifactId>commons</artifactId>
-				<version>0.0.7</version>
+				<version>0.1.1</version>
 			</dependency>
 			<dependency>
 				<groupId>javax.servlet</groupId>
@@ -167,6 +167,7 @@
 			</activation>
 
 			<build>
+				<finalName>dihedron-${project.artifactId}-${project.version}</finalName>
 				<plugins>
 					<plugin>
 						<inherited>true</inherited>

@@ -29,7 +29,7 @@
 	</script>
 </head>
 <body>
-	<h2>Zephyr Test Cases</h2>
+	<h1>Zephyr Test Cases (ver. <z:version/>)</h1>
 
 
 	<fieldset>
@@ -333,5 +333,7 @@
 			<input type="submit" title="Submit" name="Submit" />
 		</form>
 	</fieldset>
+	<br>
+	<p>Powered by <z:hyperlink/></p>
 </body>
 </html>

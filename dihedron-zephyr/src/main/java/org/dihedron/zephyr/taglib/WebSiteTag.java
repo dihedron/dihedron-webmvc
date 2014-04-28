@@ -25,18 +25,18 @@ import javax.servlet.jsp.tagext.SimpleTagSupport;
 import org.dihedron.zephyr.Zephyr;
 
 /**
- * Prints out the current version of the Zephyr MVC framework.
+ * Prints out the URL of the Zephyr MVC framework web site.
  * 
  * @author Andrea Funto'
  */
-public class VersionTag extends SimpleTagSupport {
+public class WebSiteTag extends SimpleTagSupport {
 
 	/**
-	 * Prints out the current version of the Zephyr MVC framework.
+	 * Prints out the URL of the Zephyr MVC framework web site.
 	 * 
 	 * @see javax.servlet.jsp.tagext.SimpleTagSupport#doTag()
 	 */
 	public void doTag() throws IOException { 
-		getJspContext().getOut().println(Zephyr.getVersion());
+		getJspContext().getOut().println(Zephyr.getWebSite());
 	}
 }

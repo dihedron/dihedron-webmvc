@@ -78,7 +78,7 @@ public final class Zephyr {
      * @return the framework's version (as per the project's POM).
      */
     public static String getVersion() {
-        return properties.getProperty("zephyr.version");
+        return properties.getProperty("zephyr.version").trim();
     }
 
     /**
@@ -88,7 +88,7 @@ public final class Zephyr {
      *   the Zephyr framework web site.
      */
     public static String getWebSite() {
-        return properties.getProperty("zephyr.website");
+        return properties.getProperty("zephyr.website").trim();
     }
 
     /**

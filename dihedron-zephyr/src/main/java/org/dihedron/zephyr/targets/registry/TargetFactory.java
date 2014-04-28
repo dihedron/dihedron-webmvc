@@ -30,7 +30,7 @@ import org.dihedron.zephyr.Parameter;
 import org.dihedron.zephyr.annotations.Action;
 import org.dihedron.zephyr.annotations.Invocable;
 import org.dihedron.zephyr.aop.ActionProxy;
-import org.dihedron.zephyr.aop.ActionProxyFactory;
+import org.dihedron.zephyr.aop.ActionProxyBuilder;
 import org.dihedron.zephyr.exceptions.DeploymentException;
 import org.dihedron.zephyr.exceptions.ZephyrException;
 import org.dihedron.zephyr.interceptors.registry.InterceptorsRegistry;
@@ -65,10 +65,28 @@ public class TargetFactory {
 
     /**
      * The object that takes care of inspecting the action and creating proxy
-     * class, static factory method and method proxies for its <code>@Invocable
-     * </code> methods.
+     * class, static factory method and method proxies for each of its 
+     * {@code @Invocable} methods.
      */
-    private ActionProxyFactory factory = new ActionProxyFactory();
+    private ActionProxyBuilder builder = null;
+    
+    /**
+     * Constructor.
+     *
+     * @param doValidation
+     *   whether the factory should emit JSR-349 validation code in the generated 
+     *   proxies.
+     */
+    public TargetFactory(boolean doValidation) {
+    	builder = new ActionProxyBuilder();
+    	if(doValidation) {
+    		logger.info("the builder will emit code supporting JSR-349 validation");
+    		builder.withValidation();
+    	} else {
+    		logger.info("the builder won't emit code supporting JSR-349 validation");
+    		builder.withoutValidation();
+    	}
+    }
 
     /**
      * This method performs the automatic scanning of actions at startup time,
@@ -82,13 +100,10 @@ public class TargetFactory {
      *   stack requested by the action does actually exist.  
      * @param javaPackage  
      *   the Java package to be scanned for actions.
-     * @param doValidation 
-     *   whether JSR-349 bean validation related code should be generated in the
-     *   proxies.
      * @throws ZephyrException
      */
-    public void makeFromJavaPackage(TargetRegistry registry, InterceptorsRegistry interceptors, String javaPackage, boolean doValidation) throws ZephyrException {
-
+    public void makeFromJavaPackage(TargetRegistry registry, InterceptorsRegistry interceptors, String javaPackage) throws ZephyrException {
+    	
         if (Strings.isValid(javaPackage)) {            
             if(!javaPackage.endsWith(".")) {
             	logger.trace("package name is not complete, adding final dot");
@@ -106,7 +121,7 @@ public class TargetFactory {
             Set<Class<?>> actions = reflections.getTypesAnnotatedWith(Action.class);
             for (Class<?> action : actions) {
             	if(!instrumentedActions.contains(action)) {
-            		makeFromJavaClass(registry, interceptors, action, doValidation);
+            		makeFromJavaClass(registry, interceptors, action);
             		instrumentedActions.add(action);
             	} else {
             		logger.warn("skipping class '{}' as it is already instrumented: check your configuration for duplicate packages in '{}'", action.getName(), Parameter.ACTIONS_JAVA_PACKAGES.getName());
@@ -126,12 +141,9 @@ public class TargetFactory {
      *   stack requested by the action does actually exist.  
      * @param actionClass  
      *   the action class to be scanned for annotated methods (targets).
-     * @param doValidation 
-     *   whether JSR-349 bean validation related code should be generated in the
-     *   proxies.
      * @throws ZephyrException
      */
-    public void makeFromJavaClass(TargetRegistry registry, InterceptorsRegistry interceptors, Class<?> actionClass, boolean doValidation) throws ZephyrException {
+    public void makeFromJavaClass(TargetRegistry registry, InterceptorsRegistry interceptors, Class<?> actionClass) throws ZephyrException {
         logger.trace("analysing action class: '{}'...", actionClass.getName());
 
         // only add classes that are not abstract to the target registry
@@ -143,11 +155,11 @@ public class TargetFactory {
             	throw new DeploymentException("Class '" + actionClass.getSimpleName() + "' specifies a non-existing interceptors stack: '" + interceptor + "': check annotation value");
             }
 
-            // let the factory inspect the action and generate a factory method
+            // let the builder inspect the action and generate a factory method
             // and a set of proxy methods for valid @Invocable-annotated action methods
             // (possibly walking up the class hierarchy and discarding duplicates,
             // static and unannotated methods...)
-            ActionProxy proxy = factory.makeActionProxy(actionClass, doValidation);
+            ActionProxy proxy = builder.build(actionClass).addActionFactoryMethod().addAllBusinessMethods().getActionProxy();
 
             // now loop through annotated methods and add them to the registry as targets
             Map<Method, Method> methods = proxy.getStubMethods();
