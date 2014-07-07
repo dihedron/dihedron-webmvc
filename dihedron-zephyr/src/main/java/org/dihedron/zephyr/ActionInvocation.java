@@ -149,8 +149,8 @@ public class ActionInvocation {
 	}
 	
 	/**
-	 * Invokes the next interceptor in the stack, or the action if this
-	 * is the last interceptor.
+	 * Invokes the next interceptor in the stack, or the action if this is the 
+	 * last interceptor.
 	 * 
 	 * @return
 	 *   the interceptor result; if the interceptor is not intended to divert 
