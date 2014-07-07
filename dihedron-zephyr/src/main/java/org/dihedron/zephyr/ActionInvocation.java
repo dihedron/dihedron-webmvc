@@ -134,7 +134,7 @@ public class ActionInvocation {
 	 * @return
 	 *   the current servlet request.
 	 */
-	public HttpServletRequest getPortletRequest() {
+	public HttpServletRequest getRequest() {
 		return request;
 	}
 	
@@ -144,7 +144,7 @@ public class ActionInvocation {
 	 * @return
 	 *   the current servlet response.
 	 */
-	public HttpServletResponse getPortletResponse() {
+	public HttpServletResponse getResponse() {
 		return response;
 	}
 	
