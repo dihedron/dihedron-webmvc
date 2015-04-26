@@ -1,0 +1,1 @@
+Zephyr is a new framework providing a business-method-based declarative approah to web development, whereby configuration is automatically inferred from the structure of the code and a few annotations.
