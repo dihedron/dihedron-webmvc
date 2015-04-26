@@ -9,7 +9,7 @@
 		<relativePath>..</relativePath>
 	</parent>
 
-	<artifactId>webmvc-demo-web</artifactId>
+	<artifactId>dihedron-webmvc-demo-web</artifactId>
 	<packaging>war</packaging>
 	<name>WebMVC - Demo Web project</name>
 	<description>An MVC framework supporting method-based development of web applications.</description>
