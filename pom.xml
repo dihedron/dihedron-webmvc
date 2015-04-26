@@ -10,7 +10,7 @@
 	
 	<groupId>org.dihedron.webmvc</groupId>
 	<artifactId>webmvc-parent</artifactId>
-	<version>1.0.0.RC3-SNAPSHOT</version>
+	<version>1.0.0.RC1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>WebMVC Suite</name>
 
