@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib
+        xmlns="http://java.sun.com/xml/ns/javaee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        version="2.1">
+    <jsp-version>2.1</jsp-version>
+    <tlib-version>1.0</tlib-version>
+    <short-name>webmcv</short-name>
+    <display-name>WebMVC Tag Library</display-name>
+    <description>
+        The WebMVC framework tag library.
+    </description>
+    <uri>http://www.dihedron.org/webmvc</uri>
+
+    <tag>
+        <name>defineObjects</name>
+        <description>
+            Makes all WebMVC-related objects available to the page context and to the EL.
+        </description>
+        <tag-class>org.dihedron.webmvc.taglib.DefineObjectsTag</tag-class>
+        <body-content>empty</body-content>
+    </tag>
+
+    <tag>
+        <name>useBean</name>
+        <description>
+            Picks a bean from the given scope (form parameters, request, session,
+            sticky, conversation, application or configuration attributes) and 
+            makes it available to the current page context and to the JSP EL under
+            the given variable name.
+        </description>
+        <tag-class>org.dihedron.webmvc.taglib.UseBeanTag</tag-class>
+        <tei-class>org.dihedron.webmvc.taglib.UseBeanTagExtraInfo</tei-class>
+        <body-content>JSP</body-content>
+        <attribute>
+            <name>name</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>scopes</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>var</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>type</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>visibility</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
+
+    <tag>
+        <name>version</name>
+        <description>
+            Prints out the current WebMVC library version.
+        </description>
+        <tag-class>org.dihedron.webmvc.taglib.VersionTag</tag-class>
+        <body-content>empty</body-content>
+    </tag>
+    
+    <tag>
+        <name>website</name>
+        <description>
+            Prints out the URL to the WebMVC library web site.
+        </description>
+        <tag-class>org.dihedron.webmvc.taglib.WebSiteTag</tag-class>
+        <body-content>empty</body-content>
+    </tag>
+    
+    <tag>
+        <name>hyperlink</name>
+        <description>
+            Prints out a hyperlink to the WebMVC library website along with
+            its text description and version.
+        </description>
+        <tag-class>org.dihedron.webmvc.taglib.HyperLinkTag</tag-class>
+        <body-content>empty</body-content>
+        <attribute>
+            <name>target</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        
+    </tag>
+    
+</taglib>

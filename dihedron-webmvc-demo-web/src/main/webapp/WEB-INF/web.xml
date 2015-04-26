@@ -1,0 +1,143 @@
+<?xml version="1.0"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+      version="3.0">
+
+    <filter>
+    	<display-name>Zephyr Framework Controller</display-name>
+        <filter-name>Zephyr Controller</filter-name>
+        <filter-class>org.dihedron.webmvc.ActionController</filter-class>
+        
+        <!--
+        	++++++++++++++++++++++++++ OPTIONAL ++++++++++++++++++++++++++++++++
+        	BY MEANS OF THIS PARAMETER, YOU CAN INJECT  A SET OF VALUES INTO THE
+        	'CONFIGURATION' SCOPE: THESE VALUES WILL BE AVAILABLE TO ALL YOUR 
+        	ACTIONS; ONE WAY TO MAKE USE OF THIS OPPORTUNINITY IS TO PROVIDE A
+        	DEFAULT WHENEVER A FORM VALUE IS MISSING, BY SPECIFYING 2 SCOPES IN 
+        	THE @In ANNOTATION: 'FORM' AND 'CONFIGURATION': IF THE VALUE IS
+        	MISSING FROM THE FIRST, THE DEFAULT VALUE WILL BE PICKED FROM THE
+        	SECOND.  
+         -->
+        <init-param>
+        	<param-name>zephyr:actions-configuration</param-name>
+        	<param-value>classpath:configuration/demo-configuration.properties</param-value>
+        </init-param>
+        
+        <!--
+        	++++++++++++++++++++++++++ MANDATORY +++++++++++++++++++++++++++++++
+        	THIS PARAMETER IS USED TO INDICATE THE JAVA PACKAGES THAT THE ZEPHYR
+        	FRAMEWORK SHOULD SCAN TO FIND YOUR ACTIONS; IT IS A COMMA-SEPARATED 
+        	LIST OF FULLY QUALIFIED PACKAGE NAMES. IN ORDER TO AVOID THE SAME
+        	ACTIONS TO BE SCANNED AND INSTRUMENTED TWICE YOU MUST AVOID PLACING 
+        	YOUR ACTIONS IN TWO NESTED PACKAGES (SAY: my.pkg and my.pkg.sub),
+        	BECAUSE THE SCANNING PROCESS LOOKS FOR ALL CLASSES WHOSE FULLY-
+        	QUALIFIED CLASS NAMES 'START WITH' THE GIVEN STRINGS.   
+         -->
+        <init-param>
+            <param-name>zephyr:actions-packages</param-name>
+            <param-value>org.example.demo.part1.actions,org.example.demo.part2.actions,org.example.demo.part1.actions</param-value>
+        </init-param>
+        
+        <!--
+        	++++++++++++++++++++++++++ OPTIONAL ++++++++++++++++++++++++++++++++
+        	BY SETTING THIS PARAMETER TO 'true' YOU ARE INDICATING THAT YOU WANT 
+        	THE ZEPHYR FRAMEWORK TO EMIT JSR-349 (Bean Validation 1.1) VALIDATION
+        	CODE WHEN GENERATING THE STUBS FOR YOUR ACTIONS. IT IS YOUR RESPONSIBILITY
+        	TO PROVIDE A VALID IMPLEMENTATION AT RUNTIME; JBOSS ALREADY HAS ONE 
+        	(HIBERNATE VALIDATOR), OTHER APPLICATION SERVER MAY ALREADY HAVE ONE,
+        	OR YOU CAN YOU HIBERNATE (AS WE DO IN THIS DEMO PROJECT).   
+         -->
+        <init-param>
+        	<param-name>zephyr:enable-validation</param-name>
+        	<param-value>true</param-value>
+        </init-param>
+
+		<!--
+			++++++++++++++++++++++++++ OPTIONAL ++++++++++++++++++++++++++++++++
+			THIS PARAMETERS IS USED TO DECLARE YOUR OWN, CUSTOM SET OF INTERCEPTOR
+			STACKS; THIS CAN BE USEFUL IF YOU WANT TO PROVIDE YOUR IMPLEMENTATION
+			OF CROSS-CUTTING FUNCTIONALITIES SUCH AS LOGGING, SECUTORITY, CDI ETC.
+			THIS FILE SHOWS A SLIGHTLY MODIFIED VERSIONE OF THE DEFAULT STACK, 
+			CALLED 'custom', WHICH IS THEN USED FOR OUR ACTIONS. 
+		 -->
+        <init-param>
+            <param-name>zephyr:interceptors-declaration</param-name>
+            <param-value>classpath:interceptors/custom-interceptors.xml</param-value>
+        </init-param>
+        
+        <!--
+        	++++++++++++++++++++++++++ OPTIONAL ++++++++++++++++++++++++++++++++
+        	BY TWEAKING ON THIS PARAMETER YOU CAN TELL THE FRAMEWORK TO USE AN
+        	ALTERNATE INTERCEPTORS STACK IN LIEU OF THE DEFAULT ONE (CALLED
+        	'default') FOR ALL THOSE ACTIONS THAT DO NOT EXLICITLY DECLARE WHICH
+        	STACK THEY WANT TO USE.  
+         -->
+        <init-param>
+        	<param-name>zephyr:interceptors-default-stack</param-name>
+        	<param-value>default</param-value>
+        </init-param>
+        
+        <!--
+        	++++++++++++++++++++++++++ OPTIONAL ++++++++++++++++++++++++++++++++
+        	IF YOU WANT TO IMPLEMENT YOUR OWN CUSTOM RENDERERS, YOU ARE FREE TO
+        	DO SO, AND THIS IS THE PLACE WHERE YOU CAN DECLARE THE JAVA PACKAGES 
+        	THAT MUST BE SCANNED FOR IMPLEMENTATIONS OF THE Renderer INTERFACE.
+        	REDERERS CAN BE USED TO PROVIDE CUSTOM VIEWS OF YOUR DATA: YOU MAY
+        	WANT TO CREATE A CUSTOM PDF RENDERER THAT PRODUCES A SPECIFIC PDF
+        	DOCUMENT WITH THE DATA THAT WERE RETRIEVED OR PROCESSED IN THE BUSINESS
+        	LOGIC PHASE. THIS SOLUTION IS MUCH CLEANRE THAN EMBEDDING THE 
+        	PRESENTATION LOGIC INSIDE YOUR ACTION.
+         -->
+        <init-param>
+        	<param-name>zephyr:renderers-packages</param-name>
+        	<param-value></param-value>
+        </init-param>
+        
+        <!--
+        	++++++++++++++++++++++++++ OPTIONAL ++++++++++++++++++++++++++++++++
+        	BY DEFAULT THE APPLICATION SERVER PROVIDES A TEMPORARY DIRECTORY FOR 
+        	UPLOADED FILES, AND YOU MAY WELL BE SATISFIED WITH IT, BUT IF YOU
+        	WANT TO PROVIDE A DIFFERENT DIRECTORY THIS IS THE PLACE WHERE YOU 
+        	DECLARE IT.        	 
+         -->
+		<init-param>
+			<param-name>zephyr:upload-directory</param-name>
+			<param-value></param-value>
+		</init-param>  
+
+		<!-- 
+			++++++++++++++++++++++++++ OPTIONAL ++++++++++++++++++++++++++++++++
+			BY DEFAULT THE FRAMEWORK ALLOWS UPLOADS OF FILES UP TO 20 MEGABYTES;
+			IF YOU WANT TO CHANGE THIS VALUE, THIS IS THE PLACE TO DO IT. THE SIZE
+			MUST BE EXPRESSED IN BYTES (SO 1048576=1024X1024 IS ONE MEGABYTE.
+		 -->		
+		<init-param>
+			<param-name>zephyr:upload-max-file-size</param-name>
+			<param-value></param-value>
+		</init-param>      
+        
+        <!--
+        	++++++++++++++++++++++++++ OPTIONAL ++++++++++++++++++++++++++++++++
+        	BESIDES CHANGING THE SIZE LIMIT PER INDIVIDUAL FILE, YOU MAY WANT TO 
+        	FIX THE MAXIMUM ALLOWED SIZE PER REQUEST: A SINGLE MULTIPART/FORM-DATA 
+        	REQUEST CAN SUBMIT MULTIPLE FILES, AND THE MAXIMUM SIZE PER FILE 
+        	APPLIES TO EACH OF THEM, BUT THERE COULD HYPOTETICALLY BE A THOUSAND 
+        	SUCH FILES. IF YOU WANT TO LIMIT THE OVERALL REQUEST SIZE THIS IS 
+        	WHERE YOU CAN DO IT. BY DEFAULT THE FRAMEWORK ALLOWS UP TO 100 MEGABYTES,
+        	IF YOU WANT TO CHANGE THIS LIMIT PUT YOURS IN HERE, EXPRESSED IN BYTES.
+         -->
+        <init-param>
+        	<param-name>zephyr:upload-max-request-size</param-name>
+        	<param-value></param-value>
+        </init-param>
+                
+    </filter>
+
+    <filter-mapping>
+        <filter-name>Zephyr Controller</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+</web-app>
+
