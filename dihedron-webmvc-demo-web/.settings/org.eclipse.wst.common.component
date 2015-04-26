@@ -4,7 +4,7 @@
         <wb-resource deploy-path="/" source-path="/src/main/webapp" tag="defaultRootSource"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
-        <dependent-module archiveName="dihedron-webmvc-1.0.0.RC3-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/dihedron-webmvc/dihedron-webmvc">
+        <dependent-module archiveName="dihedron-webmvc-1.0.0.RC1-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/dihedron-webmvc/dihedron-webmvc">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <dependent-module archiveName="dihedron-commons-1.1.2-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/dihedron-commons/dihedron-commons">
