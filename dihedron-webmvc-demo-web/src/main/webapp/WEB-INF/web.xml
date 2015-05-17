@@ -5,8 +5,8 @@
       version="3.0">
 
     <filter>
-    	<display-name>Zephyr Framework Controller</display-name>
-        <filter-name>Zephyr Controller</filter-name>
+    	<display-name>WebMVC Framework Controller</display-name>
+        <filter-name>WebMVC Controller</filter-name>
         <filter-class>org.dihedron.webmvc.ActionController</filter-class>
         
         <!--
@@ -20,13 +20,13 @@
         	SECOND.  
          -->
         <init-param>
-        	<param-name>zephyr:actions-configuration</param-name>
+        	<param-name>webmvc:actions-configuration</param-name>
         	<param-value>classpath:configuration/demo-configuration.properties</param-value>
         </init-param>
         
         <!--
         	++++++++++++++++++++++++++ MANDATORY +++++++++++++++++++++++++++++++
-        	THIS PARAMETER IS USED TO INDICATE THE JAVA PACKAGES THAT THE ZEPHYR
+        	THIS PARAMETER IS USED TO INDICATE THE JAVA PACKAGES THAT THE WEBMVC
         	FRAMEWORK SHOULD SCAN TO FIND YOUR ACTIONS; IT IS A COMMA-SEPARATED 
         	LIST OF FULLY QUALIFIED PACKAGE NAMES. IN ORDER TO AVOID THE SAME
         	ACTIONS TO BE SCANNED AND INSTRUMENTED TWICE YOU MUST AVOID PLACING 
@@ -35,21 +35,21 @@
         	QUALIFIED CLASS NAMES 'START WITH' THE GIVEN STRINGS.   
          -->
         <init-param>
-            <param-name>zephyr:actions-packages</param-name>
+            <param-name>webmvc:actions-packages</param-name>
             <param-value>org.example.demo.part1.actions,org.example.demo.part2.actions,org.example.demo.part1.actions</param-value>
         </init-param>
         
         <!--
         	++++++++++++++++++++++++++ OPTIONAL ++++++++++++++++++++++++++++++++
         	BY SETTING THIS PARAMETER TO 'true' YOU ARE INDICATING THAT YOU WANT 
-        	THE ZEPHYR FRAMEWORK TO EMIT JSR-349 (Bean Validation 1.1) VALIDATION
+        	THE WEBMVC FRAMEWORK TO EMIT JSR-349 (Bean Validation 1.1) VALIDATION
         	CODE WHEN GENERATING THE STUBS FOR YOUR ACTIONS. IT IS YOUR RESPONSIBILITY
         	TO PROVIDE A VALID IMPLEMENTATION AT RUNTIME; JBOSS ALREADY HAS ONE 
         	(HIBERNATE VALIDATOR), OTHER APPLICATION SERVER MAY ALREADY HAVE ONE,
         	OR YOU CAN YOU HIBERNATE (AS WE DO IN THIS DEMO PROJECT).   
          -->
         <init-param>
-        	<param-name>zephyr:enable-validation</param-name>
+        	<param-name>webmvc:enable-validation</param-name>
         	<param-value>true</param-value>
         </init-param>
 
@@ -62,7 +62,7 @@
 			CALLED 'custom', WHICH IS THEN USED FOR OUR ACTIONS. 
 		 -->
         <init-param>
-            <param-name>zephyr:interceptors-declaration</param-name>
+            <param-name>webmvc:interceptors-declaration</param-name>
             <param-value>classpath:interceptors/custom-interceptors.xml</param-value>
         </init-param>
         
@@ -74,7 +74,7 @@
         	STACK THEY WANT TO USE.  
          -->
         <init-param>
-        	<param-name>zephyr:interceptors-default-stack</param-name>
+        	<param-name>webmvc:interceptors-default-stack</param-name>
         	<param-value>default</param-value>
         </init-param>
         
@@ -90,7 +90,7 @@
         	PRESENTATION LOGIC INSIDE YOUR ACTION.
          -->
         <init-param>
-        	<param-name>zephyr:renderers-packages</param-name>
+        	<param-name>webmvc:renderers-packages</param-name>
         	<param-value></param-value>
         </init-param>
         
@@ -102,7 +102,7 @@
         	DECLARE IT.        	 
          -->
 		<init-param>
-			<param-name>zephyr:upload-directory</param-name>
+			<param-name>webmvc:upload-directory</param-name>
 			<param-value></param-value>
 		</init-param>  
 
@@ -113,7 +113,7 @@
 			MUST BE EXPRESSED IN BYTES (SO 1048576=1024X1024 IS ONE MEGABYTE.
 		 -->		
 		<init-param>
-			<param-name>zephyr:upload-max-file-size</param-name>
+			<param-name>webmvc:upload-max-file-size</param-name>
 			<param-value></param-value>
 		</init-param>      
         
@@ -128,14 +128,14 @@
         	IF YOU WANT TO CHANGE THIS LIMIT PUT YOURS IN HERE, EXPRESSED IN BYTES.
          -->
         <init-param>
-        	<param-name>zephyr:upload-max-request-size</param-name>
+        	<param-name>webmvc:upload-max-request-size</param-name>
         	<param-value></param-value>
         </init-param>
                 
     </filter>
 
     <filter-mapping>
-        <filter-name>Zephyr Controller</filter-name>
+        <filter-name>WebMVC Controller</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 

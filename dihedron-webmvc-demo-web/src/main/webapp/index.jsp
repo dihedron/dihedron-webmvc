@@ -2,7 +2,7 @@
 <%@ taglib prefix="z" uri="http://www.dihedron.org/webmvc"%>
 <html>
 <head>
-	<title>Zephyr Demo</title>
+	<title>WebMVC Demo</title>
 	<link href="css/main.css" type="text/css" rel="stylesheet">
 	<script src="js/jquery-2.1.0.js"></script>
 		
@@ -29,14 +29,14 @@
 	</script>
 </head>
 <body>
-	<h1>Zephyr Test Cases (ver. <z:version/>)</h1>
+	<h1>WebMVC Test Cases (ver. <z:version/>)</h1>
 
 
 	<fieldset>
 		<legend><b>Plain Form Submission (GET)</b></legend>
 		<p>By pressing the below button you are submitting a plain form to an action, using the HTTP GET method.</p> 
 		<p>The form contains a single parameter called "message", which is passed to the server-side action through an <code>@In</code> parameter; the receiving action will reverse the string 
-		and send it back through an <code>@Out</code> parameter called "echoGET", which will be stored as a request attribute and be made available to the page via the Zephyr tag library.</p>
+		and send it back through an <code>@Out</code> parameter called "echoGET", which will be stored as a request attribute and be made available to the page via the WebMVC tag library.</p>
 		<form action="TestAction!onSimpleFormSubmission" method="get" id="simpleGetForm">
 			<label for="message">Message</label><input type="text" name="message" value="" />
 			<input type="submit" title="Submit" name="Submit" value="Submit" />
@@ -54,7 +54,7 @@
 		<legend><b>Plain Form Submission (POST)</b></legend>
 		<p>By pressing the below button you are submitting a plain form to an action, using an HTTP POST call.</p> 
 		<p>The form contains a single parameter called "message", which is passed to the server-side action through an <code>@In</code> parameter; the receiving action will reverse the string 
-		and send it back through an <code>@Out</code> parameter called "echoPOST", which will be stored as a request attribute and be made available to the page via the Zephyr tag library.</p>
+		and send it back through an <code>@Out</code> parameter called "echoPOST", which will be stored as a request attribute and be made available to the page via the WebMVC tag library.</p>
 		<form action="TestAction!onSimpleFormSubmission" method="post" id="simplePostForm">
 			<label for="message">Message</label><input type="text" name="message" value="" />
 			<input type="submit" title="Submit" name="Submit" value="Submit" />
@@ -75,6 +75,11 @@
 		<p>The form contains many parameters of different types; each of them is mapped to the an input (<code>@In</code>) parameter to the server side method.</p>
 		<p>The method requires validation of some of its inputs, so some warning messages might appear on the log if any of the constraints is not satisfied.</p>  
 		<p>The JSON representation of the form will be returned as an <code>@Out</code> parameter and be made available on the page.</p>
+		
+		<div id="errors">
+			<!--  TODO: enumerate errors in sesion and print them out as separate paragraphs -->
+		</div>
+		
 		<form action="TestAction!onComplexFormSubmission" method="post" id="complexForm">
 			<table>
 				<tr>
@@ -303,7 +308,7 @@
 		<i>
 		<p><em>NOTE:</em> this example may or may not work, depending on the application server, due to a bug in the Servlet 3.0 specification:
 		the specifications requires application servers to parse incoming multipart/form-data requests only if the target servlet is annotated
-		with <code>@MultipartConfig</code>; filters, and the Zephyr Controller with them, is not a servlet, and does not require any servlet 
+		with <code>@MultipartConfig</code>; filters, and the WebMVC Controller with them, is not a servlet, and does not require any servlet 
 		to be deployed to work; thus, the HttpServletRequest#getParts() method may return an empty collection if the implementors interpreted
 		the specification as forbidding the parts parsing unless the target is an annotated servlet. This is the case with Apache Tomcat, but
 		you can force the server to behave in a less strict way by setting the <code>allowCasualMultipartParsing</code> parameter in the context.</p>

@@ -375,7 +375,7 @@ public class ActionController implements Filter, ActionControllerMBean {
 	/**
 	 * Initialises the action registry with information taken from the actions
 	 * found under the Java packages specified by means of the
-	 * {@code zephyr:actions-packages} parameter in the {@code web.xml}.
+	 * {@code webmvc:actions-packages} parameter in the {@code web.xml}.
 	 * 
 	 * @throws WebMVCException
 	 */
@@ -576,7 +576,7 @@ public class ActionController implements Filter, ActionControllerMBean {
 			attributes.put("type", "ActionController");
 			attributes.put("instance", filter.getFilterName());
 			attributes.put("version", WebMVC.getVersion());
-	        name = new ObjectName(WebMVC.DIHEDRON_ZEPHYR_DOMAIN, attributes);  
+	        name = new ObjectName(WebMVC.DIHEDRON_WEBMVC_DOMAIN, attributes);  
 	        mbs.registerMBean(this, name);
 	        logger.info("... WebMVC Controller JMX MBean successfully registered under name '{}'", name.getCanonicalName());
 		} catch (MalformedObjectNameException e) {
@@ -599,7 +599,7 @@ public class ActionController implements Filter, ActionControllerMBean {
 			attributes.put("type", "ActionController");
 			attributes.put("instance", filter.getFilterName());
 			attributes.put("version", WebMVC.getVersion());
-	        name = new ObjectName(WebMVC.DIHEDRON_ZEPHYR_DOMAIN, attributes);  
+	        name = new ObjectName(WebMVC.DIHEDRON_WEBMVC_DOMAIN, attributes);  
 	        mbs.unregisterMBean(name);
 	        logger.info("... WebMVC Controller JMX MBean with name '{}' successfully unregistered", name.getCanonicalName());
 		} catch (MalformedObjectNameException e) {

@@ -7,7 +7,7 @@
 				<key>exclude</key>
 				<value>\s*org\.apache\.tomcat\.util\.scan\.MergedWebXml\s*</value>
 				<!-- 
-				<value>^[A-Z_]*$|^org\.apache.*|^javax\.servlet.*|^org\.dihedron\.zephyr.*|^j_.*</value>
+				<value>^[A-Z_]*$|^org\.apache.*|^javax\.servlet.*|^org\.dihedron\.webmvc.*|^j_.*</value>
 				-->
 			</parameter>
 			<parameter>

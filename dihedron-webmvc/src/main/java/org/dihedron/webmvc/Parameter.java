@@ -33,7 +33,7 @@ public enum Parameter {
      * where actions are to be located. Each of these packages will be scanned
      * for <code>@Action</code>-annotated classes.
      */
-    ACTIONS_JAVA_PACKAGES("zephyr:actions-packages"),
+    ACTIONS_JAVA_PACKAGES("webmvc:actions-packages"),
     
     /**
      * A properties file used to initialise values for the actions managed by
@@ -44,7 +44,7 @@ public enum Parameter {
      * <li>file://path/to/configuration.properties</li>
      * </ul>.
      */
-    ACTIONS_CONFIGURATION("zephyr:actions-configuration"),
+    ACTIONS_CONFIGURATION("webmvc:actions-configuration"),
 
     /**
      * The parameter used to specify if JSR-349 bean validation code should be
@@ -53,86 +53,86 @@ public enum Parameter {
      * specification (such as Hibernate Validator) to be available on the class
      * path.
      */
-    ACTIONS_ENABLE_VALIDATION("zephyr:enable-validation"),
+    ACTIONS_ENABLE_VALIDATION("webmvc:enable-validation"),
 
     /**
      * The parameter used to override the name of the interceptors stack
      * configuration XML file; by default it is called "interceptors-config.xml".
      */
-    INTERCEPTORS_DECLARATION("zephyr:interceptors-declaration"),
+    INTERCEPTORS_DECLARATION("webmvc:interceptors-declaration"),
 
     /**
      * The parameter used to override the default interceptors stack to be
      * used when invoking non-configured or non-fully-configured actions; by
      * default it is the "default" stack.
      */
-    INTERCEPTORS_DEFAULT_STACK("zephyr:interceptors-default-stack"),
+    INTERCEPTORS_DEFAULT_STACK("webmvc:interceptors-default-stack"),
 
     /**
      * The comma-separated list of Java packages where custom renderer classes
      * are looked for, if non null.
      */
-    RENDERERS_JAVA_PACKAGES("zephyr:renderers-packages"),
+    RENDERERS_JAVA_PACKAGES("webmvc:renderers-packages"),
     
     /**
      * The directory in which temporary uploaded files will be stored.
      */
-    UPLOADED_FILES_DIRECTORY("zephyr:upload-directory"),
+    UPLOADED_FILES_DIRECTORY("webmvc:upload-directory"),
 
     /**
      * The maximum size of uploaded files; files exceeding this size will not be 
      * accepted.
      */
-    UPLOADED_FILES_MAX_FILE_SIZE("zephyr:upload-max-file-size"),
+    UPLOADED_FILES_MAX_FILE_SIZE("webmvc:upload-max-file-size"),
 
     /**
      * The maximum size of uploaded files; files exceeding this size will not be 
      * accepted.
      */
-    UPLOADED_FILES_MAX_REQUEST_SIZE("zephyr:upload-max-request-size"),
+    UPLOADED_FILES_MAX_REQUEST_SIZE("webmvc:upload-max-request-size"),
     
     /**
      * The maximum size of uploaded files that will be kept in memory; files 
      * smaller than this threshold will be kept in memory, larger ones will be 
      * written out to disk (see {@link #UPLOADED_FILES_DIRECTORY}.
      */
-    UPLOADED_SMALL_FILE_SIZE_THRESHOLD("zephyr:upload-small-file-threshold"),
+    UPLOADED_SMALL_FILE_SIZE_THRESHOLD("webmvc:upload-small-file-threshold"),
 
     /**
      * The default page to be shown when an internal error occurs.
      */
-    DEFAULT_ERROR_PAGE("zephyr:default-error-page"),
+    DEFAULT_ERROR_PAGE("webmvc:default-error-page"),
 
     /**
      * The parameter used to specify the root directory for JSP renderers.
      * This is used only when dealing with annotated actions and smart defaults,
      * to build the name of renderer JSPs based on the action's result.
      */
-    JSP_ROOT_PATH("zephyr:jsp-root-path"),
+    JSP_ROOT_PATH("webmvc:jsp-root-path"),
 
     /**
      * The parameter used to specify the pattern to create the path to JSP
      * pages for auto-configured targets. Accepted variables include:<ul>
      * <li><b>${rootdir}</b>: the root directory, as specified via
-     * parameter <code>zephyr:jsp-root-path</code>;</li>
+     * parameter <code>webmvc:jsp-root-path</code>;</li>
      * <li><b>${action}</b>: the name of the action;<li>
      * <li><b>${method}</b>: the name of the method;<li>
      * <li><b>${result}</b>: the result id of the execution, e.g. "success";<li>
      * </ul>
      */
-    JSP_PATH_PATTERN("zephyr:jsp-path-pattern"),
+    JSP_PATH_PATTERN("webmvc:jsp-path-pattern"),
 
     /**
      * The parameter used to specify an optional set of packages to be scanned
      * for application-server-specific plugins.
      */
-    WEB_CONTAINER_PACKAGES("zephyr:web-container-packages"),
+    WEB_CONTAINER_PACKAGES("webmvc:web-container-packages"),
 
     /**
      * The parameter used to specify an optional application-server-specific plugin,
      * which will be used by the framework to retrieve platform-specific data.
      */
-    WEB_CONTAINER_PLUGIN("zephyr:web-container-plugin");
+    WEB_CONTAINER_PLUGIN("webmvc:web-container-plugin");
 
     /**
      * Constructor.

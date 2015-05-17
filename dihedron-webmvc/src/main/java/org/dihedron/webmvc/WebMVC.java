@@ -35,7 +35,7 @@ public final class WebMVC {
 	/**
 	 * A string representing the WebMVC framework domain name (JMX).
 	 */
-	public static final String DIHEDRON_ZEPHYR_DOMAIN = "org.dihedron.webmvc";
+	public static final String DIHEDRON_WEBMVC_DOMAIN = "org.dihedron.webmvc";
 		
     /**
      * The logger.
@@ -52,13 +52,13 @@ public final class WebMVC {
      * Initialises the library properties.
      */
     static {
-//    	logger.trace("trying to open the zephyr properties stream");
+//    	logger.trace("trying to open the WebMVC properties stream");
     	try(InputStream stream = WebMVC.class.getClassLoader().getResourceAsStream("webmvc.properties")) {
-//            logger.trace("zephyr properties stream acquired, loading properties (stream is {})", stream != null ? "valid" : "null");
+//            logger.trace("WebMVC properties stream acquired, loading properties (stream is {})", stream != null ? "valid" : "null");
             properties.load(stream);
-//            logger.trace("zephyr properties loaded and ready");
+//            logger.trace("WebMVC properties loaded and ready");
         } catch (IOException e) {
-            logger.error("error opening the zephyr properties file", e);
+            logger.error("error opening the WebMVC properties file", e);
         }
     }
     

@@ -19,6 +19,7 @@ import org.dihedron.webmvc.exceptions.DeploymentException;
 import org.dihedron.webmvc.exceptions.WebMVCException;
 import org.dihedron.webmvc.interceptors.registry.InterceptorsRegistry;
 import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
@@ -101,7 +102,7 @@ public class TargetFactory {
                     new Reflections(new ConfigurationBuilder()
                             .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(javaPackage)))
                             .setUrls(ClasspathHelper.forPackage(javaPackage))
-                            .setScanners(new TypeAnnotationsScanner()));
+                            .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner()));
             Set<Class<?>> actions = reflections.getTypesAnnotatedWith(Action.class);
             for (Class<?> action : actions) {
             	if(!instrumentedActions.contains(action)) {

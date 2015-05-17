@@ -1,21 +1,6 @@
-/**
- * Copyright (c) 2014, Andrea Funto'. All rights reserved.
- * 
- * This file is part of the WebMVC framework ("WebMVC").
- *
- * WebMVC is free software: you can redistribute it and/or modify it under 
- * the terms of the GNU Lesser General Public License as published by the Free 
- * Software Foundation, either version 3 of the License, or (at your option) 
- * any later version.
- *
- * WebMVC is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR 
- * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more 
- * details.
- *
- * You should have received a copy of the GNU Lesser General Public License 
- * along with WebMVC. If not, see <http://www.gnu.org/licenses/>.
- */
+/*
+ * Copyright (c) 2012-2015, Andrea Funto'. All rights reserved. See LICENSE for details.
+ */ 
 package org.dihedron.webmvc.validation;
 
 import org.slf4j.Logger;
@@ -27,7 +12,7 @@ import java.util.Set;
 /**
  * @author Andrea Funto'
  */
-public class DefaultValidationHandler implements ValidationHandler {
+public class DefaultValidationHandler extends BaseValidationHandler {
     /**
      * The logger.
      */
@@ -40,6 +25,9 @@ public class DefaultValidationHandler implements ValidationHandler {
     public String onParametersViolations(String action, String method, Set<ConstraintViolation<?>> violations) {
         for (ConstraintViolation<?> violation : violations) {
             logger.warn("{}!{}: violation on parameter '{}' having value '{}': {}", action, method, violation.getPropertyPath().toString(), violation.getInvalidValue(), violation.getMessage());
+            addParameterViolationMessage("violation on parameter '" 
+            		+ violation.getPropertyPath().toString() + "' having value '" +
+            		violation.getInvalidValue() + "': " + violation.getMessage());
         }
         return null;
     }
@@ -51,6 +39,9 @@ public class DefaultValidationHandler implements ValidationHandler {
     public String onResultViolations(String action, String method, Set<ConstraintViolation<?>> violations) {
         for (ConstraintViolation<?> violation : violations) {
             logger.warn("{}!{}: violation on return value '{}': {}", action, method, violation.getInvalidValue(), violation.getMessage());
+            addParameterViolationMessage("violation on return value '" +
+            		violation.getInvalidValue() + "': " + violation.getMessage());
+
         }
         return null;
     }
@@ -63,6 +54,10 @@ public class DefaultValidationHandler implements ValidationHandler {
         for (ConstraintViolation<?> violation : violations) {
             logger.warn("{}!{}: violation on model bean {}, property '{}' (no. {}), having value '{}': {} ({})", action, method, model.getSimpleName(), 
             		violation.getPropertyPath().toString(), index, violation.getInvalidValue(), violation.getMessage());
+            addParameterViolationMessage("violation on model bean '" + model.getSimpleName() + "', property '" +
+            		violation.getPropertyPath().toString() + " has invalid value " + 
+            		violation.getInvalidValue() + "': " + violation.getMessage());
+            
         }
         return null;
     }
