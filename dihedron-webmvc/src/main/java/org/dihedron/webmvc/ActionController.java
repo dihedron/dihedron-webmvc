@@ -200,7 +200,7 @@ public class ActionController implements Filter, ActionControllerMBean {
 		String uri = request.getRequestURI();
 
 
-		logger.trace("servicing request for '{}' (query string: '{}', context path: '{}', request URI: '{}')...", targetId, queryString, contextPath, uri);
+		logger.debug("servicing request for '{}' (query string: '{}', context path: '{}', request URI: '{}')...", targetId, queryString, contextPath, uri);
 
 		try {
 			ActionContext.bindContext(filter, request, response, configuration, server, uploadInfo);
@@ -221,7 +221,7 @@ public class ActionController implements Filter, ActionControllerMBean {
 			Result result = null;
 			while(TargetId.isValidTargetId(targetId) && (result == null || result.getRendererId().equals("chain"))) {
 				
-				logger.info("invoking target '{}'...", targetId);
+				logger.debug("invoking target '{}'...", targetId);
 				
 				// check if there's configuration available for the given action
 				Target target = registry.getTarget(targetId);
@@ -408,7 +408,7 @@ public class ActionController implements Filter, ActionControllerMBean {
 			logger.error("no Java packages specified for actions: check parameter '{}'", Parameter.ACTIONS_JAVA_PACKAGES.getName());
 			throw new DeploymentException("No Java package specified for actions: check parameter '" + Parameter.ACTIONS_JAVA_PACKAGES.getName() + "'");
 		}
-		logger.trace("actions configuration:\n{}", registry.toString());
+		logger.info("actions configuration:\n{}", registry.toString());
 	}
 	
     /**
@@ -423,16 +423,16 @@ public class ActionController implements Filter, ActionControllerMBean {
 		interceptors = new InterceptorsRegistry();
 		
 		// load the default interceptors stacks ("default" and others)
-		logger.info("loading default interceptors stacks: '{}'", InterceptorsRegistry.DEFAULT_INTERCEPTORS_CONFIG_XML);
+		logger.trace("loading default interceptors stacks: '{}'", InterceptorsRegistry.DEFAULT_INTERCEPTORS_CONFIG_XML);
 		interceptors.load(InterceptorsRegistry.DEFAULT_INTERCEPTORS_CONFIG_XML);
-		logger.trace("pre-configured interceptors stacks:\n{}", interceptors.toString());
+		//logger.trace("pre-configured interceptors stacks:\n{}", interceptors.toString());
 		
 		// load the custom interceptors configuration
 		String value = Parameter.INTERCEPTORS_DECLARATION.getValueFor(filter);
 		if(Strings.isValid(value)) {			
     		logger.debug("loading interceptors' configuration from '{}'", value);
     		try {
-    			interceptors.load(value);
+    			interceptors.load(value);    			
     		} catch(WebMVCException e) {
     			logger.error("invalid URL '{}' for interceptors stacks: check parameter '{}' in your web.xml", value, Parameter.INTERCEPTORS_DECLARATION.getName());
     			throw e;
@@ -452,7 +452,9 @@ public class ActionController implements Filter, ActionControllerMBean {
 //    		} catch (IOException e) {
 //    			logger.error("error reading from URL '{}', interceptors stacks will be unavailable", value);
 //			}			
-		}    	
+		} 
+		
+		logger.info("interceptors stacks:\n{}", interceptors.toString());
     }	
 
 	/**

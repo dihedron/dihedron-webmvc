@@ -21,6 +21,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -87,7 +88,7 @@ public class ActionContext {
 	private static ThreadLocal<ActionContext> context = new ThreadLocal<ActionContext>() {
 		@Override
 		protected ActionContext initialValue() {
-			logger.debug("creating action context instance for thread {}", Thread.currentThread().getId());
+			logger.trace("creating action context instance for thread {}", Thread.currentThread().getId());
 			return new ActionContext();
 		}
 	};
@@ -167,7 +168,7 @@ public class ActionContext {
 	 * @throws WebMVCException 
 	 */
 	static void bindContext(FilterConfig filter, HttpServletRequest request, HttpServletResponse response, Properties configuration, WebServer server, FileUploadConfiguration uploadInfo) throws WebMVCException {
-		logger.debug("initialising the action context for thread {}", Thread.currentThread().getId());
+		logger.trace("initialising the action context for thread {}", Thread.currentThread().getId());
 		getContext().filter = filter;
 		getContext().request = request;
 		getContext().response = response;
@@ -268,6 +269,17 @@ public class ActionContext {
 //			}
 //		}
 		context.remove();
+	}
+	
+	/**
+	 * Returns a reference to the servlet context.
+	 * 
+	 * @return
+	 *   a reference to the servlet context.
+	 */
+	public static ServletContext getServletContext() {
+		// TODO: need to check on this: getContext().request.getSession().getServletContext();
+		return getContext().filter.getServletContext();
 	}
 
 	/**
