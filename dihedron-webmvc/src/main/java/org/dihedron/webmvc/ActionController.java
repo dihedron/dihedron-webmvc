@@ -194,11 +194,9 @@ public class ActionController implements Filter, ActionControllerMBean {
 		// NOTE: getPathInfo() does not work in filters, where the exact servlet that will 
 		// end up handling the request is not determined; the only reliable way seems to be 
 		// by stripping the context path from the complete request URI
-		String targetId = request.getRequestURI().substring(contextPath.length() + 1); // strip the leading '/'
-		String queryString = request.getQueryString();
-
 		String uri = request.getRequestURI();
-
+		String targetId = uri.substring(contextPath.length() + 1); // strip the leading '/'
+		String queryString = request.getQueryString();
 
 		logger.debug("servicing request for '{}' (query string: '{}', context path: '{}', request URI: '{}')...", targetId, queryString, contextPath, uri);
 
@@ -231,7 +229,7 @@ public class ActionController implements Filter, ActionControllerMBean {
 				// instantiate the action
 				Object action = ActionFactory.makeAction(target);
 				if(action != null) {
-					logger.info("action instance '{}' ready", target.getActionClass().getSimpleName());
+					logger.trace("action instance '{}' ready", target.getActionClass().getSimpleName());
 				} else {    			 	
 					logger.error("could not create an action instance for target '{}'", target.getId());
 					throw new WebMVCException("No action could be found for target '" + target.getId() + "'");
@@ -273,7 +271,7 @@ public class ActionController implements Filter, ActionControllerMBean {
 						logger.error("misconfiguration in registry: target '{}' and result '{}' have no valid processing information", target.getId(), invocationResult);
 						throw new WebMVCException("No valid information found in registry for target '" + target.getId() + "', result '" + invocationResult + "', please check your actions");
 						
-				} while(false);
+					} while(false);
 					
 				} finally {
 					logger.debug("... business logic invocation done!");
@@ -294,14 +292,14 @@ public class ActionController implements Filter, ActionControllerMBean {
 					logger.debug("... resource invocation done!");
 					invocation.cleanup();
 				}
+			}
 				
-				if(result == null) {
-					logger.trace("after interceptors application, letting the server handle the resource...");
-					chain.doFilter(req, res);				
-				} else {
-					Renderer renderer = renderers.getRenderer(result.getRendererId());
-					renderer.render(request, response, result.getData());
-				}
+			if(result == null) {
+				logger.trace("after interceptors application, letting the server handle the resource...");
+				chain.doFilter(req, res);				
+			} else {
+				Renderer renderer = renderers.getRenderer(result.getRendererId());
+				renderer.render(request, response, result.getData());
 			}
 		} finally {
 			ActionContext.unbindContext();

@@ -616,7 +616,52 @@ public class ActionContext {
 	public static void setMaxInactiveSessionInterval(int time) {
 		getContext().request.getSession().setMaxInactiveInterval(time);
 	}
-
+	
+	/**
+	 * Returns the part of this request's URL from the protocol name 
+	 * up to the query string in the first line of the HTTP request.
+	 * 
+	 * @return
+	 *   the request URI.
+	 */
+	public static String getRequestURI() {
+		return getContext().request.getRequestURI();
+	}
+	
+	/**
+	 * Reconstructs the URL the client used to make the request.
+	 * 
+	 * @return
+	 *   the URL the client used to make the request.
+	 */
+	public static StringBuffer getRequestURL() {
+		return getContext().request.getRequestURL();
+	}
+	
+	/**
+	 *  Returns any extra path information associated with the URL the 
+	 *  client sent when it made this request.
+	 * 
+	 * @return
+	 *   any extra path information associated with the URL the
+	 *   client sent when it made this request.
+	 */
+	public static String getPathInfo() {
+		return getContext().request.getPathInfo();
+	}
+	
+	/**
+	 *  Returns any extra path information after the servlet name but 
+	 *  before the query string, and translates it to a real path.
+	 * 
+	 * @return
+	 *   any extra path information after the servlet name but 
+	 *   before the query string, and translates it to a real path.
+	 */
+	public static String getPathTranslated() {
+		return getContext().request.getPathTranslated();
+	}
+		
 	/**
 	 * Returns an array containing all of the Cookie properties. This method
 	 * returns null if no cookies exist.

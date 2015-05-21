@@ -103,7 +103,7 @@ public class ActionProxyBuilder {
 	private static String proxyClassNameSuffix = DEFAULT_PROXY_CLASS_NAME_SUFFIX;
 	private static String stubMethodNamePrefix = DEFAULT_PROXY_METHOD_NAME_PREFIX;
 	private static String stubMethodNameSuffix = DEFAULT_PROXY_METHOD_NAME_SUFFIX;
-
+	
 	public class ActionProxyBuilderContext {
 
 		/**
@@ -163,11 +163,10 @@ public class ActionProxyBuilder {
 
 			if (action == null) {
 				// fluent API state machine check: when we get here we must
-				// already
-				// have been provided a valid action class to work on
-				logger.error("this is probably a bug in your code: did you call method \"on(<action class>)\" to provide tha class to work on, before invoking this method?");
+				// already have been provided a valid action class to work on
+				logger.error("this is probably a bug in your code: you must provide the class to instrument");
 				throw new DeploymentException(
-						"the action class must be specified: did you call method \"on(<action class>)\" before invoking this method?");
+						"The action class must be specified: did you call method \"on(<action class>)\" before invoking this method?");
 			}
 
 			logger.trace("building proxy around class '{}'...", action.getName());
