@@ -31,7 +31,7 @@ import org.dihedron.core.regex.Regex;
 import org.dihedron.core.strings.StringTokeniser;
 import org.dihedron.core.strings.Strings;
 import org.dihedron.webmvc.ActionContext;
-import org.dihedron.webmvc.ActionInvocation;
+import org.dihedron.webmvc.Invocation;
 import org.dihedron.webmvc.exceptions.WebMVCException;
 import org.dihedron.webmvc.interceptors.Interceptor;
 import org.dihedron.webmvc.protocol.Conversation;
@@ -105,7 +105,7 @@ public class Dumper extends Interceptor {
 	 *   org.dihedron.strutlets.interceptors.Interceptor#intercept(org.dihedron.strutlets.ActionInvocation)
 	 */
 	@Override
-	public String intercept(ActionInvocation invocation) throws WebMVCException {
+	public String intercept(Invocation invocation) throws WebMVCException {
 		StringBuilder builder = new StringBuilder();
 		for(Scope scope : scopes) {
 			dumpValues(scope, builder);

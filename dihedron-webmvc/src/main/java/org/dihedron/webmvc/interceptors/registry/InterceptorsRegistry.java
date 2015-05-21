@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -254,9 +255,11 @@ public class InterceptorsRegistry {
 					
 					String stackId = s.getAttribute("id");
 					InterceptorStack stack = new InterceptorStack(stackId);
-					logger.trace("interceptor stack '{}' ", stack.getId());
+					logger.trace("interceptor stack '{}' ", stack.getId()); 
 					
-					for(Element i : DOM.getChildrenByTagName(s, "interceptor")) {
+					// load interceptors
+					//for(Element i : DOM.getChildrenByTagName(s, "interceptor")) {
+					for(Element i : DOM.getDescendantsByTagName(s, "interceptor")) {
 						String interceptorId = i.getAttribute("id");
 						String interceptorClass = i.getAttribute("class");
 						Interceptor interceptor = (Interceptor)Class.forName(interceptorClass).newInstance();
@@ -264,8 +267,10 @@ public class InterceptorsRegistry {
 						logger.trace(" + interceptor '{}' ", interceptorId);
 						
 						for(Element parameter : DOM.getChildrenByTagName(i, "parameter")) {
-							String key = DOM.getElementText(DOM.getFirstChildByTagName(parameter, "key"));
-							String value = DOM.getElementText(DOM.getFirstChildByTagName(parameter, "value"));
+							//String key = DOM.getElementText(DOM.getFirstChildByTagName(parameter, "key"));							
+							//String value = DOM.getElementText(DOM.getFirstChildByTagName(parameter, "value"));
+							String key = parameter.getAttribute("key");
+							String value = DOM.getElementText(parameter);
 							interceptor.setParameter(key, value);
 							logger.trace("   + parameter '{}' has value '{}'", key, value);
 						}	
@@ -274,6 +279,22 @@ public class InterceptorsRegistry {
 						
 						stack.add(interceptor);
 					}
+					
+					// load global results
+					List<Element> rs = DOM.getDescendantsByTagName(s, "result");
+					if(rs != null && !rs.isEmpty()) {
+						for(Element r : rs) {
+							String resultId = r.getAttribute("value");
+							String rendererId = r.getAttribute("renderer");
+							String data = DOM.getElementText(r);
+							if(Strings.isValid(rendererId)) {
+								stack.addGlobalResult(resultId, rendererId, data);
+							} else {
+								stack.addGlobalResult(resultId, data);
+							}
+						}
+					}
+					
 					stacks.put(stack.getId(), stack);
 				}
 				logger.info("configuration loaded");
@@ -331,7 +352,7 @@ public class InterceptorsRegistry {
 	public String toString() {
 		StringBuilder buffer = new StringBuilder();
 		for(Entry<String, InterceptorStack> entry : stacks.entrySet()) {
-			buffer.append("--------- INTERCEPTOR ---------\n");
+			buffer.append("------------ STACK ------------\n");
 			buffer.append(entry.getValue().toString());
 		}
 		buffer.append("-------------------------------\n");

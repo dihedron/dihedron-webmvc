@@ -1,27 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="interceptors.xsd">
 	<stack id="default">
-		<interceptor id="profiler" class="org.dihedron.webmvc.interceptors.impl.Profiler"/>
-		<interceptor id="dumper" class="org.dihedron.webmvc.interceptors.impl.Dumper">		 
-			<parameter>
-				<key>exclude</key>
-				<value>\s*org\.apache\.tomcat\.util\.scan\.MergedWebXml\s*</value>
+		<interceptors>
+			<interceptor id="profiler" class="org.dihedron.webmvc.interceptors.impl.Profiler"/>
+			<interceptor id="dumper" class="org.dihedron.webmvc.interceptors.impl.Dumper">		 
+				<parameter key="exclude">\s*org\.apache\.tomcat\.util\.scan\.MergedWebXml\s*</parameter>
 				<!-- 
-				<value>^[A-Z_]*$|^org\.apache.*|^javax\.servlet.*|^org\.dihedron\.webmvc.*|^j_.*</value>
-				-->
-			</parameter>
-			<parameter>
-				<key>scopes</key>
-				<value>form,request,conversation,session,sticky,application</value>
-			</parameter>
-		</interceptor>
+				<parameter key="exclude">^[A-Z_]*$|^org\.apache.*|^javax\.servlet.*|^org\.dihedron\.webmvc.*|^j_.*</parameter>
+				-->			
+				<parameter key="scopes">form,request,conversation,session,sticky,application</parameter>			
+			</interceptor>
 		<!-- 
-		<interceptor id="double-submit" class="org.dihedron.strutlets.interceptors.impl.Resubmit">
-			<parameter>
-				<key>result</key>
-				<value>error_double_submit</value>
-			</parameter>
-		</interceptor>
+			<interceptor id="double-submit" class="org.dihedron.strutlets.interceptors.impl.Resubmit">
+				<parameter key="result">error_double_submit</parameter>			
+			</interceptor>
 		-->
+		</interceptors>
+		<results>
+			<result value="uncaught_exception" renderer="jsp">internal_error.jsp</result>
+		</results>
 	</stack>
 </configuration>

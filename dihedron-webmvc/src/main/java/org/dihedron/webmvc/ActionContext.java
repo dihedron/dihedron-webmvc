@@ -235,7 +235,7 @@ public class ActionContext {
 	 * feature).
 	 */
 	static void unbindContext() {
-		logger.debug("removing action context for thread {}", Thread.currentThread().getId());
+		logger.trace("removing action context for thread {}", Thread.currentThread().getId());
 		getContext().filter = null;
 		getContext().request = null;
 		getContext().response = null;
@@ -857,7 +857,7 @@ public class ActionContext {
 			String conversationId = Conversation.getConversationId(key);
 			String valueId = Conversation.getValueId(key);
 			if(Strings.areValid(conversationId, valueId)) {
-				logger.trace("retrieving value '{}' in conversation '{}'", valueId, conversationId);
+//				logger.trace("retrieving value '{}' in conversation '{}'", valueId, conversationId);
 				@SuppressWarnings("unchecked")
 				Map<String, Map<String, Object>> conversations = (Map<String, Map<String, Object>>) getValue(CONVERSATION_SCOPED_ATTRIBUTES_KEY, Scope.SESSION);
 				if (conversations != null && conversations.get(conversationId) != null) {
@@ -893,7 +893,7 @@ public class ActionContext {
 			value = System.getenv(key);
 			break;
 		}
-		logger.trace("value '{}' in scope '{}' has value '{}' (class {})", key, scope.name(), value, value != null ? value.getClass().getSimpleName() : "n.a.");
+//		logger.trace("value '{}' in scope '{}' has value '{}' (class {})", key, scope.name(), value, value != null ? value.getClass().getSimpleName() : "n.a.");
 		return value;
 	}
 

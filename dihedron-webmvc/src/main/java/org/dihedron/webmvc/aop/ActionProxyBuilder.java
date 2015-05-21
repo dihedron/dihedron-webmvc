@@ -610,7 +610,7 @@ public class ActionProxyBuilder {
 
 			try {
 				// seal, compile and load the proxy class into the classloader
-				logger.info("sealing and loading the proxy class in the original action's classloader");
+				logger.info("sealing and loading the proxy class for '{}'", action.getSimpleName());
 				Class<?> proxyClass = metaclass.toClass(action.getClassLoader(), null);
 				proxy.setProxyClass(proxyClass);
 

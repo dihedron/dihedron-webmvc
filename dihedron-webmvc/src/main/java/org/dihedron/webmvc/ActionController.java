@@ -221,7 +221,7 @@ public class ActionController implements Filter, ActionControllerMBean {
 			Result result = null;
 			while(TargetId.isValidTargetId(targetId) && (result == null || result.getRendererId().equals("chain"))) {
 				
-				logger.debug("invoking target '{}'...", targetId);
+				logger.trace("invoking target '{}'...", targetId);
 				
 				// check if there's configuration available for the given action
 				Target target = registry.getTarget(targetId);
@@ -243,31 +243,65 @@ public class ActionController implements Filter, ActionControllerMBean {
 		    	// create and fire the action stack invocation				
 				ActionInvocation invocation = null;
 				try {
-					logger.info("invoking interceptors' stack...");
+					logger.trace("invoking interceptors' stack...");
 					invocation = new ActionInvocation(target, action, stack, request, response);
 					invocationResult = invocation.invoke();
 					if(invocationResult.equals(Action.DONE)) {
 						logger.trace("action request performed view rendering too, request is complete");
 						return;
 					}					
-					result = target.getResult(invocationResult);
-					logger.info("... invocation done!");
+					
+					do {
+						// look up the result amont thos already available (explicitly configured 
+						// only at first, then auto-configured too as the target warms up)
+						logger.trace("looking up result among target's ...");
+						result = target.getResult(invocationResult);						
+						if(result != null) break;
+
+						// is not among the target's, check if there is a global result handler
+						// at stack level
+						logger.trace("looking up result among globals in stack '{}'...", stack.getId());
+						result = stack.getGlobalResult(invocationResult);
+						if(result != null) break;
+										        
+			            // nope, then try to auto-configure one in the target
+						logger.trace("result '{}' is not present yet, auto-configuring...", invocationResult);
+			            result = target.addUndeclaredResult(invocationResult);
+			            if(result != null) break;
+					
+						// too bad, we're throwing an error because everyithing else failed
+						logger.error("misconfiguration in registry: target '{}' and result '{}' have no valid processing information", target.getId(), invocationResult);
+						throw new WebMVCException("No valid information found in registry for target '" + target.getId() + "', result '" + invocationResult + "', please check your actions");
+						
+				} while(false);
+					
 				} finally {
+					logger.debug("... business logic invocation done!");
 					invocation.cleanup();
-				}
-				
-				if(result == null) {
-					logger.error("misconfiguration in registry: target '{}' and result '{}' have no valid processing information", target.getId(), result);
-					throw new WebMVCException("No valid information found in registry for target '" + target.getId() + "', result '" + result + "', please check your actions");
 				}
 			} 
 			
 			if(result == null) {
-				logger.trace("letting the application handle the request: this is no action");
-				chain.doFilter(req, res);				
-			} else {
-				Renderer renderer = renderers.getRenderer(result.getRendererId());
-				renderer.render(request, response, result.getData());
+				logger.trace("'{}' is no action, treating as resource...", uri);
+				
+				InterceptorStack stack = interceptors.getStackOrDefault("resource");
+				ResourceInvocation invocation = null;
+				try {
+					invocation = new ResourceInvocation(uri, stack, request, response);
+					invocationResult = invocation.invoke();
+					result = stack.getGlobalResult(invocationResult);					
+				} finally {
+					logger.debug("... resource invocation done!");
+					invocation.cleanup();
+				}
+				
+				if(result == null) {
+					logger.trace("after interceptors application, letting the server handle the resource...");
+					chain.doFilter(req, res);				
+				} else {
+					Renderer renderer = renderers.getRenderer(result.getRendererId());
+					renderer.render(request, response, result.getData());
+				}
 			}
 		} finally {
 			ActionContext.unbindContext();
@@ -430,28 +464,13 @@ public class ActionController implements Filter, ActionControllerMBean {
 		// load the custom interceptors configuration
 		String value = Parameter.INTERCEPTORS_DECLARATION.getValueFor(filter);
 		if(Strings.isValid(value)) {			
-    		logger.debug("loading interceptors' configuration from '{}'", value);
+    		logger.trace("loading interceptors' configuration from '{}'", value);
     		try {
     			interceptors.load(value);    			
     		} catch(WebMVCException e) {
     			logger.error("invalid URL '{}' for interceptors stacks: check parameter '{}' in your web.xml", value, Parameter.INTERCEPTORS_DECLARATION.getName());
     			throw e;
     		}
-
-//    		URL url = null;
-//			try {
-//				url = URLFactory.makeURL(value);
-//			} catch (MalformedURLException e) {
-//				logger.error("invalid URL '{}' for interceptors stacks: check parameter '{}' in your web.xml", value, Parameter.INTERCEPTORS_DECLARATION.getName());
-//				return;
-//			}
-//
-//			try(InputStream stream = url.openConnection().getInputStream()) {
-//    			interceptors.loadFromStream(stream);
-//    			logger.trace("interceptors stacks:\n{}", interceptors.toString());
-//    		} catch (IOException e) {
-//    			logger.error("error reading from URL '{}', interceptors stacks will be unavailable", value);
-//			}			
 		} 
 		
 		logger.info("interceptors stacks:\n{}", interceptors.toString());

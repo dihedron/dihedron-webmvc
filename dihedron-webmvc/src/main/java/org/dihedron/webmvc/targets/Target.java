@@ -291,13 +291,14 @@ public class Target {
 
     }
 
-    public void addUndeclaredResult(String value) {
+    public Result addUndeclaredResult(String value) {
         String id = value;
         String renderer = DEFAULT_RENDERER;
         String data = makeJspUrl(id);
         logger.trace("adding (auto-configured) result '{}' with data '{}'", id, data);
         Result result = new Result(id, renderer, data);
         this.results.put(id, result);
+        return result;
     }
 
     /**
@@ -311,25 +312,23 @@ public class Target {
 
     /**
      * Returns the <code>Result</code> object corresponding to the given
-     * result string, or null if none found. If the target belongs to an auto-
-     * configured action and no result could be found, the methodName attempts 
-     * to reconstruct the information and returns it, after having added it to
-     * the set of valid results.
+     * result string, or null if none found.
      *
      * @param resultId 
      *   a result string (e.g. "success", "error").
      * @return 
-     *   the <code>Result</code> object corresponding to the given result string.
+     *   the <code>Result</code> object corresponding to the given result string, 
+     *   or {@code null} if it cannot be found.
      */
     public Result getResult(String resultId) {
         assert (Strings.isValid(resultId));
         logger.trace("retrieving result for id '{}'", resultId);
-        Result result = results.get(resultId);
-        if (result == null) {
-            logger.trace("result '{}' is not present yet, auto-configuring...", resultId);
-            addUndeclaredResult(resultId);
-        }
         return results.get(resultId);
+//        if (result == null) {
+//            logger.trace("result '{}' is not present yet, auto-configuring...", resultId);
+//            addUndeclaredResult(resultId);
+//        }
+//        return results.get(resultId);
     }
 
     /**

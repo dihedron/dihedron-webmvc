@@ -19,7 +19,7 @@
 
 package org.dihedron.webmvc.interceptors.impl;
 
-import org.dihedron.webmvc.ActionInvocation;
+import org.dihedron.webmvc.Invocation;
 import org.dihedron.webmvc.exceptions.WebMVCException;
 import org.dihedron.webmvc.interceptors.Interceptor;
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ public class Profiler extends Interceptor {
 	 *   org.dihedron.strutlets.interceptors.Interceptor#intercept(org.dihedron.strutlets.ActionInvocation)
 	 */
 	@Override
-	public String intercept(ActionInvocation invocation) throws WebMVCException {
+	public String intercept(Invocation invocation) throws WebMVCException {
 		long start = System.currentTimeMillis();
 		String result = invocation.invoke();
 		logger.debug("action execution took {} ms", System.currentTimeMillis() - start);

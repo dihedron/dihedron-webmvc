@@ -7,7 +7,7 @@ package org.dihedron.webmvc.interceptors;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.dihedron.webmvc.ActionInvocation;
+import org.dihedron.webmvc.Invocation;
 import org.dihedron.webmvc.exceptions.WebMVCException;
 
 /**
@@ -105,10 +105,10 @@ public abstract class Interceptor {
 	 * The method implementing the interceptor's business logic.
 	 * 
 	 * @param invocation
-	 *   the action invocation object.
+	 *   the action or request invocation object.
 	 * @return 
 	 *   a result string.
 	 * @throws WebMVCException
 	 */
-	public abstract String intercept(ActionInvocation invocation) throws WebMVCException;
+	public abstract String intercept(Invocation invocation) throws WebMVCException;
 }

@@ -27,6 +27,7 @@ import javax.servlet.http.HttpSession;
 import org.dihedron.core.strings.Strings;
 import org.dihedron.webmvc.ActionContext;
 import org.dihedron.webmvc.ActionInvocation;
+import org.dihedron.webmvc.Invocation;
 import org.dihedron.webmvc.exceptions.WebMVCException;
 import org.dihedron.webmvc.interceptors.Interceptor;
 import org.dihedron.webmvc.protocol.Scope;
@@ -105,33 +106,36 @@ public class Resubmit extends Interceptor {
 	 *   org.dihedron.strutlets.interceptors.Interceptor#intercept(org.dihedron.strutlets.ActionInvocation)
 	 */
 	@Override
-	public String intercept(ActionInvocation invocation) throws WebMVCException {
+	public String intercept(Invocation invocation) throws WebMVCException {
 		
 		String result = null;
 
-
-		logger.trace("in action or resource phase");
-		String[] tokens = (String[])ActionContext.getValue(FORM_TOKEN, Scope.FORM);
-		if(tokens != null && tokens.length > 0) {
-			long timestamp = Long.parseLong(tokens[0]);
-			logger.trace("form time: '{}'", timestamp);
-			Map<Long, String> submits = ensureSubmitDataAvailable();
-			synchronized(submits) {
-				if(submits.containsKey(timestamp)) {
-					if(Strings.isValid(defaultResult)) {
-						logger.error("action execution aborted due to double-submit, forwarding default result for target '{}': '{}'", invocation.getTarget().getId().toString(), defaultResult);
-						result = defaultResult;
+		if(invocation instanceof ActionInvocation) {
+			logger.trace("in business login invocation");
+			String[] tokens = (String[])ActionContext.getValue(FORM_TOKEN, Scope.FORM);
+			if(tokens != null && tokens.length > 0) {
+				long timestamp = Long.parseLong(tokens[0]);
+				logger.trace("form time: '{}'", timestamp);
+				Map<Long, String> submits = ensureSubmitDataAvailable();
+				synchronized(submits) {
+					if(submits.containsKey(timestamp)) {
+						if(Strings.isValid(defaultResult)) {
+							logger.error("action execution aborted due to double-submit, forwarding default result for target '{}': '{}'", ((ActionInvocation)invocation).getTarget().getId().toString(), defaultResult);
+							result = defaultResult;
+						} else {
+							logger.error("action execution aborted due to double-submit, forwarding previous result for target '{}': '{}'", ((ActionInvocation)invocation).getTarget().getId().toString(), submits.get(timestamp));
+							result = submits.get(timestamp);
+						}
 					} else {
-						logger.error("action execution aborted due to double-submit, forwarding previous result for target '{}': '{}'", invocation.getTarget().getId().toString(), submits.get(timestamp));
-						result = submits.get(timestamp);
+						logger.trace("synchronised action execution forwarded");						
+						result = invocation.invoke();
+						submits.put(timestamp, result);
 					}
-				} else {
-					logger.trace("synchronised action execution forwarded");						
-					result = invocation.invoke();
-					submits.put(timestamp, result);
 				}
-			}				
-		} else {
+			}			
+		} 
+		
+		if(result == null) {
 			logger.trace("unsynchronised action execution forwarded: no timestamp in request");
 			result = invocation.invoke();
 		}

@@ -19,9 +19,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * The class representing the invocation of a business logic action; plain 
+ * resources are served by {@code ResourceInvocation}.
+ * 
  * @author Andrea Funto'
  */
-public class ActionInvocation {
+public class ActionInvocation extends Invocation {
 	
 	/**
 	 * The logger.
@@ -40,18 +43,6 @@ public class ActionInvocation {
 	private Object action;
 	
 	/**
-	 * The <code>ActionRequest</code>, <code>EventRequest</code> or
-	 * <code>RenderRequest</code> object.
-	 */
-	private HttpServletRequest request;
-	
-	/**
-	 * The <code>ActionResponse</code>, <code>EventResponse</code> or
-	 * <code>RenderResponse</code> object.
-	 */
-	private HttpServletResponse response;
-
-	/**
 	 * The thread-specific store for the iterator on the list of interceptors.
 	 */
 	private ThreadLocal<Iterator<Interceptor>> iterator = new ThreadLocal<Iterator<Interceptor>>() {
@@ -59,12 +50,7 @@ public class ActionInvocation {
 			return null;
 		}
 	};
-	
-	/**
-	 * The stack of interceptors.
-	 */
-	private InterceptorStack interceptors;
-	
+		
 	/**
 	 * Constructor.
 	 * 
@@ -81,11 +67,9 @@ public class ActionInvocation {
 	 *   the {@code HttpServletResponse} object.
 	 */
 	public ActionInvocation(Target target, Object action, InterceptorStack interceptors, HttpServletRequest request, HttpServletResponse response) {
+		super(interceptors, request, response);
 		this.target = target;
 		this.action = action;
-		this.request = request;
-		this.response = response;
-		this.interceptors = interceptors;
 		this.iterator.set(null);
 	}
 	
@@ -112,27 +96,7 @@ public class ActionInvocation {
 	public Object getAction() {
 		return action;
 	}
-	
-	/**
-	 * Returns the current servlet request.
-	 * 
-	 * @return
-	 *   the current servlet request.
-	 */
-	public HttpServletRequest getRequest() {
-		return request;
-	}
-	
-	/**
-	 * Returns the current servlet response.
-	 * 
-	 * @return
-	 *   the current servlet response.
-	 */
-	public HttpServletResponse getResponse() {
-		return response;
-	}
-	
+		
 	/**
 	 * Invokes the next interceptor in the stack, or the action if this is the 
 	 * last interceptor.
@@ -144,6 +108,7 @@ public class ActionInvocation {
 	 *   in a deviation of the workflow.  
 	 * @throws WebMVCException
 	 */
+	@Override
 	public String invoke() throws WebMVCException {
 		
 		// invoke the interceptors stack
@@ -176,6 +141,7 @@ public class ActionInvocation {
 	 * no matter how it ends, whether in success or with an exception; add it to 
 	 * a "finally" block around the action invocation.
 	 */
+	@Override
 	public void cleanup() {
 		logger.debug("removing the interceptors iterator from the thread-local storage");
 		iterator.remove();
