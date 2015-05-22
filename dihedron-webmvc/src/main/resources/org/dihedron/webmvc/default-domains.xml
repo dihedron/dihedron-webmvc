@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C) 2012-2015, Andrea Funto' - All rights reserved. -->
+<domains xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="domains.xsd">	
+	<domain id="login" stack="default">/projects-web/LoginAction!doLogin.*</domain>
+	<domain id="resources" stack="default">/projects-web/css/.*|/projects-web/js/.*|/projects-web/images/.*</domain>
+	<domain id="private" stack="secure">/*</domain>
+	<domain id="public" stack="default">/projects-web/.*</domain>
+</domains>
