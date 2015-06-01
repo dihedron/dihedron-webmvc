@@ -20,7 +20,7 @@ public class Domain {
 	private String id;
 	
 	/**
-	 * The domain stack.
+	 * The domain interceptors stack.
 	 */
 	private String stack;
 	
@@ -61,6 +61,7 @@ public class Domain {
 		this.pattern = pattern;
 	}
 	
+	
 	/**
 	 * Returns the domain id.
 	 * 
@@ -78,7 +79,7 @@ public class Domain {
 	 * @return
 	 *   the id of the interceptors stack.
 	 */
-	public String getStack() {
+	public String getStackId() {
 		return stack;
 	}
 	
@@ -90,7 +91,7 @@ public class Domain {
 	 * @return
 	 *   whether the given resource belongs to this domain.
 	 */
-	public boolean contains(String resource) {
+	public boolean protects(String resource) {
 		return Strings.isValid(resource) && pattern.matches(resource); 
 	}	
 
@@ -98,12 +99,11 @@ public class Domain {
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
-		// TODO:
 		StringBuilder buffer = new StringBuilder();
-		buffer.append("domain('").append(id).append("') {\n'");
-		buffer.append("  ");
-		
-		
+		buffer.append("domain('").append(id).append("') {\n");
+		buffer.append("  ").append("stack    : '").append(stack).append("',\n");
+		buffer.append("  ").append("resource : '").append(pattern).append("'\n");
+		buffer.append("}");		
 		return buffer.toString();
 	}
 }

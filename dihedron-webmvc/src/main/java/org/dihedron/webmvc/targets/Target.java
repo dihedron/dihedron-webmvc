@@ -83,9 +83,9 @@ public class Target {
     private String jspUrlPattern = TargetRegistry.DEFAULT_JSP_PATH_PATTERN;
 
     /**
-     * The name of the interceptor stack to be used with this action.
+     * The domain that protects this target.
      */
-    private String interceptors;
+    private String domain;
 
     /**
      * The map of expected results.
@@ -246,25 +246,28 @@ public class Target {
     }
 
     /**
-     * Retrieves the id of the interceptors stack.
+     * Retrieves the id of the domain protecting this target.
      *
-     * @return the name of the interceptors stack.
+     * @return 
+     *   the id of the domain protecting this target.
      */
-    public String getInterceptorStackId() {
-        return interceptors;
+    public String getDomainId() {
+        return domain;
     }
 
     /**
-     * Sets the name of the interceptors stack.
+     * Sets the id of the domain protecting this target.
      *
-     * @param interceptors the name of the interceptors stack.
-     * @return the object itself, for method chaining.
+     * @param domain 
+     *   the id of the domain protecting this target.
+     * @return 
+     *   the object itself, for method chaining.
      */
-    public Target setInterceptorsStackId(String interceptors) {
-        if (Strings.isValid(interceptors)) {
-            this.interceptors = interceptors;
+    public Target setDomainId(String domain) {
+        if (Strings.isValid(domain)) {
+            this.domain = domain;
         }
-        logger.trace("target '{}' has interceptors stack '{}'", id, this.interceptors);
+        logger.trace("target '{}' is under domain '{}'", id, this.domain);
         return this;
     }
 
@@ -342,7 +345,7 @@ public class Target {
         buffer.append("  factory     ('").append(actionFactory.getName()).append("')\n");
         buffer.append("  stub        ('").append(stubMethod.getName()).append("')\n");
         buffer.append("  url pattern ('").append(this.getJspUrlPattern()).append("')\n");
-        buffer.append("  stack       ('").append(interceptors).append("')\n");
+        buffer.append("  domain      ('").append(domain).append("')\n");
         buffer.append("  javaclass   ('").append(action.getCanonicalName()).append("')\n");
         if (!results.isEmpty()) {
             buffer.append("  results {\n");

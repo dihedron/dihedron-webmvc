@@ -4,14 +4,12 @@
 package org.dihedron.webmvc.interceptors.registry;
 
 import java.util.List;
-import java.util.Map;
 
 import org.dihedron.core.strings.Strings;
 import org.dihedron.core.xml.DOM;
 import org.dihedron.core.xml.DOMHandler;
 import org.dihedron.core.xml.DOMHandlerException;
-import org.dihedron.webmvc.interceptors.Interceptor;
-import org.dihedron.webmvc.interceptors.InterceptorStack;
+import org.dihedron.webmvc.interceptors.Domain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -28,18 +26,29 @@ public class DomainsRegistryHandler implements DOMHandler {
 	private static final Logger logger = LoggerFactory.getLogger(DomainsRegistryHandler.class);
 
 	/**
-	 * A reference to the stacks to be populated.
+	 * A reference to the domains to be populated.
 	 */
-	private Map<String, InterceptorStack> stacks;
+	private List<Domain> domains;
+	
+	/**
+	 * A reference to the interceptors registry, used by this reader
+	 * to check that any stack referenced by a new domain is valid,
+	 * and bail out if not so.
+	 */
+	private InterceptorsRegistry interceptors;
 	
 	/**
 	 * Constructor.
 	 * 
-	 * @param stacks
-	 *   the stacks to be populated.
+	 * @param domains
+	 *   the domain to be populated.
+	 * @param interceptors
+	 *   a reference to the interceptors registry, used to check that domain
+	 *   and stack information is consistent across configuration files. 
 	 */
-	DomainsRegistryHandler(Map<String, InterceptorStack> stacks) {
-		this.stacks = stacks;
+	DomainsRegistryHandler(List<Domain> domains, InterceptorsRegistry interceptors) {
+		this.domains = domains;
+		this.interceptors = interceptors;
 	}
 	
 	/**
@@ -48,66 +57,26 @@ public class DomainsRegistryHandler implements DOMHandler {
 	@Override
 	public void onDocument(Document document) throws DOMHandlerException {
 		
-//		try {
-			for(Element d : DOM.getDescendantsByTagName(document, "domain")) {
-				
-				String domainId = d.getAttribute("id");
-				String stackId = d.getAttribute("stack");
-				String pattern = DOM.getElementText(d);
-				
-				if(stacks.containsKey(stackId)) {
-					// TODO:
-					logger.info("domain found");
-				}
-				
-				InterceptorStack stack = new InterceptorStack(stackId);
-				logger.trace("interceptor stack '{}' ", stack.getId()); 
-				
-//				// load interceptors
-//				//for(Element i : DOM.getChildrenByTagName(s, "interceptor")) {
-//				for(Element i : DOM.getDescendantsByTagName(s, "interceptor")) {
-//					String interceptorId = i.getAttribute("id");
-//					String interceptorClass = i.getAttribute("class");
-//					Interceptor interceptor = (Interceptor)Class.forName(interceptorClass).newInstance();
-//					interceptor.setId(stackId, interceptorId);
-//					logger.trace(" + interceptor '{}' ", interceptorId);
-//					
-//					for(Element parameter : DOM.getChildrenByTagName(i, "parameter")) {
-//						//String key = DOM.getElementText(DOM.getFirstChildByTagName(parameter, "key"));							
-//						//String value = DOM.getElementText(DOM.getFirstChildByTagName(parameter, "value"));
-//						String key = parameter.getAttribute("key");
-//						String value = DOM.getElementText(parameter);
-//						interceptor.setParameter(key, value);
-//						logger.trace("   + parameter '{}' has value '{}'", key, value);
-//					}	
-//					
-//					interceptor.initialise();
-//					
-//					stack.add(interceptor);
-//				}
-//				
-//				// load global results
-//				List<Element> rs = DOM.getDescendantsByTagName(s, "result");
-//				if(rs != null && !rs.isEmpty()) {
-//					for(Element r : rs) {
-//						String resultId = r.getAttribute("value");
-//						String rendererId = r.getAttribute("renderer");
-//						String data = DOM.getElementText(r);
-//						if(Strings.isValid(rendererId)) {
-//							stack.addGlobalResult(resultId, rendererId, data);
-//						} else {
-//							stack.addGlobalResult(resultId, data);
-//						}
-//					}
-//				}
-				
-//				stacks.put(stack.getId(), stack);
-			}
-			logger.info("configuration loaded");
-//		} catch(InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-//			logger.error("error parsing interceptors registry configuration", e);
-//			throw new DOMHandlerException("error parsing interceptors registry configuration", e);					
-//		}
-	}
+		for(Element e : DOM.getDescendantsByTagName(document, "domain")) {
+			
+			// domain and stack id cannot be null
+			String domainId = e.getAttribute("id");
+			String stackId = e.getAttribute("stack");			
 
+			// the referenced stack may be non existing, though....
+			if(!interceptors.hasStack(stackId)) {					
+				logger.error("invalid stack '{}' specified in domain '{}'", domainId);
+				throw new DOMHandlerException("Domain '" + domainId + "' references the invalid stack '" + stackId + "'");
+			}
+			
+			// now check that the pattern is ok
+			String pattern = DOM.getElementText(e);
+			if(!Strings.isValid(pattern)) {
+				logger.error("invalid resource pattern '{}' for domain '{}'", pattern, domainId);
+				throw new DOMHandlerException("Invalid resource pattern for domain '" + domainId + "'");
+			}
+			logger.debug("adding domain '{}' (referencing stack '{}'), applied to '{}'", domainId, stackId, pattern);
+			domains.add(new Domain(domainId, stackId, pattern));
+		}
+	}
 }

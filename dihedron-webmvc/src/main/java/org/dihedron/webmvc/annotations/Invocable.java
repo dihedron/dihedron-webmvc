@@ -35,15 +35,16 @@ public @interface Invocable {
      *   the array of expected results.
      */
     Result[] results() default {};
-   
-//    /**
-//     * The optional description of a conversation to which the annotated method 
-//     * may take part.
-//     * 
-//     * @return
-//     *   the definition of a conversation to which this method may take part.
-//     */
-//    Conversation conversation() default @Conversation();
+    
+    /**
+     * The id of the domain this method belongs to; if empty, it means that it 
+     * inherits the domain of its action, or the domain resolution should undergo 
+     * the ordinary process for all resources.
+     *
+     * @return 
+     *   the (optional) id if the domain.
+     */
+    String domain() default "";    
 
     /**
      * The optional implementation of the validator interface that will provide

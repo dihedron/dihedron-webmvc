@@ -4,7 +4,7 @@
 	<xs:element name="stack">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="interceptors" />
+				<xs:element ref="interceptors" minOccurs="0"/>
 				<xs:element ref="results" minOccurs="0" />
 			</xs:sequence>
 			<xs:attribute name="id" type="xs:normalizedString" use="required" />

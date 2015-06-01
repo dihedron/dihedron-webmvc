@@ -119,17 +119,20 @@ public class TargetRegistry {
      *   the factory method that will instantiate the stub class implementing the 
      *   business method using synthetic code instead of reflection.
      * @param stubMethod
-     *   the 
-     * @param invocable     the method annotation, from which some information might be extracted.
-     * @param interceptors  the name of the interceptor stack to be used for the given action.
+     *   the reference to proxy method providing marshalling/unmarshalling logic. 
+     * @param invocable     
+     *   the method annotation, from which some information might be extracted.
+     * @param domain  
+     *   the name of the domain for the containing action; if not overridden in the
+     *   @Invocable annotation, this value will be used.
      * @throws WebMVCException
      */
     public void addTarget(Class<?> targetClass, Method targetMethod, Method stubFactoryMethod, Method stubMethod,
-                          Invocable invocable, String interceptors) throws WebMVCException {
+                          Invocable invocable, String domain) throws WebMVCException {
         String actionName = Strings.isValid(targetClass.getAnnotation(Action.class).alias()) ? targetClass.getAnnotation(Action.class).alias() : targetClass.getSimpleName();
         logger.info("adding target '{}!{}' (proxy: '{}')", actionName, targetMethod.getName(), stubMethod.getName());
         TargetId id = new TargetId(targetClass, targetMethod);
-
+        
         // instantiate the information object
         Target data = new Target(id);
         data.setActionClass(targetClass);
@@ -137,7 +140,7 @@ public class TargetRegistry {
         data.setActionMethod(targetMethod);
         data.setStubMethod(stubMethod);
 //        data.setIdempotent(invocable.idempotent());
-        data.setInterceptorsStackId(interceptors);
+        data.setDomainId(domain);
         data.setJspUrlPattern(jspPathPattern);
         data.addDeclaredResults(invocable);
         this.store.put(id, data);
@@ -147,10 +150,13 @@ public class TargetRegistry {
      * Retrieves the {@code Target} object corresponding to the given target
      * identifier.
      *
-     * @param id the target identifier.
-     * @return the {@code Target} object; if none found in the registry, an
-     * exception is thrown.
-     * @throws WebMVCException if no @{code Target} object could be found for the given id.
+     * @param id 
+     *   the target identifier.
+     * @return 
+     *   the {@code Target} object; if none found in the registry, an
+     *   exception is thrown.
+     * @throws WebMVCException 
+     *   if no @{code Target} object could be found for the given id.
      */
     public Target getTarget(TargetId id) throws WebMVCException {
         if (!store.containsKey(id)) {
@@ -164,14 +170,17 @@ public class TargetRegistry {
      * Returns the @{code Target} corresponding to the action and method,
      * as expressed in the given target string.
      *
-     * @param target a string representing the action, with or without the method being invoked
-     *               on it; thus it can be the action name (in which case the default method
-     *               "execute" is assumed) or the full target ("MyAction!myMethod").
-     * @return the @{code Target} object corresponding to the given combination
-     * of action name and method name, if found. If no @{code Target} can
-     * be found an exception is thrown.
-     * @throws WebMVCException if the string is not a valid target or no target can be found corresponding
-     *                            to it.
+     * @param target 
+     *   a string representing the action, with or without the method being invoked
+     *   on it; thus it can be the action name (in which case the default method
+     *   "execute" is assumed) or the full target ("MyAction!myMethod").
+     * @return 
+     *   the @{code Target} object corresponding to the given combination
+     *   of action name and method name, if found. If no @{code Target} can
+     *   be found an exception is thrown.
+     * @throws WebMVCException 
+     *  if the string is not a valid target or no target can be found corresponding
+     *  to it.
      */
     public Target getTarget(String target) throws WebMVCException {
         return getTarget(new TargetId(target));
@@ -181,13 +190,17 @@ public class TargetRegistry {
      * Returns the @{code Target} corresponding to the action and method,
      * as expressed in the given target string.
      *
-     * @param action a string representing the action (e.g. "MyAction").
-     * @param method a string representing the method (e.g. "myMethod").
-     * @return the @{code Target} object corresponding to the given combination
-     * of action name and method name, if found. If no @{code Target} can
-     * be found an exception is thrown.
-     * @throws WebMVCException if the string is not a valid target or no target can be found corresponding
-     *                            to it.
+     * @param action 
+     *   a string representing the action (e.g. "MyAction").
+     * @param method 
+     *   a string representing the method (e.g. "myMethod").
+     * @return 
+     *   the @{code Target} object corresponding to the given combination
+     *   of action name and method name, if found. If no @{code Target} can
+     *   be found an exception is thrown.
+     * @throws WebMVCException 
+     *   if the string is not a valid target or no target can be found corresponding
+     *   to it.
      */
     public Target getTarget(String action, String method) throws WebMVCException {
         return getTarget(new TargetId(action, method));

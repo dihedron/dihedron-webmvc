@@ -47,7 +47,9 @@ import org.dihedron.webmvc.actions.Result;
 import org.dihedron.webmvc.annotations.Action;
 import org.dihedron.webmvc.exceptions.DeploymentException;
 import org.dihedron.webmvc.exceptions.WebMVCException;
+import org.dihedron.webmvc.interceptors.Domain;
 import org.dihedron.webmvc.interceptors.InterceptorStack;
+import org.dihedron.webmvc.interceptors.registry.DomainsRegistry;
 import org.dihedron.webmvc.interceptors.registry.InterceptorsRegistry;
 import org.dihedron.webmvc.plugins.Plugin;
 import org.dihedron.webmvc.plugins.PluginManager;
@@ -114,10 +116,15 @@ public class ActionController implements Filter, ActionControllerMBean {
 	private TargetRegistry registry = null;
 
 	/**
-	 * The registry of interceptors' stacks.
+	 * The registry of interceptor stacks.
 	 */
 	private InterceptorsRegistry interceptors;
 	
+	/**
+	 * The registry of domains.
+	 */
+	private DomainsRegistry domains;
+		
 	/**
 	 * The registry of supported renderers.
 	 */
@@ -164,6 +171,8 @@ public class ActionController implements Filter, ActionControllerMBean {
 			initialiseRuntimeEnvironment();
 
 			initialiseInterceptorsRegistry();
+			
+			initialiseDomainsRegistry();
 			
 			initialiseTargetsRegistry();
 
@@ -235,8 +244,18 @@ public class ActionController implements Filter, ActionControllerMBean {
 					throw new WebMVCException("No action could be found for target '" + target.getId() + "'");
 				}
 				
-				// get the stack for the given action
-				InterceptorStack stack = interceptors.getStackOrDefault(target.getInterceptorStackId());
+				// get the domain protecting the given action
+				Domain domain = null;
+				if(Strings.isValid(target.getDomainId())) {
+					logger.trace("action is within domain '{}'", target.getDomainId());
+					domain = domains.findDomainById(target.getDomainId());
+				} else {
+					logger.trace("looking for applicable domain");
+					domain = domains.findDomainByResource(target.getId().toString());
+				}
+								
+				// get the stack for the given domain				
+				InterceptorStack stack = interceptors.getStackOrDefault(domain.getStackId());
 		    	    	
 		    	// create and fire the action stack invocation				
 				ActionInvocation invocation = null;
@@ -250,7 +269,7 @@ public class ActionController implements Filter, ActionControllerMBean {
 					}					
 					
 					do {
-						// look up the result amont thos already available (explicitly configured 
+						// look up the result among those already available (explicitly configured 
 						// only at first, then auto-configured too as the target warms up)
 						logger.trace("looking up result among target's ...");
 						result = target.getResult(invocationResult);						
@@ -282,7 +301,10 @@ public class ActionController implements Filter, ActionControllerMBean {
 			if(result == null) {
 				logger.trace("'{}' is no action, treating as resource...", uri);
 				
-				InterceptorStack stack = interceptors.getStackOrDefault("resource");
+				// get the applicable interceptors stack, either by domain or the default one
+				Domain domain = domains.findDomainByResource(uri);				
+				InterceptorStack stack = interceptors.getStackOrDefault(domain != null ? domain.getStackId() : null);
+				
 				ResourceInvocation invocation = null;
 				try {
 					invocation = new ResourceInvocation(uri, stack, request, response);
@@ -434,7 +456,7 @@ public class ActionController implements Filter, ActionControllerMBean {
 			logger.trace("scanning for actions in packages: '{}'", parameter);
 			String[] packages = Strings.split(parameter, ",", true);
 			for (String pkg : packages) {
-				loader.makeFromJavaPackage(registry, interceptors, pkg);
+				loader.makeFromJavaPackage(registry, domains, pkg);
 			}
 		} else {
 			logger.error("no Java packages specified for actions: check parameter '{}'", Parameter.ACTIONS_JAVA_PACKAGES.getName());
@@ -472,7 +494,40 @@ public class ActionController implements Filter, ActionControllerMBean {
 		} 
 		
 		logger.info("interceptors stacks:\n{}", interceptors.toString());
+    }
+        
+    /**
+     * Initialises the domains registry (factory) by loading any custom
+     * domains first, and the default domain(s) at last; domains are
+     * checked in strict insertion order, so it's always possible to override 
+     * default domains behaviour by providing custom rules, which will take
+     * precedence.
+     * 
+     * @throws WebMVCException
+     */
+    private void initialiseDomainsRegistry() throws WebMVCException {
+
+    	domains = new DomainsRegistry();
+				
+		// load the custom domains configuration, if available
+		String value = Parameter.DOMAINS_DECLARATION.getValueFor(filter);
+		if(Strings.isValid(value)) {			
+    		logger.trace("loading custom domains configuration from '{}'", value);
+    		try {
+    			domains.load(value, interceptors); 
+    		} catch(WebMVCException e) {
+    			logger.error("invalid URL '{}' for domains: check parameter '{}' in your web.xml", value, Parameter.DOMAINS_DECLARATION.getName());
+    			throw e;
+    		}
+		}
+		
+		// now load the default domain
+		logger.trace("loading default domain: '{}'", DomainsRegistry.DEFAULT_DOMAINS_CONFIG_XML);
+		domains.load(DomainsRegistry.DEFAULT_DOMAINS_CONFIG_XML, interceptors);
+		
+		logger.info("domains:\n{}", domains.toString());
     }	
+    
 
 	/**
 	 * Initialises the registry of view renderers.

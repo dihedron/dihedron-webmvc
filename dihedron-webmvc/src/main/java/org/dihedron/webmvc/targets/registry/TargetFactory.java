@@ -17,7 +17,7 @@ import org.dihedron.webmvc.aop.ActionProxy;
 import org.dihedron.webmvc.aop.ActionProxyBuilder;
 import org.dihedron.webmvc.exceptions.DeploymentException;
 import org.dihedron.webmvc.exceptions.WebMVCException;
-import org.dihedron.webmvc.interceptors.registry.InterceptorsRegistry;
+import org.dihedron.webmvc.interceptors.registry.DomainsRegistry;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
@@ -80,14 +80,14 @@ public class TargetFactory {
      *
      * @param registry     
      *   the repository where new targets will be stored.
-     * @param interceptors
-     *   the interceptors registry: this is used to verify that the interceptors 
-     *   stack requested by the action does actually exist.  
+     * @param domains
+     *   the domains registry: this is used to verify that the domains requested by 
+     *   the action and/or its methods do actually exist.  
      * @param javaPackage  
      *   the Java package to be scanned for actions.
      * @throws WebMVCException
      */
-    public void makeFromJavaPackage(TargetRegistry registry, InterceptorsRegistry interceptors, String javaPackage) throws WebMVCException {
+    public void makeFromJavaPackage(TargetRegistry registry, DomainsRegistry domains, String javaPackage) throws WebMVCException {
     	
         if (Strings.isValid(javaPackage)) {            
             if(!javaPackage.endsWith(".")) {
@@ -106,7 +106,7 @@ public class TargetFactory {
             Set<Class<?>> actions = reflections.getTypesAnnotatedWith(Action.class);
             for (Class<?> action : actions) {
             	if(!instrumentedActions.contains(action)) {
-            		makeFromJavaClass(registry, interceptors, action);
+            		makeFromJavaClass(registry, domains, action);
             		instrumentedActions.add(action);
             	} else {
             		logger.warn("skipping class '{}' as it is already instrumented: check your configuration for duplicate packages in '{}'", action.getName(), Parameter.ACTIONS_JAVA_PACKAGES.getName());
@@ -121,23 +121,24 @@ public class TargetFactory {
      *
      * @param registry     
      *   the repository where new targets will be stored.
-     * @param interceptors
+     * @param domains
      *   the interceptors registry: this is used to verify that the interceptors 
      *   stack requested by the action does actually exist.  
      * @param actionClass  
      *   the action class to be scanned for annotated methods (targets).
      * @throws WebMVCException
      */
-    public void makeFromJavaClass(TargetRegistry registry, InterceptorsRegistry interceptors, Class<?> actionClass) throws WebMVCException {
+    public void makeFromJavaClass(TargetRegistry registry, DomainsRegistry domains, Class<?> actionClass) throws WebMVCException {
         logger.trace("analysing action class: '{}'...", actionClass.getName());
 
         // only add classes that are not abstract to the target registry
         if (!Modifier.isAbstract(actionClass.getModifiers())) {
             logger.trace("class '{}' is not abstract", actionClass.getSimpleName());
 
-            String interceptor = actionClass.getAnnotation(Action.class).interceptors();
-            if(!interceptors.hasStack(interceptor)) {
-            	throw new DeploymentException("Class '" + actionClass.getSimpleName() + "' specifies a non-existing interceptors stack: '" + interceptor + "': check annotation value");
+            // check that the given domain (id specified) is existing
+            String domain = actionClass.getAnnotation(Action.class).domain();
+            if(Strings.isValid(domain) && domains.findDomainById(domain) == null) {
+            	throw new DeploymentException("Class '" + actionClass.getSimpleName() + "' specifies a non-existing domain: '" + domain + "': check annotation value");
             }
 
             // let the builder inspect the action and generate a factory method
@@ -150,11 +151,22 @@ public class TargetFactory {
             Map<Method, Method> methods = proxy.getStubMethods();
             for (Method actionMethod : methods.keySet()) {
                 if (actionMethod.isAnnotationPresent(Invocable.class)) {
+                	Invocable invocable = actionMethod.getAnnotation(Invocable.class);
+                	
+                    // check that if a domain is specified in the method
+                	// annotation, it is valid (existing) and then use it
+                    if(Strings.isValid(invocable.domain())) {
+                    	if(domains.findDomainById(invocable.domain()) == null) {                    
+                    		throw new DeploymentException("Method '" + actionMethod.getName() + "' specifies a non-existing domain: '" + invocable.domain() + "': check annotation value");
+                    	} else {
+                    		domain = invocable.domain();
+                    	}
+                    }
+                	
                     Method proxyMethod = methods.get(actionMethod);
-                    logger.trace("... adding annotated method '{}' in class '{}' (proxy: '{}' in class '{}')", actionMethod.getName(),
-                            actionClass.getSimpleName(), proxyMethod.getName(), proxy.getProxyClass().getSimpleName());
-                    Invocable invocable = actionMethod.getAnnotation(Invocable.class);
-                    registry.addTarget(actionClass, actionMethod, proxy.getActionFactory(), proxyMethod, invocable, interceptor);
+                    logger.trace("... adding annotated method '{}' in class '{}' (proxy: '{}' in class '{}')", actionMethod.getName(), actionClass.getSimpleName(), proxyMethod.getName(), proxy.getProxyClass().getSimpleName());
+                    
+                    registry.addTarget(actionClass, actionMethod, proxy.getActionFactory(), proxyMethod, invocable, domain);
                 } else {
                     logger.trace("... discarding unannotated method '{}' in class '{}'", actionMethod.getName(), actionClass.getSimpleName());
                 }

@@ -131,9 +131,8 @@ public class InterceptorStack extends ArrayList<Interceptor> {
 	 */
 	public String toString() {
 		StringBuilder buffer = new StringBuilder();
-		buffer.append("stack('").append(id).append("')");
+		buffer.append("stack('").append(id).append("')").append(" {\n");
 		if(!this.isEmpty()) {
-			buffer.append(" {\n");
 			for(Interceptor interceptor : this ) {
 				buffer.append("  interceptor('").append(interceptor.getId()).append("')");
 				if(!interceptor.getParameters().isEmpty()) {
@@ -151,9 +150,8 @@ public class InterceptorStack extends ArrayList<Interceptor> {
 					buffer.append("  result('").append(result.getId()).append("') = '").append(result.getData()).append("' (type: '").append(result.getRendererId()).append("')\n");
 				}				
 			}
-			buffer.append("}");
 		}
-		buffer.append("\n");
+		buffer.append("}\n");
 		return buffer.toString();
 	}
 }

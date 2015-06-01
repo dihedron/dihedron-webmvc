@@ -25,11 +25,6 @@ import java.lang.annotation.Target;
 public @interface Action {
 
     /**
-     * The name of the default stack.
-     */
-    public static final String DEFAULT_INTERCEPTORS_STACK = "default";
-
-    /**
      * The default return code for a successful execution.
      */
     public static final String SUCCESS = "success";
@@ -68,10 +63,11 @@ public @interface Action {
     String alias() default "";
 
     /**
-     * The id of the interceptors' stack to be used with this action.
+     * The id of the domain this action belongs to; if empty, it means that the
+     * domain resolution should undergo the ordinary process for all resources.
      *
      * @return 
-     *   the id if the interceptors' stack.
+     *   the (optional) id if the domain.
      */
-    String interceptors() default DEFAULT_INTERCEPTORS_STACK;
+    String domain() default "";
 }

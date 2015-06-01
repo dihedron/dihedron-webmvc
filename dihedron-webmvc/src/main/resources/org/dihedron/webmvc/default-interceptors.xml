@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright (C) 2012-2015, Andrea Funto' - All rights reserved. -->
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="interceptors.xsd">
+	<!--
+		THE DEFAULT STACK APPLIES TO RESOURCES THAT NEED A MINIMAL SET OF COMMON
+		FUNCTIONALITIES; SUCH AS PROFILING, PARAMETER DUMPING AND LOGGING 
+	 -->
 	<stack id="default">
 		<interceptors>
 			<interceptor id="profiler" class="org.dihedron.webmvc.interceptors.impl.Profiler"/>
@@ -11,14 +15,14 @@
 				-->			
 				<parameter key="scopes">form,request,conversation,session,sticky,application</parameter>			
 			</interceptor>
-		<!-- 
-			<interceptor id="double-submit" class="org.dihedron.strutlets.interceptors.impl.Resubmit">
-				<parameter key="result">error_double_submit</parameter>			
-			</interceptor>
-		-->
 		</interceptors>
 		<results>
 			<result value="uncaught_exception" renderer="jsp">internal_error.jsp</result>
 		</results>
 	</stack>
+	
+	<!--
+		THE EMPTY STACK MAY APPLY TO RESOURCES THAT REALLY NEED NOT BE HANDLED... 
+	 -->
+	<stack id="empty" />
 </configuration>

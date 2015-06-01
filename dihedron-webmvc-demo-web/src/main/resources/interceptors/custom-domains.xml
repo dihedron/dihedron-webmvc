@@ -6,5 +6,5 @@
 		MORE SPECIFIC; IT USES THE DEFAULT STACK; WHICH MAY BE REPLACED BY THE
 		EMPTY STACK WHEN DEBUGGING IS OVER AND PERFORMANCE BECOMES PARAMOUNT
 	 -->
-	<domain id="default" stack="default">.*</domain>
+	<domain id="private" stack="default">/projects-web/private.*</domain>
 </domains>

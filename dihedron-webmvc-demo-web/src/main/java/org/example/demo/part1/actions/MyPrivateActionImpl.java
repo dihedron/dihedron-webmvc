@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Andrea Funto'
  */
-@Action(alias="TestAction", interceptors="custom")
+@Action(alias="TestAction", domain="default")
 public class MyPrivateActionImpl {
 	/**
 	 * The logger.
@@ -53,6 +53,7 @@ public class MyPrivateActionImpl {
 	private static final Logger logger = LoggerFactory.getLogger(MyPrivateActionImpl.class);
 
 	@Invocable(
+		domain="default",
 		results =  {
 			@Result(value=Action.SUCCESS, renderer=JspRenderer.ID, data="index.jsp")
 		}

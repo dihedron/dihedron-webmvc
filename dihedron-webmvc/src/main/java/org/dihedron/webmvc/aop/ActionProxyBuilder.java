@@ -165,8 +165,7 @@ public class ActionProxyBuilder {
 				// fluent API state machine check: when we get here we must
 				// already have been provided a valid action class to work on
 				logger.error("this is probably a bug in your code: you must provide the class to instrument");
-				throw new DeploymentException(
-						"The action class must be specified: did you call method \"on(<action class>)\" before invoking this method?");
+				throw new DeploymentException("The action class must be specified: did you call method \"on(<action class>)\" before invoking this method?");
 			}
 
 			logger.trace("building proxy around class '{}'...", action.getName());

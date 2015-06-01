@@ -62,11 +62,17 @@ public enum Parameter {
     INTERCEPTORS_DECLARATION("webmvc:interceptors-declaration"),
 
     /**
-     * The parameter used to override the default interceptors stack to be
-     * used when invoking non-configured or non-fully-configured actions; by
-     * default it is the "default" stack.
+     * The parameter used to override the name of the interceptors stack
+     * configuration XML file; by default it is called "interceptors-config.xml".
      */
-    INTERCEPTORS_DEFAULT_STACK("webmvc:interceptors-default-stack"),
+    DOMAINS_DECLARATION("webmvc:domains-declaration"),
+    
+//    /**
+//     * The parameter used to override the default interceptors stack to be
+//     * used when invoking non-configured or non-fully-configured actions; by
+//     * default it is the "default" stack.
+//     */
+//    INTERCEPTORS_DEFAULT_STACK("webmvc:interceptors-default-stack"),
 
     /**
      * The comma-separated list of Java packages where custom renderer classes
