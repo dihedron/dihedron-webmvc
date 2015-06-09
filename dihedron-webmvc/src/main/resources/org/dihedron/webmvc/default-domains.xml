@@ -6,5 +6,11 @@
 		MORE SPECIFIC; IT USES THE DEFAULT STACK; WHICH MAY BE REPLACED BY THE
 		EMPTY STACK WHEN DEBUGGING IS OVER AND PERFORMANCE BECOMES PARAMOUNT
 	 -->
-	<domain id="default" stack="default">.*</domain>
+	<domain id="default">		
+		<pattern>.*</pattern>
+		<stack>default</stack>		
+		<results>
+			<result id="uncaught_exception" renderer="jsp">internal_error.jsp</result>
+		</results>
+	</domain>
 </domains>

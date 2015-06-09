@@ -1,40 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright (C) 2012-2015, Andrea Funto' - All rights reserved. -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:simpleType name="nonempty">
+		<xs:restriction base="xs:normalizedString">
+			<xs:minLength value="1"/>
+			<!-- 
+			<xs:pattern value=".*[^\s].*"/>
+			-->
+		</xs:restriction>
+	</xs:simpleType>
 	<xs:element name="stack">
 		<xs:complexType>
 			<xs:sequence>
 				<xs:element ref="interceptors" minOccurs="0"/>
-				<xs:element ref="results" minOccurs="0" />
 			</xs:sequence>
-			<xs:attribute name="id" type="xs:normalizedString" use="required" />
-		</xs:complexType>
-	</xs:element>
-	<xs:element name="result">
-		<xs:complexType>
-			<xs:simpleContent>
-				<xs:extension base="xs:normalizedString">
-					<xs:attribute name="value" type="xs:normalizedString"
-						use="required" />
-					<xs:attribute name="renderer" type="xs:normalizedString"
-						use="optional" default="jsp" />
-				</xs:extension>
-			</xs:simpleContent>
-		</xs:complexType>
-	</xs:element>
-	<xs:element name="results">
-		<xs:complexType>
-			<xs:sequence>
-				<xs:element ref="result" maxOccurs="unbounded" />
-			</xs:sequence>
+			<xs:attribute name="id" type="xs:normalizedString" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="parameter">
 		<xs:complexType>
 			<xs:simpleContent>
-				<xs:extension base="xs:normalizedString">
-					<xs:attribute name="key" type="xs:normalizedString"
-						use="required" />
+				<xs:extension base="nonempty">
+					<xs:attribute name="key" type="xs:normalizedString" use="required"/>
 				</xs:extension>
 			</xs:simpleContent>
 		</xs:complexType>
@@ -42,24 +29,23 @@
 	<xs:element name="interceptor">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="parameter" minOccurs="0" maxOccurs="unbounded" />
+				<xs:element ref="parameter" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
-			<xs:attribute name="id" type="xs:normalizedString" use="required" />
-			<xs:attribute name="class" type="xs:normalizedString"
-				use="required" />
+			<xs:attribute name="id" type="xs:normalizedString" use="required"/>
+			<xs:attribute name="class" type="xs:normalizedString" use="required"/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="interceptors">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="interceptor" maxOccurs="unbounded" />
+				<xs:element ref="interceptor" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
-	<xs:element name="configuration">
+	<xs:element name="stacks">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="stack" minOccurs="0" maxOccurs="unbounded" />
+				<xs:element ref="stack" minOccurs="0" maxOccurs="unbounded"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>

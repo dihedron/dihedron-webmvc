@@ -53,17 +53,23 @@ public class JspRenderer extends AbstractRenderer {
 	@Override
 	public void render(HttpServletRequest request, HttpServletResponse response, String data) throws IOException, WebMVCException {
 		try {
-			RequestDispatcher dispatcher = request.getRequestDispatcher(response.encodeURL(data));
-	
-			if (dispatcher == null) {
-				logger.error("'{}' is not a valid include path (jsp)", data);
+			String url = response.encodeURL(data);
+			logger.trace("rendering URL '{}'", url);
+			RequestDispatcher dispatcher = null;
+			if(url.startsWith("/")) {
+				 response.sendRedirect(url);
 			} else {
-				dispatcher.forward(request, response);
-			}
+				dispatcher = request.getRequestDispatcher(url);
+				if (dispatcher == null) {
+					logger.error("'{}' is not a valid include path (jsp)", data);
+				} else {
+					dispatcher.forward(request, response);
+				}
+			}	
 		}
 		catch(ServletException e) {
 			logger.error("error re-routing and forwaring request to JSP '{}'", data);
-			throw new WebMVCException("Error forwarding reuqest to JSP '" + data + "' for rendering", e);
+			throw new WebMVCException("Error forwarding request to JSP '" + data + "' for rendering", e);
 		}
 	}
 }

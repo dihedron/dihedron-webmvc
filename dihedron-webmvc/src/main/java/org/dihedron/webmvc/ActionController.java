@@ -278,7 +278,7 @@ public class ActionController implements Filter, ActionControllerMBean {
 						// is not among the target's, check if there is a global result handler
 						// at stack level
 						logger.trace("looking up result among globals in stack '{}'...", stack.getId());
-						result = stack.getGlobalResult(invocationResult);
+						result = domain.getGlobalResult(invocationResult);
 						if(result != null) break;
 										        
 			            // nope, then try to auto-configure one in the target
@@ -305,11 +305,13 @@ public class ActionController implements Filter, ActionControllerMBean {
 				Domain domain = domains.findDomainByResource(uri);				
 				InterceptorStack stack = interceptors.getStackOrDefault(domain != null ? domain.getStackId() : null);
 				
+				logger.trace("'{}' is serviced by stack '{}'...", uri, stack != null ? stack.getId() : "null");
+				
 				ResourceInvocation invocation = null;
 				try {
 					invocation = new ResourceInvocation(uri, stack, request, response);
 					invocationResult = invocation.invoke();
-					result = stack.getGlobalResult(invocationResult);					
+					result = domain.getGlobalResult(invocationResult);					
 				} finally {
 					logger.debug("... resource invocation done!");
 					invocation.cleanup();

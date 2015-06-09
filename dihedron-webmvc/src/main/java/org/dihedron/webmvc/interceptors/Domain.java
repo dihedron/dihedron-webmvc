@@ -4,8 +4,15 @@
 
 package org.dihedron.webmvc.interceptors;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.dihedron.core.regex.Regex;
 import org.dihedron.core.strings.Strings;
+import org.dihedron.webmvc.actions.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A class representing the resources' domain.
@@ -13,6 +20,11 @@ import org.dihedron.core.strings.Strings;
  * @author Andrea Funto'
  */
 public class Domain {
+	
+	/**
+	 * The logger.
+	 */
+	private static final Logger logger = LoggerFactory.getLogger(Domain.class);
 	
 	/**
 	 * The domain identifier.
@@ -28,6 +40,11 @@ public class Domain {
 	 * The pattern that all domain resources must comply with.
 	 */
 	private Regex pattern;
+	
+	/**
+	 * The optional list of per-domain global results.
+	 */
+	private Map<String, Result> globalResults = Collections.synchronizedMap(new HashMap<String, Result>());		
 	
 	/**
 	 * Constructor.
@@ -84,6 +101,70 @@ public class Domain {
 	}
 	
 	/**
+	 * Adds a global result to the domain.
+	 * 
+	 * @param result
+	 *   the global result to be added.
+	 * @return
+	 *   the object itself, for method chaining.
+	 */
+	public Domain addGlobalResult(Result result) {
+		if(result != null) {
+			globalResults.put(result.getId(), result);
+		}
+		return this;
+	}
+	
+	/**
+	 * Adds a global result to the domain, using the default renderer ("JSP").
+	 * 
+	 * @param id
+	 *   the id of the result (e.g. "error", "success").
+	 * @param data
+	 *   the data to be used by the associated renderer.
+	 * @return
+	 *   the object itself, for method chaining.
+	 */
+	public Domain addGlobalResult(String id, String data) {
+		return addGlobalResult(new Result(id, Result.DEFAULT_RENDERER_ID, data));
+	}
+
+	/**
+	 * Adds a global result to the domain.
+	 * 
+	 * @param id
+	 *   the id of the result (e.g. "error", "success").
+	 * @param rendererId
+	 *   the id of the renderer that will serve the result.
+	 * @param data
+	 *   the data to be used by the associated renderer.
+	 * @return
+	 *   the object itself, for method chaining.
+	 */
+	public Domain addGlobalResult(String id, String rendererId, String data) {
+		if(Strings.areValid(id, data, rendererId)) {
+			return addGlobalResult(new Result(id, rendererId, data));
+		}
+		return this;
+	}
+	
+    /**
+     * Returns the <code>Result</code> object corresponding to the given
+     * result string, or null if none found.
+     *
+     * @param resultId 
+     *   a result string (e.g. "success", "error").
+     * @return 
+     *   the <code>Result</code> object corresponding to the given result string.
+     */
+    public Result getGlobalResult(String resultId) {
+        assert (Strings.isValid(resultId));        
+        Result result = globalResults.get(resultId);
+        logger.trace("result for id '{}' is {}", resultId, result != null ? "\n" + result : "unconfigured");
+        return result;
+    }	
+	
+	/**
 	 * Returns whether the given resource belongs to this domain.
 	 * 
 	 * @param resource
@@ -101,8 +182,14 @@ public class Domain {
 	public String toString() {
 		StringBuilder buffer = new StringBuilder();
 		buffer.append("domain('").append(id).append("') {\n");
-		buffer.append("  ").append("stack    : '").append(stack).append("',\n");
-		buffer.append("  ").append("resource : '").append(pattern).append("'\n");
+		buffer.append("  ").append("stack('").append(stack).append("')\n");
+		buffer.append("  ").append("pattern('").append(pattern).append("')\n");
+		// add optional global results
+		if(globalResults != null && !globalResults.isEmpty()) {
+			for(Result result : globalResults.values()) {
+				buffer.append("  ").append("result('").append(result.getId()).append("') = '").append(result.getData()).append("' (type: '").append(result.getRendererId()).append("')\n");
+			}				
+		}		
 		buffer.append("}");		
 		return buffer.toString();
 	}

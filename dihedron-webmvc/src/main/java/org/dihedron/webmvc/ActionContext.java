@@ -62,10 +62,10 @@ public class ActionContext {
 	 */
 	private static final Logger logger = LoggerFactory.getLogger(ActionContext.class);
 
-	/**
-	 * The default encoding for file names in multipart/form-data requests.
-	 */
-	private static final String DEFAULT_ENCODING = "UTF-8";
+//	/**
+//	 * The default encoding for file names in multipart/form-data requests.
+//	 */
+//	private static final String DEFAULT_ENCODING = "UTF-8";
     
 	/**
 	 * The key under which conversation-scoped attributes are stored in the session.
@@ -88,7 +88,7 @@ public class ActionContext {
 	private static ThreadLocal<ActionContext> context = new ThreadLocal<ActionContext>() {
 		@Override
 		protected ActionContext initialValue() {
-			logger.trace("creating action context instance for thread {}", Thread.currentThread().getId());
+//			logger.trace("creating action context instance for thread {}", Thread.currentThread().getId());
 			return new ActionContext();
 		}
 	};
@@ -122,10 +122,10 @@ public class ActionContext {
 	 */
 	private WebServer server = null;
 	
-	/**
-	 * The encoding of uploaded file names.
-	 */
-	private String encoding = DEFAULT_ENCODING;
+//	/**
+//	 * The encoding of uploaded file names.
+//	 */
+//	private String encoding = DEFAULT_ENCODING;
 	
 	/**
 	 * A map containing names and information about all the form fields in a 
@@ -168,7 +168,7 @@ public class ActionContext {
 	 * @throws WebMVCException 
 	 */
 	static void bindContext(FilterConfig filter, HttpServletRequest request, HttpServletResponse response, Properties configuration, WebServer server, FileUploadConfiguration uploadInfo) throws WebMVCException {
-		logger.trace("initialising the action context for thread {}", Thread.currentThread().getId());
+//		logger.trace("initialising the action context for thread {}", Thread.currentThread().getId());
 		getContext().filter = filter;
 		getContext().request = request;
 		getContext().response = response;
@@ -180,9 +180,9 @@ public class ActionContext {
 		// be accessible as ordinary values under the "FORM" scope through a 
 		// custom "filename-to-file" map, which will be clened up when the context
 		// is unbound
-		String encoding = request.getCharacterEncoding();
-        getContext().encoding = Strings.isValid(encoding)? encoding : DEFAULT_ENCODING;
-        logger.trace("request encoding is: '{}'", getContext().encoding);
+//		String encoding = request.getCharacterEncoding();
+//        getContext().encoding = Strings.isValid(encoding)? encoding : DEFAULT_ENCODING;
+//        logger.trace("request encoding is: '{}'", getContext().encoding);
 
         try {
         
@@ -217,8 +217,8 @@ public class ActionContext {
 		        	logger.trace("storing field '{}' (type: '{}') into parts map", item.getFieldName(), item.isFormField() ? "field" : "file"); 
 		        	getContext().parts.put(item.getFieldName(), item);
 		        }		        
-	        } else {
-	        	logger.trace("handling plain form request");
+//	        } else {
+//	        	logger.trace("handling plain form request");
 	        }
     	} catch(FileUploadException e) {
     		logger.warn("error handling uploaded file", e);

@@ -59,24 +59,42 @@ public class DomainsRegistryHandler implements DOMHandler {
 		
 		for(Element e : DOM.getDescendantsByTagName(document, "domain")) {
 			
-			// domain and stack id cannot be null
+			// the domain id is a non-null attribute
 			String domainId = e.getAttribute("id");
-			String stackId = e.getAttribute("stack");			
-
-			// the referenced stack may be non existing, though....
+			
+			// the pattern is a non-null child element, and it must be valid
+			String pattern = DOM.getElementText(DOM.getFirstChildByTagName(e, "pattern"));
+			if(!Strings.isValid(pattern)) {
+				logger.error("invalid resource pattern '{}' for domain '{}'", pattern, domainId);
+				throw new DOMHandlerException("Invalid resource pattern for domain '" + domainId + "'");
+			}
+			
+			// the associated stack id is a non-null child element; the id must
+			// reference an existing stack (in the registry)
+			String stackId = DOM.getElementText(DOM.getFirstChildByTagName(e, "stack"));
 			if(!interceptors.hasStack(stackId)) {					
 				logger.error("invalid stack '{}' specified in domain '{}'", domainId);
 				throw new DOMHandlerException("Domain '" + domainId + "' references the invalid stack '" + stackId + "'");
 			}
 			
-			// now check that the pattern is ok
-			String pattern = DOM.getElementText(e);
-			if(!Strings.isValid(pattern)) {
-				logger.error("invalid resource pattern '{}' for domain '{}'", pattern, domainId);
-				throw new DOMHandlerException("Invalid resource pattern for domain '" + domainId + "'");
+			Domain domain = new Domain(domainId, stackId, pattern);
+			
+			// load global results
+			List<Element> rs = DOM.getDescendantsByTagName(e, "result");
+			if(rs != null && !rs.isEmpty()) {
+				for(Element r : rs) {
+					String resultId = r.getAttribute("id");
+					String rendererId = r.getAttribute("renderer");
+					String data = DOM.getElementText(r);
+					if(Strings.isValid(rendererId)) {
+						domain.addGlobalResult(resultId, rendererId, data);
+					} else {
+						domain.addGlobalResult(resultId, data);
+					}
+				}
 			}
 			logger.debug("adding domain '{}' (referencing stack '{}'), applied to '{}'", domainId, stackId, pattern);
-			domains.add(new Domain(domainId, stackId, pattern));
+			domains.add(domain);
 		}
 	}
 }

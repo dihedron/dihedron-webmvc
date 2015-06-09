@@ -3,10 +3,8 @@
  */ 
 package org.dihedron.webmvc.interceptors.registry;
 
-import java.util.List;
 import java.util.Map;
 
-import org.dihedron.core.strings.Strings;
 import org.dihedron.core.xml.DOM;
 import org.dihedron.core.xml.DOMHandler;
 import org.dihedron.core.xml.DOMHandlerException;
@@ -77,22 +75,6 @@ public class InterceptorsRegistryHandler implements DOMHandler {
 					
 					stack.add(interceptor);
 				}
-				
-				// load global results
-				List<Element> rs = DOM.getDescendantsByTagName(s, "result");
-				if(rs != null && !rs.isEmpty()) {
-					for(Element r : rs) {
-						String resultId = r.getAttribute("value");
-						String rendererId = r.getAttribute("renderer");
-						String data = DOM.getElementText(r);
-						if(Strings.isValid(rendererId)) {
-							stack.addGlobalResult(resultId, rendererId, data);
-						} else {
-							stack.addGlobalResult(resultId, data);
-						}
-					}
-				}
-				
 				stacks.put(stack.getId(), stack);
 			}
 			logger.info("configuration loaded");
@@ -101,5 +83,4 @@ public class InterceptorsRegistryHandler implements DOMHandler {
 			throw new DOMHandlerException("error parsing interceptors registry configuration", e);					
 		}
 	}
-
 }
