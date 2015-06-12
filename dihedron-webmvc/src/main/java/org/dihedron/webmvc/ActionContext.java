@@ -857,7 +857,7 @@ public class ActionContext {
 			break;
 
 		}
-		logger.debug("scope '{}' {} value '{}'", scope.name(), key, result ? "contains" : "doesn't contain");
+		logger.debug("scope '{}' {} value '{}'", scope.name(), result ? "contains" : "doesn't contain", key);
 		return result;
 	}
 

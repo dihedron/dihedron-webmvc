@@ -723,7 +723,7 @@ public class ActionProxyBuilder {
 		private String prepareInputArgument(int i, Type type, In in, StringBuilder preCode, boolean doValidation) throws DeploymentException {
 
 			if (Types.isSimple(type) && ((Class<?>) type).isPrimitive()) {
-				logger.error("primitive types are not supported on annotated parameters (check parameter '{}', no. {}, type is '{}')", in.value(), i,
+				logger.error("primitive types are not supported on annotated parameters (check parameter '{}', no.{}, type is '{}')", in.value(), i,
 						Types.getAsString(type));
 				throw new DeploymentException("Primitive types are not supported as @In parameters: check parameter '" + in.value() + "' ( no. " + i
 						+ ", type is '" + Types.getAsString(type) + "')");
@@ -746,10 +746,10 @@ public class ActionProxyBuilder {
 			String parameter = in.value();
 			String variable = "in_" + i;
 
-			preCode.append("\t//\n\t// preparing input argument '").append(parameter).append("' (no. ").append(i).append(", ")
+			preCode.append("\t//\n\t// preparing input argument '").append(parameter).append("' (no.").append(i).append(", ")
 					.append(Types.getAsString(type)).append(")\n\t//\n");
 
-			logger.trace("{}-th parameter is annotated with @In('{}')", i, in.value());
+			logger.trace("{}-{} parameter is annotated with @In('{}')", i, i==1 ? "st" : i==2 ? "nd" : i==3 ? "rd" : "th", in.value());
 			preCode.append("\tvalue = org.dihedron.webmvc.ActionContext.findValue(\"").append(parameter)
 					.append("\", new org.dihedron.webmvc.protocol.Scope[] {");
 			boolean first = true;
@@ -786,7 +786,7 @@ public class ActionProxyBuilder {
 				throws DeploymentException {
 
 			if (!Types.isGeneric(type)) {
-				logger.error("output parameters must be generic, and of reference type $<?> (check parameter no. {}: type is '{}'", i,
+				logger.error("output parameters must be generic, and of reference type $<?> (check parameter no.{}: type is '{}'", i,
 						((Class<?>) type).getCanonicalName());
 				throw new DeploymentException("Output parameters must generic, and of reference type $<?> (check parameter no. " + i + ": type is '"
 						+ ((Class<?>) type).getCanonicalName() + " '");
@@ -821,7 +821,7 @@ public class ActionProxyBuilder {
 			preCode.append("\t//\n\t// preparing output argument '").append(parameter).append("' (no. ").append(i).append(", ")
 					.append(Types.getAsString(wrapped)).append(")\n\t//\n");
 
-			logger.trace("{}-th parameter is annotated with @Out('{}')", i, out.value());
+			logger.trace("{}-{} parameter is annotated with @Out('{}')", i, i==1 ? "st" : i==2 ? "nd" : i==3 ? "rd" : "th", out.value());
 			// NOTE: no support for generics in Javassist: drop types (which
 			// would be dropped by type erasure anyway...)
 			preCode.append("\torg.dihedron.webmvc.aop.$ ").append(variable).append(" = new org.dihedron.webmvc.aop.$();\n");
@@ -832,7 +832,8 @@ public class ActionProxyBuilder {
 			if (doValidation) {
 				preCode.append("\n");
 				preCode.append("\t// out parameter\n");
-				preCode.append("\tif(validationValues != null) validationValues.add(null);\n");
+				//preCode.append("\tif(validationValues != null) validationValues.add(null);\n");
+				preCode.append("\tif(validationValues != null) validationValues.add(").append(variable).append(");\n");
 			}
 
 			preCode.append("\n");
@@ -905,7 +906,7 @@ public class ActionProxyBuilder {
 			preCode.append("\t//\n\t// preparing input/output argument '").append(parameter).append("' (no. ").append(i).append(", ")
 					.append(Types.getAsString(wrapped)).append(")\n\t//\n");
 
-			logger.trace("{}-th parameter is annotated with @In('{}') and @Out('{}')", i, in.value(), out.value());
+			logger.trace("{}-{} parameter is annotated with @In('{}') and @Out('{}')", i, i==1 ? "st" : i==2 ? "nd" : i==3 ? "rd" : "th", in.value(), out.value());
 			preCode.append("\tvalue = org.dihedron.webmvc.ActionContext.findValue(\"").append(parameter)
 					.append("\", new org.dihedron.webmvc.protocol.Scope[] {");
 			boolean first = true;
@@ -933,7 +934,8 @@ public class ActionProxyBuilder {
 			if (doValidation) {
 				preCode.append("\n");
 				preCode.append("\t// in+out parameter\n");
-				preCode.append("\tif(validationValues != null) validationValues.add(value);\n");
+				//preCode.append("\tif(validationValues != null) validationValues.add(value);\n");
+				preCode.append("\tif(validationValues != null) validationValues.add(").append(variable).append(");\n");
 			}
 
 			preCode.append("\n");
@@ -994,10 +996,10 @@ public class ActionProxyBuilder {
 			// code executed BEFORE the action fires, to prepare input
 			// parameters
 			//
-			preCode.append("\t//\n\t// preparing input/output argument '").append(parameter).append("' (no. ").append(i).append(", ")
-					.append(Types.getAsString(wrapped)).append(")\n\t//\n");
+			preCode.append("\t//\n\t// preparing input/output argument '").append(parameter).append("' (no.").append(i).append(", $<")
+					.append(Types.getAsString(wrapped)).append(">)\n\t//\n");
 
-			logger.trace("{}-th parameter is annotated with @InOut('{}')", i, inout.value());
+			logger.trace("{}-{} parameter is annotated with @InOut('{}')", i, i==1 ? "st" : i==2 ? "nd" : i==3 ? "rd" : "th", inout.value());
 			preCode.append("\tvalue = org.dihedron.webmvc.ActionContext.findValue(\"").append(parameter)
 					.append("\", new org.dihedron.webmvc.protocol.Scope[] {");
 			boolean first = true;
@@ -1025,7 +1027,8 @@ public class ActionProxyBuilder {
 			if (doValidation) {
 				preCode.append("\n");
 				preCode.append("\t// inout parameter\n");
-				preCode.append("\tif(validationValues != null) validationValues.add(value);\n");
+				//preCode.append("\tif(validationValues != null) validationValues.add(value);\n");
+				preCode.append("\tif(validationValues != null) validationValues.add(").append(variable).append(");\n");
 			}
 
 			preCode.append("\n");
@@ -1034,7 +1037,7 @@ public class ActionProxyBuilder {
 			// code executed AFTER the action has returned, to store values into
 			// scopes
 			//
-			postCode.append("\t//\n\t// storing input/output argument ").append(parameter).append(" (no. ").append(i).append(", ")
+			postCode.append("\t//\n\t// storing input/output argument ").append(parameter).append(" (no.").append(i).append(", ")
 					.append(Types.getAsString(wrapped)).append(") into scope ").append(inout.to().name()).append("\n\t//\n");
 			postCode.append("\tvalue = ").append(variable).append(".get();\n");
 			postCode.append("\tif(value != null) {\n");
@@ -1082,7 +1085,7 @@ public class ActionProxyBuilder {
 					.append(Types.getAsString(type)).append(")\n\t//\n");
 
 			// retrieve the applicable parameters from the specified scopes
-			logger.trace("{}-th parameter is annotated with @Model('{}')", i, pattern);
+			logger.trace("{}-{} parameter is annotated with @Model('{}')", i, i==1 ? "st" : i==2 ? "nd" : i==3 ? "rd" : "th", pattern);
 			preCode.append("\tjava.util.Map map = org.dihedron.webmvc.ActionContext.matchValues(\"").append(pattern)
 					.append("\", new org.dihedron.webmvc.protocol.Scope[] {");
 			boolean first = true;
@@ -1204,7 +1207,7 @@ public class ActionProxyBuilder {
 					.append(", ").append(Types.getAsString(wrapped)).append(")\n\t//\n");
 
 			// retrieve the applicable parameters from the specified scopes
-			logger.trace("{}-th parameter is annotated with @Model('{}')", i, pattern);
+			logger.trace("{}-{} parameter is annotated with @Model('{}')", i, i==1 ? "st" : i==2 ? "nd" : i==3 ? "rd" : "th", pattern);
 			preCode.append("\tjava.util.Map map = org.dihedron.webmvc.ActionContext.matchValues(\"").append(pattern)
 					.append("\", new org.dihedron.webmvc.protocol.Scope[] {");
 			boolean first = true;
@@ -1314,9 +1317,9 @@ public class ActionProxyBuilder {
 			code.append("\t//\n\t// preparing non-annotated argument no. ").append(i).append(" (").append(Types.getAsString(type))
 					.append(")\n\t//\n");
 
-			logger.warn("{}-th parameter has no @In or @Out annotation!", i);
+			logger.warn("{}-{} parameter has no @In or @Out annotation!", i, i==1 ? "st" : i==2 ? "nd" : i==3 ? "rd" : "th");
 			if (!type.isPrimitive()) {
-				logger.trace("{}-th parameter will be passed in as a null object", i);
+				logger.trace("{}-{} parameter will be passed in as a null object", i, i==1 ? "st" : i==2 ? "nd" : i==3 ? "rd" : "th");
 				code.append("\t").append(Types.getAsString(type)).append(" arg").append(i).append(" = null;\n");
 				code.append("\ttrace.append(\"arg").append(i).append("\").append(\" => null, \");\n");
 				if (doValidation) {
@@ -1324,9 +1327,9 @@ public class ActionProxyBuilder {
 					code.append("\tif(validationValues != null) validationValues.add(null);\n");
 				}
 			} else {
-				logger.trace("{}-th parameter is a primitive type", i);
+				logger.trace("{}-{} parameter is a primitive type", i, i==1 ? "st" : i==2 ? "nd" : i==3 ? "rd" : "th");
 				if (type == Boolean.TYPE) {
-					logger.trace("{}-th parameter will be passed in as a boolean 'false'", i);
+					logger.trace("{}-{} parameter will be passed in as a boolean 'false'", i, i==1 ? "st" : i==2 ? "nd" : i==3 ? "rd" : "th");
 					code.append("\tboolean arg").append(i).append(" = false;\n");
 					code.append("\ttrace.append(\"arg").append(i).append("\").append(\" => false, \");\n");
 					if (doValidation) {
@@ -1334,7 +1337,7 @@ public class ActionProxyBuilder {
 						code.append("\tif(validationValues != null) validationValues.add(new java.lang.Boolean(false));\n");
 					}
 				} else if (type == Character.TYPE) {
-					logger.trace("{}-th parameter will be passed in as a character ' '", i);
+					logger.trace("{}-{} parameter will be passed in as a character ' '", i, i==1 ? "st" : i==2 ? "nd" : i==3 ? "rd" : "th");
 					code.append("\tchar arg").append(i).append(" = ' ';\n");
 					code.append("\ttrace.append(\"arg").append(i).append("\").append(\" => ' ', \");\n");
 					if (doValidation) {
@@ -1342,7 +1345,7 @@ public class ActionProxyBuilder {
 						code.append("\tif(validationValues != null) validationValues.add(new java.lang.Character' ');\n");
 					}
 				} else if (type == Byte.TYPE) {
-					logger.trace("{}-th parameter will be passed in as a byte '0'", i);
+					logger.trace("{}-{} parameter will be passed in as a byte '0'", i, i==1 ? "st" : i==2 ? "nd" : i==3 ? "rd" : "th");
 					code.append("\tbyte arg").append(i).append(" = 0;\n");
 					code.append("\ttrace.append(\"arg").append(i).append("\").append(\" => 0, \");\n");
 					if (doValidation) {
@@ -1350,7 +1353,7 @@ public class ActionProxyBuilder {
 						code.append("\tif(validationValues != null) validationValues.add(new java.lang.Byte(0));\n");
 					}
 				} else if (type == Short.TYPE) {
-					logger.trace("{}-th parameter will be passed in as a short '0'", i);
+					logger.trace("{}-{} parameter will be passed in as a short '0'", i, i==1 ? "st" : i==2 ? "nd" : i==3 ? "rd" : "th");
 					code.append("\tshort arg").append(i).append(" = 0;\n");
 					code.append("\ttrace.append(\"arg").append(i).append("\").append(\" => 0, \");\n");
 					if (doValidation) {
@@ -1358,7 +1361,7 @@ public class ActionProxyBuilder {
 						code.append("\tif(validationValues != null) validationValues.add(new java.lang.Short(0));\n");
 					}
 				} else if (type == Integer.TYPE) {
-					logger.trace("{}-th parameter will be passed in as an integer '0'", i);
+					logger.trace("{}-{} parameter will be passed in as an integer '0'", i, i==1 ? "st" : i==2 ? "nd" : i==3 ? "rd" : "th");
 					code.append("\tint arg").append(i).append(" = 0;\n");
 					code.append("\ttrace.append(\"arg").append(i).append("\").append(\" => 0, \");\n");
 					if (doValidation) {
@@ -1366,7 +1369,7 @@ public class ActionProxyBuilder {
 						code.append("\tif(validationValues != null) validationValues.add(new java.lang.Integer(0));\n");
 					}
 				} else if (type == Long.TYPE) {
-					logger.trace("{}-th parameter will be passed in as a long '0'", i);
+					logger.trace("{}-{} parameter will be passed in as a long '0'", i, i==1 ? "st" : i==2 ? "nd" : i==3 ? "rd" : "th");
 					code.append("\tlong arg").append(i).append(" = 0;\n");
 					code.append("\ttrace.append(\"arg").append(i).append("\").append(\" => 0, \");\n");
 					if (doValidation) {
@@ -1374,7 +1377,7 @@ public class ActionProxyBuilder {
 						code.append("\tif(validationValues != null) validationValues.add(new java.lang.Long(0));\n");
 					}
 				} else if (type == Float.TYPE) {
-					logger.trace("{}-th parameter will be passed in as a float '0.0'", i);
+					logger.trace("{}-{} parameter will be passed in as a float '0.0'", i, i==1 ? "st" : i==2 ? "nd" : i==3 ? "rd" : "th");
 					code.append("\tfloat arg").append(i).append(" = 0.0;\n");
 					code.append("\ttrace.append(\"arg").append(i).append("\").append(\" => 0.0, \");\n");
 					if (doValidation) {
@@ -1382,7 +1385,7 @@ public class ActionProxyBuilder {
 						code.append("\tif(validationValues != null) validationValues.add(new java.lang.Float(0.0));\n");
 					}
 				} else if (type == Double.TYPE) {
-					logger.trace("{}-th parameter will be passed in as a float '0.0'", i);
+					logger.trace("{}-{} parameter will be passed in as a float '0.0'", i, i==1 ? "st" : i==2 ? "nd" : i==3 ? "rd" : "th");
 					code.append("\tdouble arg").append(i).append(" = 0.0;\n");
 					code.append("\ttrace.append(\"arg").append(i).append("\").append(\" => 0.0, \");\n");
 					if (doValidation) {

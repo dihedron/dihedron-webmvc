@@ -56,16 +56,16 @@ public class JspRenderer extends AbstractRenderer {
 			String url = response.encodeURL(data);
 			logger.trace("rendering URL '{}'", url);
 			RequestDispatcher dispatcher = null;
-			if(url.startsWith("/")) {
-				 response.sendRedirect(url);
-			} else {
+//			if(url.startsWith("/")) {
+//				 response.sendRedirect(url);
+//			} else {
 				dispatcher = request.getRequestDispatcher(url);
 				if (dispatcher == null) {
 					logger.error("'{}' is not a valid include path (jsp)", data);
 				} else {
 					dispatcher.forward(request, response);
 				}
-			}	
+//			}	
 		}
 		catch(ServletException e) {
 			logger.error("error re-routing and forwaring request to JSP '{}'", data);
